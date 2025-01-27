@@ -1,32 +1,32 @@
 # --- COMPOSER
-composer.phar
-/vendor/
+php/composer.phar
+/php/vendor/
 
 # Commit your application's lock file https://getcomposer.org/doc/01-basic-usage.md#commit-your-composer-lock-file-to-version-control
 # You may choose to ignore a library lock file http://getcomposer.org/doc/02-libraries.md#lock-file
 # composer.lock
 
 # --- VUE 2(3)
-.DS_Store
-node_modules
-/dist
+vue/.DS_Store
+vue/node_modules
+/vue/dist
 
 
 # local env files
-.env.local
-.env.*.local
+vue/.env.local
+vue/.env.*.local
 
 # Log files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+vue/npm-debug.log*
+vue/yarn-debug.log*
+vue/yarn-error.log*
+vue/pnpm-debug.log*
 
 # Editor directories and files
-.idea
-.vscode
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+vue/.idea
+vue/.vscode
+vue/*.suo
+vue/*.ntvs*
+vue/*.njsproj
+vue/*.sln
+vue/*.sw?
