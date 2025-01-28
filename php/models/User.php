@@ -57,4 +57,25 @@ class User
         }
         return false;
     }
+
+    public function getById()
+    {
+        $query = "SELECT id, email
+                FROM " . $this->table_name . "
+                WHERE id = :id
+                LIMIT 0,1";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $this->id);
+        $stmt->execute();
+
+        if ($stmt->rowCount() > 0) {
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return array(
+                'id' => $row['id'],
+                'email' => $row['email']
+            );
+        }
+        return false;
+    }
 }

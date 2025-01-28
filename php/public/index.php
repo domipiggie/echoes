@@ -10,6 +10,7 @@ require_once '../config/core.php';
 require_once '../controllers/AuthController.php';
 require_once '../middleware/AuthMiddleware.php';
 require_once '../models/User.php';
+require_once '../models/RefreshToken.php';
 
 $database = new Database();
 $db = $database->getConnection();
@@ -48,6 +49,36 @@ switch ($uri[1]) {
                 "message" => "Access granted.",
                 "user" => $user
             ));
+        } else {
+            echo json_encode(array('message' => 'Invalid method.'));
+        }
+        break;
+
+    case 'refresh':
+        if ($request_method == "POST") {
+            $data = json_decode(file_get_contents("php://input"), true);
+            if (isset($data['refresh_token'])) {
+                $result = $auth->refresh($data['refresh_token']);
+                echo json_encode($result);
+            } else {
+                http_response_code(400);
+                echo json_encode(array("message" => "Refresh token is required"));
+            }
+        } else {
+            echo json_encode(array('message' => 'Invalid method.'));
+        }
+        break;
+
+    case 'logout':
+        if ($request_method == "POST") {
+            $data = json_decode(file_get_contents("php://input"), true);
+            if (isset($data['refresh_token'])) {
+                $result = $auth->logout($data['refresh_token']);
+                echo json_encode($result);
+            } else {
+                http_response_code(400);
+                echo json_encode(array("message" => "Refresh token is required"));
+            }
         } else {
             echo json_encode(array('message' => 'Invalid method.'));
         }
