@@ -3,7 +3,8 @@ error_reporting(E_ALL);
 date_default_timezone_set('UTC');
 
 //---JWT VARIABLES---
-define('SECRET_KEY', 'verysecureandsecretkeythatiwrotehereforsecurity');
-define('ALGORITHM', 'HS256');
-define('ISSUER', 'http://localhost/');
-define('AUDIENCE', 'http://localhost/');
+define('JWT_SECRET_KEY', 'verysecureandsecretkeythatiwrotehereforsecurity');
+define('JWT_ALGORITHM', 'HS256');
+define('JWT_ISSUER', 'http://localhost/');
+define('JWT_AUDIENCE', 'http://localhost/');
+define('JWT_EXPIRATION_TIME', 3600);
