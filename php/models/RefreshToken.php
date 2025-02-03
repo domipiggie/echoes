@@ -2,25 +2,25 @@
 class RefreshToken
 {
     private $conn;
-    private $table_name = "refresh_tokens";
+    private $table_name = "refresh_token";
 
     public function __construct($db)
     {
         $this->conn = $db;
     }
 
-    public function create($userId)
+    public function create($userID)
     {
         $token = bin2hex(random_bytes(32));
         $expires_at = date('Y-m-d H:i:s', strtotime('+30 days'));
 
         $query = "INSERT INTO " . $this->table_name . "
-                (user_id, token, expires_at)
-                VALUES (:user_id, :token, :expires_at)";
+                (userID, token, expires_at)
+                VALUES (:userID, :token, :expires_at)";
 
         $stmt = $this->conn->prepare($query);
 
-        $stmt->bindParam(":user_id", $userId);
+        $stmt->bindParam(":userID", $userID);
         $stmt->bindParam(":token", $token);
         $stmt->bindParam(":expires_at", $expires_at);
 
@@ -35,7 +35,7 @@ class RefreshToken
 
     public function validate($token)
     {
-        $query = "SELECT user_id, expires_at, revoked 
+        $query = "SELECT userID, expires_at, revoked 
                  FROM " . $this->table_name . "
                  WHERE token = :token
                  LIMIT 1";
@@ -55,7 +55,7 @@ class RefreshToken
                 throw new Exception("Refresh token has expired");
             }
 
-            return $row['user_id'];
+            return $row['userID'];
         }
         throw new Exception("Invalid refresh token");
     }

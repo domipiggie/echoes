@@ -2,9 +2,10 @@
 class User
 {
     private $conn;
-    private $table_name = "users";
+    private $table_name = "user";
 
-    public $id;
+    public $userID;
+    public $username;
     public $email;
     public $password;
 
@@ -18,16 +19,19 @@ class User
         $query = "INSERT INTO " . $this->table_name . "
                 SET
                     email = :email,
+                    username = :username,
                     password = :password";
 
         $stmt = $this->conn->prepare($query);
 
         $this->email = htmlspecialchars(strip_tags($this->email));
+        $this->username = htmlspecialchars(strip_tags($this->username));
         $this->password = htmlspecialchars(strip_tags($this->password));
 
-        $password_hash = password_hash($this->password, PASSWORD_BCRYPT);
+        $password_hash = hash('sha256', $this->password);
 
         $stmt->bindParam(':email', $this->email);
+        $stmt->bindParam(':username', $this->username);
         $stmt->bindParam(':password', $password_hash);
 
         if ($stmt->execute()) {
@@ -36,9 +40,53 @@ class User
         return false;
     }
 
+    public function getById()
+    {
+        $query = "SELECT userID, username, email, password
+                FROM " . $this->table_name . "
+                WHERE userID = :userID
+                LIMIT 0,1";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':userID', $this->userID);
+        $stmt->execute();
+
+        if ($stmt->rowCount() > 0) {
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $this->userID = $row['userID'];
+            $this->email = $row['email'];
+            $this->username = $row['username'];
+            $this->password = $row['password'];
+            return true;
+        }
+        return false;
+    }
+
+    public function getByEmail()
+    {
+        $query = "SELECT userID, username, email, password
+                FROM " . $this->table_name . "
+                WHERE email = :email
+                LIMIT 0,1";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':email', $this->email);
+        $stmt->execute();
+
+        if ($stmt->rowCount() > 0) {
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $this->userID = $row['userID'];
+            $this->email = $row['email'];
+            $this->username = $row['username'];
+            $this->password = $row['password'];
+            return true;
+        }
+        return false;
+    }
+
     public function emailExists()
     {
-        $query = "SELECT id, email, password
+        $query = "SELECT email
                 FROM " . $this->table_name . "
                 WHERE email = ?
                 LIMIT 0,1";
@@ -49,33 +97,22 @@ class User
 
         $num = $stmt->rowCount();
 
-        if ($num > 0) {
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            $this->id = $row['id'];
-            $this->password = $row['password'];
-            return true;
-        }
-        return false;
+        return $num > 0;
     }
 
-    public function getById()
+    public function usernameExists()
     {
-        $query = "SELECT id, email
+        $query = "SELECT username
                 FROM " . $this->table_name . "
-                WHERE id = :id
+                WHERE username = ?
                 LIMIT 0,1";
 
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':id', $this->id);
+        $stmt->bindParam(1, $this->username);
         $stmt->execute();
 
-        if ($stmt->rowCount() > 0) {
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            return array(
-                'id' => $row['id'],
-                'email' => $row['email']
-            );
-        }
-        return false;
+        $num = $stmt->rowCount();
+
+        return $num > 0;
     }
 }

@@ -15,7 +15,7 @@ class AuthController
         $this->refreshToken = new RefreshToken($db);
     }
 
-    private function generateAccessToken($userId, $email)
+    private function generateAccessToken($userID, $username, $email)
     {
         $issuedAt = time();
         $expirationTime = $issuedAt + JWT_EXPIRATION_TIME;
@@ -28,7 +28,8 @@ class AuthController
             "exp" => $expirationTime,
             "jti" => base64_encode(random_bytes(16)),
             "data" => array(
-                "id" => $userId,
+                "id" => $userID,
+                "username" => $username,
                 "email" => $email
             )
         );
@@ -47,12 +48,11 @@ class AuthController
         $this->user->email = $data['email'];
 
         if (
-            $this->user->emailExists() &&
-            password_verify($data['password'], $this->user->password)
+            $this->user->getByEmail() &&
+            hash_equals(hash('sha256', $data['password']), $this->user->password)
         ) {
-
-            $accessToken = $this->generateAccessToken($this->user->id, $this->user->email);
-            $refreshToken = $this->refreshToken->create($this->user->id);
+            $accessToken = $this->generateAccessToken($this->user->userID, $this->user->username, $this->user->email);
+            $refreshToken = $this->refreshToken->create($this->user->userID);
 
             return array(
                 "status" => "success",
@@ -73,15 +73,20 @@ class AuthController
     public function register($data)
     {
         // check for email and password in request body
-        if (!isset($data['email']) || !isset($data['password']))
-            return array("message" => "You must enter an email and a password!");
+        if (!isset($data['email']) || !isset($data['username']) || !isset($data['password']))
+            return array("message" => "You must enter an email, username and password!");
 
         $this->user->email = $data['email'];
+        $this->user->username = $data['username'];
         $this->user->password = $data['password'];
 
         // check if e-mail already in use
         if ($this->user->emailExists())
             return array("message" => "E-mail already in use!");
+
+        // check if username already in use
+        if ($this->user->usernameExists())
+            return array("message" => "Username already in use!");
 
         // create user
         if ($this->user->create())
@@ -94,19 +99,18 @@ class AuthController
     public function refresh($refreshToken)
     {
         try {
-            $userId = $this->refreshToken->validate($refreshToken);
+            $userID = $this->refreshToken->validate($refreshToken);
 
-            $this->user->id = $userId;
-            $userDetails = $this->user->getById();
+            $this->user->userID = $userID;
 
-            if (!$userDetails) {
+            if (!$this->user->getById()) {
                 throw new Exception("User not found");
             }
 
-            $accessToken = $this->generateAccessToken($userId, $userDetails['email']);
+            $accessToken = $this->generateAccessToken($userID, $this->user->username, $this->user->email);
 
             $this->refreshToken->revoke($refreshToken);
-            $newRefreshToken = $this->refreshToken->create($userId);
+            $newRefreshToken = $this->refreshToken->create($userID);
 
             return array(
                 "status" => "success",
