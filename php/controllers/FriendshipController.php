@@ -58,5 +58,29 @@ class FriendshipController
             );
         }
     }
+
+    public function acceptFriendRequest($user, $data)
+    {
+        if (!isset($data['userID'])) {
+            return array("message" => "UserID not provided!");
+        }
+
+        $this->friendship->user1ID = $user->id;
+        $this->friendship->user2ID = $data['userID'];
+
+        if (!FriendshipMiddleware::validateUserIDs($this->friendship)) {
+            return array("status" => "UserIDs can't match.");
+        }
+
+        if ($this->friendship->acceptFriendRequest()) {
+            return array(
+                "status" => "Successfully accepted friend request!"
+            );
+        } else {
+            return array(
+                "status" => "Error while accepting friend request!"
+            );
+        }
+    }
 }
 ?>

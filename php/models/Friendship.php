@@ -37,7 +37,8 @@ class Friendship
 
     public function sendFriendRequest()
     {
-        if ($this->doesFriendrequestExist()) return false;
+        if ($this->doesFriendrequestExist())
+            return false;
 
         $query = "INSERT INTO " . $this->request_table . "
                 SET
@@ -68,7 +69,8 @@ class Friendship
 
     public function declineFriendRequest()
     {
-        if (!$this->doesFriendrequestExist()) return false;
+        if (!$this->doesFriendrequestExist())
+            return false;
         $query = "DELETE FROM " . $this->request_table . "
                 WHERE
                     user1ID = :user1ID AND user2ID = :user2ID
@@ -87,6 +89,8 @@ class Friendship
 
     public function acceptFriendRequest()
     {
+        if (!$this->doesFriendrequestExist())
+            return false;
         $this->declineFriendRequest();
         $query = "INSERT INTO " . $this->friendship_table . "
                 SET
