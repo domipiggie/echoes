@@ -65,5 +65,42 @@ class Friendship
         }
         return false;
     }
+
+    public function declineFriendRequest()
+    {
+        if (!$this->doesFriendrequestExist()) return false;
+        $query = "DELETE FROM " . $this->request_table . "
+                WHERE
+                    user1ID = :user1ID AND user2ID = :user2ID
+                    OR
+                    user1ID = :user2ID AND user2ID = :user1ID";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user1ID', $this->user1ID);
+        $stmt->bindParam(':user2ID', $this->user2ID);
+
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }
+
+    public function acceptFriendRequest()
+    {
+        $this->declineFriendRequest();
+        $query = "INSERT INTO " . $this->friendship_table . "
+                SET
+                    user1ID = :user1ID,
+                    user2ID = :user2ID";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user1ID', $this->user1ID);
+        $stmt->bindParam(':user2ID', $this->user2ID);
+
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }
 }
 ?>

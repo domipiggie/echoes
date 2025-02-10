@@ -14,23 +14,47 @@ class FriendshipController
         if (!isset($data['userID'])) {
             return array("message" => "UserID not provided!");
         }
-        
+
         $this->friendship->user1ID = $user->id;
         $this->friendship->user2ID = $data['userID'];
 
-        if (!FriendshipMiddleware::validateUserIDs($this->friendship)){
+        if (!FriendshipMiddleware::validateUserIDs($this->friendship)) {
             return array(
-                "status"=>"UserIDs can't match."
+                "status" => "UserIDs can't match."
             );
         }
 
         if ($this->friendship->sendFriendRequest()) {
             return array(
-                "status"=>"Successfully added friend!"
+                "status" => "Successfully added friend!"
             );
         } else {
             return array(
-                "status"=>"Error while adding friend!"
+                "status" => "Error while adding friend!"
+            );
+        }
+    }
+
+    public function declineFriendRequest($user, $data)
+    {
+        if (!isset($data['userID'])) {
+            return array("message" => "UserID not provided!");
+        }
+
+        $this->friendship->user1ID = $user->id;
+        $this->friendship->user2ID = $data['userID'];
+
+        if (!FriendshipMiddleware::validateUserIDs($this->friendship)) {
+            return array("status" => "UserIDs can't match.");
+        }
+
+        if ($this->friendship->declineFriendRequest()) {
+            return array(
+                "status" => "Successfully denied friend request!"
+            );
+        } else {
+            return array(
+                "status" => "Error while denying friend request!"
             );
         }
     }

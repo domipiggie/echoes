@@ -98,6 +98,17 @@ switch ($uri[1]) {
         }
         break;
 
+    case 'declinefriend':
+        if ($request_method == "POST") {
+            $user = AuthMiddleware::validateToken();
+            $data = json_decode(file_get_contents("php://input"), true);
+            $result = $friendship->declineFriendRequest($user, $data);
+            echo json_encode($result);
+        } else {
+            invalidMethodResponse();
+        }
+        break;
+
     default:
         http_response_code(404);
         echo json_encode(array("message" => "Route not found."));
