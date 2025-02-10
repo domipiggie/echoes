@@ -4,13 +4,11 @@ use \Firebase\JWT\JWT;
 
 class AuthController
 {
-    private $conn;
     private $user;
     private $refreshToken;
 
     public function __construct($db)
     {
-        $this->conn = $db;
         $this->user = new User($db);
         $this->refreshToken = new RefreshToken($db);
     }

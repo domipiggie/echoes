@@ -8,13 +8,16 @@ header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers
 require_once '../config/database.php';
 require_once '../config/core.php';
 require_once '../controllers/AuthController.php';
+require_once '../controllers/FriendshipController.php';
 require_once '../middleware/AuthMiddleware.php';
 require_once '../models/User.php';
 require_once '../models/RefreshToken.php';
+require_once '../models/Friendship.php';
 
 $database = new Database();
 $db = $database->getConnection();
 $auth = new AuthController($db);
+$friendship = new FriendshipController($db);
 
 $request_method = $_SERVER["REQUEST_METHOD"];
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -28,7 +31,7 @@ switch ($uri[1]) {
             $result = $auth->register($data);
             echo json_encode($result);
         } else {
-            echo json_encode(array('message' => 'Invalid method.'));
+            invalidMethodResponse();
         }
         break;
 
@@ -38,7 +41,7 @@ switch ($uri[1]) {
             $result = $auth->login($data);
             echo json_encode($result);
         } else {
-            echo json_encode(array('message' => 'Invalid method.'));
+            invalidMethodResponse();
         }
         break;
 
@@ -47,10 +50,10 @@ switch ($uri[1]) {
             $user = AuthMiddleware::validateToken();
             echo json_encode(array(
                 "message" => "Access granted.",
-                "user" => $user
+                "user" => $user->id
             ));
         } else {
-            echo json_encode(array('message' => 'Invalid method.'));
+            invalidMethodResponse();
         }
         break;
 
@@ -65,7 +68,7 @@ switch ($uri[1]) {
                 echo json_encode(array("message" => "Refresh token is required"));
             }
         } else {
-            echo json_encode(array('message' => 'Invalid method.'));
+            invalidMethodResponse();
         }
         break;
 
@@ -80,7 +83,18 @@ switch ($uri[1]) {
                 echo json_encode(array("message" => "Refresh token is required"));
             }
         } else {
-            echo json_encode(array('message' => 'Invalid method.'));
+            invalidMethodResponse();
+        }
+        break;
+
+    case 'addfriend':
+        if ($request_method == "POST") {
+            $user = AuthMiddleware::validateToken();
+            $data = json_decode(file_get_contents("php://input"), true);
+            $result = $friendship->sendFriendRequest($user, $data);
+            echo json_encode($result);
+        } else {
+            invalidMethodResponse();
         }
         break;
 
@@ -88,4 +102,9 @@ switch ($uri[1]) {
         http_response_code(404);
         echo json_encode(array("message" => "Route not found."));
         break;
+}
+
+function invalidMethodResponse(){
+    http_response_code(405);
+    echo json_encode(array('message' => 'Invalid method.'));
 }
