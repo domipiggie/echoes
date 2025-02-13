@@ -1,5 +1,5 @@
 <?php
-require_once '../middleware/FriendshipMiddleware.php';
+require_once '../src/middleware/FriendshipMiddleware.php';
 class FriendshipController
 {
     private $friendship;

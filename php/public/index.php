@@ -5,6 +5,13 @@ header("Access-Control-Allow-Methods: POST, GET");
 header("Access-Control-Max-Age: 3600");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    header("Access-Control-Allow-Origin: *");
+    header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
+    header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    exit();
+}
+
 require_once '../src/config/database.php';
 require_once '../src/config/core.php';
 require_once '../src/controllers/AuthController.php';

@@ -1,4 +1,18 @@
 <script setup>
+import { ref,defineEmits } from 'vue';
+
+const emits = defineEmits(['register']);
+
+const username = ref("");
+const birthdate = ref("");
+const email = ref("");
+const password1 = ref("");
+const password2 = ref("");
+
+const register = () => {
+  //TODO: add form check
+  emits('register',username.value, birthdate.value, email.value, password1.value);
+}
 </script>
 
 <template>
@@ -12,7 +26,7 @@
         <input type="password" placeholder="jelszó" />
         <input type="password" placeholder="jelszó újra" />
         <a href="#">Elfelejtetted a jelszavad?</a>
-        <button>Regisztráció</button>
+        <button @click.prevent = "register">Regisztráció</button>
       </form>
     </div>
   </template>

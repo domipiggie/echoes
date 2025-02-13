@@ -1,5 +1,15 @@
-<script>
+<script setup>
+import { ref,defineEmits } from 'vue';
 
+const emits = defineEmits(['login']);
+
+const email = ref("");
+const password = ref("");
+
+const login = () => {
+  //TODO: from validation
+  emits('login',email.value, password.value);
+}
 </script>
 
 <template>
@@ -9,7 +19,7 @@
         <span>Jelentkezz be gyorsan!</span>
         <input type="text" placeholder="Felhasználónév vagy email" />
         <input type="password" placeholder="Jelszó" />
-        <button>Bejelentkezés</button>
+        <button @click.prevent="login">Bejelentkezés</button>
       </form>
     </div>
 </template>

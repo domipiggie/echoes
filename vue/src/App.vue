@@ -6,7 +6,6 @@ import AuthContainer from './components/AuthContainer.vue'
 <template>
   <div>
     <AuthContainer />
-    <AuthFooter />
   </div>
   <footer>
     <p>Copyright - All rights reserved! &copy;</p>
