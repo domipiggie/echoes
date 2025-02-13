@@ -5,8 +5,8 @@
     <div class="overlay-container">
       <div class="overlay">
         <div class="overlay-panel overlay-left">
-          <h1>Oh baszd ki!</h1>
-          <p>ha még nem regisztráltál, itt megteheted!</p>
+          <h1> "A new era!"</h1>
+          <p>Ha még nem regisztráltál, itt megteheted!</p>
           <button class="ghost" @click="$emit('deactivate-right-panel')">
             Regisztráció
           </button>
@@ -22,7 +22,8 @@
     </div>
 </template>
 
-<style scoped>
-</style>
+
+
+
 
  
