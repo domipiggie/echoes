@@ -36,4 +36,33 @@ class FriendshipStatus
         $this->statusID = $this->conn->lastInsertId();
         $this->status = 0;
     }
+
+    public function removeEntry()
+    {
+        $query = "DELETE FROM " . $this->status_table . "
+                WHERE
+                    statusID = :statusID";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':statusID', $this->statusID);
+        $stmt->execute();
+    }
+
+    public function updateStatus($status)
+    {
+        $query = "UPDATE " . $this->status_table . "
+                SET
+                    status = :newStatus
+                WHERE
+                    statusID = :statusID";
+                
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':newStatus', $status);
+        $stmt->bindParam(':statusID', $this->statusID);
+        $stmt->execute();
+        if ($stmt->rowCount() > 0){
+            return true;
+        }
+        return false;
+    }
 }

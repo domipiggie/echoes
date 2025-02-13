@@ -77,9 +77,9 @@ class Friendship
 
     public function declineFriendRequest()
     {
-        if (!$this->doesFriendrequestExist())
+        if (!$this->doesFriendshipExist())
             return false;
-        $query = "DELETE FROM " . $this->request_table . "
+        $query = "DELETE FROM " . $this->friendship_table . "
                 WHERE
                     user1ID = :user1ID AND user2ID = :user2ID
                     OR
@@ -90,6 +90,7 @@ class Friendship
         $stmt->bindParam(':user2ID', $this->user2ID);
 
         if ($stmt->execute()) {
+            $this->friendshipStatus->removeEntry();
             return true;
         }
         return false;
@@ -97,19 +98,10 @@ class Friendship
 
     public function acceptFriendRequest()
     {
-        if (!$this->doesFriendrequestExist())
+        if (!$this->doesFriendshipExist())
             return false;
-        $this->declineFriendRequest();
-        $query = "INSERT INTO " . $this->friendship_table . "
-                SET
-                    user1ID = :user1ID,
-                    user2ID = :user2ID";
 
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':user1ID', $this->user1ID);
-        $stmt->bindParam(':user2ID', $this->user2ID);
-
-        if ($stmt->execute()) {
+        if ($this->friendshipStatus->updateStatus(1)) {
             return true;
         }
         return false;
