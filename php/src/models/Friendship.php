@@ -1,14 +1,11 @@
 <?php
 class Friendship
 {
-    private $conn;
-    private $request_table = 'friendship_request';
     private $friendship_table = 'friendship';
-
+    private $conn;
     public $user1ID;
     public $user2ID;
-    public $isPending;
-    public $isBlock;
+    public $friendshipStatus;
 
 
     public function __construct($db)
@@ -16,12 +13,13 @@ class Friendship
         $this->conn = $db;
     }
 
-    public function doesFriendrequestExist()
+    public function doesFriendshipExist()
     {
-        $query = "SELECT * FROM " . $this->request_table . "
+        $query = "SELECT * FROM " . $this->friendship_table . "
                 WHERE
-                    user1ID = :user1ID AND
-                    user2ID = :user2ID";
+                    user1ID = :user1ID AND user2ID = :user2ID
+                    OR
+                    user1ID = :user2ID AND user2ID = :user1ID";
 
         $stmt = $this->conn->prepare($query);
 
@@ -30,6 +28,11 @@ class Friendship
 
         $stmt->execute();
         if ($stmt->rowCount() > 0) {
+            if (!isset($this->friendshipStatus)) {
+                $this->friendshipStatus = new FriendshipStatus($this->conn);
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                $this->friendshipStatus->loadFromRow($row);
+            }
             return true;
         }
         return false;
@@ -37,13 +40,17 @@ class Friendship
 
     public function sendFriendRequest()
     {
-        if ($this->doesFriendrequestExist())
+        if ($this->doesFriendshipExist())
             return false;
 
-        $query = "INSERT INTO " . $this->request_table . "
+        $this->friendshipStatus = new FriendshipStatus($this->conn);
+        $this->friendshipStatus->createNewEntry($this->user1ID);
+
+        $query = "INSERT INTO " . $this->friendship_table . "
                 SET
                     user1ID = :user1ID,
-                    user2ID = :user2ID";
+                    user2ID = :user2ID,
+                    statusID = :statusID";
 
         $stmt = $this->conn->prepare($query);
 
@@ -52,6 +59,7 @@ class Friendship
 
         $stmt->bindParam(':user1ID', $this->user1ID);
         $stmt->bindParam(':user2ID', $this->user2ID);
+        $stmt->bindParam(':statusID', $this->friendshipStatus->statusID);
 
         try {
             $this->conn->beginTransaction();

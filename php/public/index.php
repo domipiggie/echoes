@@ -20,6 +20,7 @@ require_once '../src/middleware/AuthMiddleware.php';
 require_once '../src/models/User.php';
 require_once '../src/models/RefreshToken.php';
 require_once '../src/models/Friendship.php';
+require_once '../src/models/FriendshipStatus.php';
 
 $database = new Database();
 $db = $database->getConnection();
