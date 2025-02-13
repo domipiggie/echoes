@@ -5,14 +5,14 @@ header("Access-Control-Allow-Methods: POST, GET");
 header("Access-Control-Max-Age: 3600");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
-require_once '../config/database.php';
-require_once '../config/core.php';
-require_once '../controllers/AuthController.php';
-require_once '../controllers/FriendshipController.php';
-require_once '../middleware/AuthMiddleware.php';
-require_once '../models/User.php';
-require_once '../models/RefreshToken.php';
-require_once '../models/Friendship.php';
+require_once '../src/config/database.php';
+require_once '../src/config/core.php';
+require_once '../src/controllers/AuthController.php';
+require_once '../src/controllers/FriendshipController.php';
+require_once '../src/middleware/AuthMiddleware.php';
+require_once '../src/models/User.php';
+require_once '../src/models/RefreshToken.php';
+require_once '../src/models/Friendship.php';
 
 $database = new Database();
 $db = $database->getConnection();
