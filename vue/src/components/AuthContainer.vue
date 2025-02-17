@@ -55,7 +55,7 @@ const testAccessToken = () => {
 </script>
 
 <template>
-	<button @click="testAccessToken">Login test</button>
+	<!--<button @click="testAccessToken">Login test</button>-->
 	<div class="container" :class="{ 'right-panel-active': isRightPanelActive }">
 		<LoginForm @login="sendLoginRequest" />
 		<RegisterForm @register="sendRegisterRequest" />
