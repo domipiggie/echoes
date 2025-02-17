@@ -31,7 +31,7 @@ class Friendship
             if (!isset($this->friendshipStatus)) {
                 $this->friendshipStatus = new FriendshipStatus($this->conn);
                 $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                $this->friendshipStatus->loadFromRow($row);
+                $this->friendshipStatus->loadFromDB($row['statusID']);
             }
             return true;
         }
@@ -96,9 +96,12 @@ class Friendship
         return false;
     }
 
-    public function acceptFriendRequest()
+    public function acceptFriendRequest($user)
     {
         if (!$this->doesFriendshipExist())
+            return false;
+
+        if (!$this->friendshipStatus->initiator == $user)
             return false;
 
         if ($this->friendshipStatus->updateStatus(1)) {

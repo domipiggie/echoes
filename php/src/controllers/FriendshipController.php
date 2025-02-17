@@ -72,7 +72,7 @@ class FriendshipController
             return array("status" => "UserIDs can't match.");
         }
 
-        if ($this->friendship->acceptFriendRequest()) {
+        if ($this->friendship->acceptFriendRequest($user->id)) {
             return array(
                 "status" => "Successfully accepted friend request!"
             );
