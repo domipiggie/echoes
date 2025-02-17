@@ -21,6 +21,7 @@
       </div>
     </div>
 </template>
+
 <style scoped>
 .overlay-container {
   position: absolute;
@@ -38,9 +39,9 @@
 }
 
 .overlay {
-  background: #FF416C;
-  background: -webkit-linear-gradient(to right, #FF4B2B, #FF416C);
-  background: linear-gradient(to right, #FF4B2B, #FF416C);
+  background: #7078e6;
+  background: -webkit-linear-gradient(to right, #5a62d3, #7078e6);
+  background: linear-gradient(to right, #5a62d3, #7078e6);
   background-repeat: no-repeat;
   background-size: cover;
   background-position: 0 0;

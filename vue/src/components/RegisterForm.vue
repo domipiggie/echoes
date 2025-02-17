@@ -38,25 +38,25 @@ const register = () => {
   <div class="form-container sign-in-container">
     <form @submit.prevent="register">
       <h1>Mielőtt chatelnél...</h1>
-      <span>Regisztrálj egy fiókot pár kattintással!</span>
+      <span class="alcim">Regisztrálj egy fiókot pár kattintással!</span>
       
-      <input type="text" v-model="username" placeholder="Felhasználónév" :class="{ 'error': errors.username }" />
+      <input type="text" v-model="username" placeholder="Felhasználónév" :class="{ 'error': errors.username }" style="font-style: italic;"/>
       <span v-if="errors.username" class="error-text">Hibás!</span>
 
-      <input type="date" v-model="birthdate" placeholder="Születési dátum" :class="{ 'error': errors.birthdate }" />
+      <input type="date" v-model="birthdate" placeholder="Születési dátum" :class="{ 'error': errors.birthdate }" style="font-style: italic;"/>
       <span v-if="errors.birthdate" class="error-text">Érvénytelen dátum!</span>
 
-      <input type="email" v-model="email" placeholder="Email cím" :class="{ 'error': errors.email }" />
+      <input type="email" v-model="email" placeholder="Email cím" :class="{ 'error': errors.email }" style="font-style: italic;"/>
       <span v-if="errors.email" class="error-text">Érvénytelen email!</span>
 
-      <input type="password" v-model="password1" placeholder="Jelszó" :class="{ 'error': errors.password1 }" />
+      <input type="password" v-model="password1" placeholder="Jelszó" :class="{ 'error': errors.password1 }" style="font-style: italic;"/>
       <span v-if="errors.password1" class="error-text">Hiba! (Minimum 6 karakter szükséges)</span>
 
-      <input type="password" v-model="password2" placeholder="Jelszó újra" :class="{ 'error': errors.password2 }" />
+      <input type="password" v-model="password2" placeholder="Jelszó újra" :class="{ 'error': errors.password2 }" style="font-style: italic;"/>
       <span v-if="errors.password2" class="error-text">Hiba! (Nem egyezik az első jelszóval)</span>
 
       <a href="#">Elfelejtetted a jelszavad?</a>
-      <button type="submit">Regisztráció</button>
+      <button type="submit" class="registration">Regisztráció</button>
     </form>
   </div>
 </template>
@@ -84,12 +84,13 @@ form {
 }
 
 input {
-  background-color: #eee;
+  background-color: #ffffff;
   border: none;
   padding: 12px 15px;
   margin: 8px 0;
   width: 100%;
-  border: 2px solid transparent;
+  border: 1px solid #dcdef5;
+  border-radius: 5px;
 }
 
 input.error {
@@ -98,8 +99,18 @@ input.error {
 
 .error-text {
   color: red;
-  font-size: 14px;
+  font-size: 12px;
   margin-bottom: 8px;
+}
+
+.registration{
+  background-color: #7078e6;
+}
+h1{
+  color: #7078e6;
+}
+.alcim{
+  font-weight: bold;
 }
 </style>
 

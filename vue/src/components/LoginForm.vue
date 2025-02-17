@@ -1,28 +1,34 @@
 <script setup>
-import { ref,defineEmits } from 'vue';
+import { ref, defineEmits } from 'vue';
 
 const emits = defineEmits(['login']);
 
 const email = ref("");
 const password = ref("");
+const errorMessage = ref("");
 
 const login = () => {
-  //TODO: from validation
-  emits('login',email.value, password.value);
-}
+  if (!email.value || !password.value) {
+    errorMessage.value = "Hibás adatok!";
+    return;
+  }
+  emits('login', email.value, password.value);
+};
 </script>
 
 <template>
-    <div class="form-container sign-up-container">
-      <form action="#">
-        <h1>Üdv újra itt!</h1>
-        <span>Jelentkezz be gyorsan!</span>
-        <input type="text" placeholder="Felhasználónév vagy email" />
-        <input type="password" placeholder="Jelszó" />
-        <button @click.prevent="login">Bejelentkezés</button>
-      </form>
-    </div>
+  <div class="form-container sign-up-container">
+    <form @submit.prevent="login">
+      <h1>Üdv újra itt!</h1>
+      <span class="alcim">Jelentkezz be gyorsan!</span>
+      <input type="text" v-model="email" placeholder="Felhasználónév vagy email" :class="{ 'error': errorMessage }" style="font-style: italic;"/>
+      <input type="password" v-model="password" placeholder="Jelszó" :class="{ 'error': errorMessage }" style="font-style: italic;"/>
+      <span v-if="errorMessage" class="error-text">{{ errorMessage }}</span>
+      <button type="submit" class="registration">Bejelentkezés</button>
+    </form>
+  </div>
 </template>
+
 <style scoped>
 .sign-up-container {
   left: 0;
@@ -43,7 +49,6 @@ const login = () => {
     opacity: 0;
     z-index: 1;
   }
-  
   50%, 100% {
     opacity: 1;
     z-index: 5;
@@ -62,12 +67,32 @@ form {
 }
 
 input {
-  background-color: #eee;
+  background-color: #ffffff;
   border: none;
   padding: 12px 15px;
   margin: 8px 0;
   width: 100%;
+  border: 1px solid #dcdef5;
+  border-radius: 5px;
 }
 
+input.error {
+  border-color: red;
+}
+
+.error-text {
+  color: red;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.registration{
+  background-color: #7078e6;
+}
+h1{
+  color: #7078e6;
+}
+.alcim{
+  font-weight: bold;
+}
 </style>
 
