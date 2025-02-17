@@ -1,7 +1,8 @@
 <script setup>
-import { ref, defineEmits } from 'vue';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
-const emits = defineEmits(['login']);
+const router = useRouter();
 
 const email = ref("");
 const password = ref("");
@@ -12,9 +13,10 @@ const login = () => {
     errorMessage.value = "Hibás adatok!";
     return;
   }
-  emits('login', email.value, password.value);
+  router.push('/chat');
 };
 </script>
+
 
 <template>
   <div class="form-container sign-up-container">
