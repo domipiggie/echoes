@@ -12,11 +12,23 @@ class FriendshipStatus
         $this->conn = $db;
     }
 
-    public function loadFromRow($row)
+    public function loadFromDB($statusID)
     {
-        $this->statusID = $row['statusID'];
-        $this->initiator = $row['initiator'];
-        $this->status = $row['status'];
+        $query = "SELECT * FROM " . $this->status_table ."
+                WHERE 
+                    statusID = :statusID";
+            
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':statusID', $statusID);
+        $stmt->execute();
+        if ($stmt->rowCount() > 0) {
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $this->statusID = $row['statusID'];
+            $this->initiator = $row['initiator'];
+            $this->status = $row['status'];
+            return true;
+        }
+        return false;
     }
 
     public function createNewEntry($initiator)
