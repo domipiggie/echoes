@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { userdataStore } from '../store/UserdataStore';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
 import LoginForm from './LoginForm.vue'
 import RegisterForm from './RegisterForm.vue'
@@ -8,6 +9,7 @@ import OverlayContainer from './OverlayContainer.vue'
 
 const userdata = userdataStore();
 const isRightPanelActive = ref(false)
+const router = useRouter();
 
 const activateRightPanel = () => {
 	isRightPanelActive.value = true
@@ -36,8 +38,13 @@ const sendLoginRequest = (email, password) => {
 		password: password
 	})
 		.then(response => {
+			if (!response.data['access_token']) {
+				alert('nuh uh');
+				return;
+			}
 			userdata.setAccessToken(response.data['access_token']);
 			alert("Sikeres bejelentkezés!")
+			router.push("/chat")
 		})
 		.catch(exception => {
 			alert(exception);
@@ -51,6 +58,11 @@ const testAccessToken = () => {
 		.catch(exception => {
 			alert(exception);
 		})
+}
+</script>
+<script>
+export default {
+	name: 'Login'
 }
 </script>
 

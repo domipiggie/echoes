@@ -1,8 +1,7 @@
 <script setup>
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
 
-const router = useRouter();
+const emits = defineEmits(['login']);
 
 const email = ref("");
 const password = ref("");
@@ -25,7 +24,7 @@ const login = () => {
   }
 
   if (email.value && password.value) {
-    router.push({ name: 'Chat' });
+    emits('login', email.value, password.value);
   }
 };
 </script>

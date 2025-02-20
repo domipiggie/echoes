@@ -38,7 +38,11 @@ const sendMessage = (text) => {
   });
 };
 </script>
-
+<script>
+export default {
+  name: 'Chat'
+}
+</script>
 <template>
   <div class="chat-application">
     <SideBar :recents="recentChats" />

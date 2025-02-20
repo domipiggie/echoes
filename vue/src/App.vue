@@ -1,11 +1,12 @@
-<script setup>
-import AuthContainer from './components/AuthContainer.vue'
-
+<script>
+export default {
+  name: 'App'
+}
 </script>
 
 <template>
-  <div>
-    <AuthContainer />
+  <div id="app">
+    <router-view/>
   </div>
   <footer>
     <p>Copyright - All rights reserved! &copy;</p>
