@@ -6,14 +6,27 @@ const router = useRouter();
 
 const email = ref("");
 const password = ref("");
-const errorMessage = ref("");
+const errorMessageEmail = ref("");
+const errorMessagePassw = ref("");
+const errorMessage = ref(false);
 
 const login = () => {
-  if (!email.value || !password.value) {
-    errorMessage.value = "Hibás adatok!";
-    return;
+  errorMessage.value = false;
+  errorMessageEmail.value = "";
+  errorMessagePassw.value = "";
+
+  if (!email.value) {
+    errorMessageEmail.value = "Hibás e-mail cím!";
+    errorMessage.value = true;
   }
-  router.push('/chat');
+  if (!password.value) {
+    errorMessagePassw.value = "Hibás jelszó";
+    errorMessage.value = true;
+  }
+
+  if (email.value && password.value) {
+    router.push({ name: 'Chat' });
+  }
 };
 </script>
 
@@ -24,8 +37,9 @@ const login = () => {
       <h1>Üdv újra itt!</h1>
       <span class="alcim">Jelentkezz be gyorsan!</span>
       <input type="text" v-model="email" placeholder="Felhasználónév vagy email" :class="{ 'error': errorMessage }" style="font-style: italic;"/>
+      <span v-if="errorMessage" class="error-text">{{ errorMessageEmail }}</span>
       <input type="password" v-model="password" placeholder="Jelszó" :class="{ 'error': errorMessage }" style="font-style: italic;"/>
-      <span v-if="errorMessage" class="error-text">{{ errorMessage }}</span>
+      <span v-if="errorMessage" class="error-text">{{ errorMessagePassw }}</span>
       <button type="submit" class="registration">Bejelentkezés</button>
     </form>
   </div>

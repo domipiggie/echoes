@@ -71,9 +71,9 @@ const testAccessToken = () => {
 		0 10px 10px rgba(0, 0, 0, 0.22);
 	position: relative;
 	overflow: hidden;
-	width: 768px;
+	width: 900px;
 	max-width: 100%;
-	min-height: 480px;
+	min-height: 600px;
 }
 
 .form-container {
