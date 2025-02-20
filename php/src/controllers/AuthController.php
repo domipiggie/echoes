@@ -141,4 +141,70 @@ class AuthController
             );
         }
     }
+
+    public function handleRegister($data)
+    {
+        if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+            echo json_encode(['message' => 'Invalid method!']);
+            exit();
+        }
+
+        try {
+            AuthMiddleware::validateAuthData($data);
+        } catch (Exception $e) {
+            echo json_encode(['message' => $e->getMessage()]);
+            exit();
+        }
+
+        echo json_encode($this->register($data));
+    }
+
+    public function handleLogin($data)
+    {
+        if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+            echo json_encode(['message' => 'Invalid method!']);
+            exit();
+        }
+
+        try {
+            AuthMiddleware::validateAuthData($data);
+        } catch (Exception $e) {
+            echo json_encode(['message' => $e->getMessage()]);
+            exit();
+        }
+
+        echo json_encode($this->login($data));
+    }
+
+    public function handleRefresh($data)
+    {
+        if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+            echo json_encode(['message' => 'Invalid method!']);
+            exit();
+        }
+
+        if (isset($data['refresh_token'])) {
+            $result = $this->refresh($data['refresh_token']);
+            echo json_encode($result);
+        } else {
+            http_response_code(400);
+            echo json_encode(array("message" => "Refresh token is required"));
+        }
+    }
+
+    public function handleLogout($data)
+    {
+        if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+            echo json_encode(['message' => 'Invalid method!']);
+            exit();
+        }
+
+        if (isset($data['refresh_token'])) {
+            $result = $this->logout($data['refresh_token']);
+            echo json_encode($result);
+        } else {
+            http_response_code(400);
+            echo json_encode(array("message" => "Refresh token is required"));
+        }
+    }
 }

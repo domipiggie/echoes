@@ -82,5 +82,41 @@ class FriendshipController
             );
         }
     }
+
+    public function handleAddFriend($data)
+    {
+        if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+            echo json_encode(['message' => 'Invalid method!']);
+            exit();
+        }
+
+        $user = AuthMiddleware::validateToken();
+        $result = $this->sendFriendRequest($user, $data);
+        echo json_encode($result);
+    }
+
+    public function handleDeclineFriend($data)
+    {
+        if ($_SERVER['REQUEST_METHOD'] != 'PUT') {
+            echo json_encode(['message' => 'Invalid method!']);
+            exit();
+        }
+
+        $user = AuthMiddleware::validateToken();
+        $result = $this->declineFriendRequest($user, $data);
+        echo json_encode($result);
+    }
+
+    public function handleAcceptFriend($data)
+    {
+        if ($_SERVER['REQUEST_METHOD'] != 'PUT') {
+            echo json_encode(['message' => 'Invalid method!']);
+            exit();
+        }
+
+        $user = AuthMiddleware::validateToken();
+        $result = $this->acceptFriendRequest($user, $data);
+        echo json_encode($result);
+    }
 }
 ?>

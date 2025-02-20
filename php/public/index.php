@@ -1,16 +1,9 @@
 <?php
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: POST, GET");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE");
 header("Access-Control-Max-Age: 3600");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    header("Access-Control-Allow-Origin: *");
-    header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
-    header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization");
-    exit();
-}
 
 require_once '../src/config/database.php';
 require_once '../src/config/core.php';
@@ -30,27 +23,16 @@ $friendship = new FriendshipController($db);
 $request_method = $_SERVER["REQUEST_METHOD"];
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $uri = explode('/', $uri);
+$data = json_decode(file_get_contents("php://input"), true);
 
 // Routes
 switch ($uri[1]) {
     case 'register':
-        if ($request_method == "POST") {
-            $data = json_decode(file_get_contents("php://input"), true);
-            $result = $auth->register($data);
-            echo json_encode($result);
-        } else {
-            invalidMethodResponse();
-        }
+        $auth->handleRegister($data);
         break;
 
     case 'login':
-        if ($request_method == "POST") {
-            $data = json_decode(file_get_contents("php://input"), true);
-            $result = $auth->login($data);
-            echo json_encode($result);
-        } else {
-            invalidMethodResponse();
-        }
+        $auth->handleLogin($data);
         break;
 
     case 'protected':
@@ -66,66 +48,23 @@ switch ($uri[1]) {
         break;
 
     case 'refresh':
-        if ($request_method == "POST") {
-            $data = json_decode(file_get_contents("php://input"), true);
-            if (isset($data['refresh_token'])) {
-                $result = $auth->refresh($data['refresh_token']);
-                echo json_encode($result);
-            } else {
-                http_response_code(400);
-                echo json_encode(array("message" => "Refresh token is required"));
-            }
-        } else {
-            invalidMethodResponse();
-        }
+        $auth->handleRefresh($data);
         break;
 
     case 'logout':
-        if ($request_method == "POST") {
-            $data = json_decode(file_get_contents("php://input"), true);
-            if (isset($data['refresh_token'])) {
-                $result = $auth->logout($data['refresh_token']);
-                echo json_encode($result);
-            } else {
-                http_response_code(400);
-                echo json_encode(array("message" => "Refresh token is required"));
-            }
-        } else {
-            invalidMethodResponse();
-        }
+        $auth->handleLogout($data);
         break;
 
     case 'addfriend':
-        if ($request_method == "POST") {
-            $user = AuthMiddleware::validateToken();
-            $data = json_decode(file_get_contents("php://input"), true);
-            $result = $friendship->sendFriendRequest($user, $data);
-            echo json_encode($result);
-        } else {
-            invalidMethodResponse();
-        }
+        $friendship->handleAddFriend($data);
         break;
 
     case 'declinefriend':
-        if ($request_method == "POST") {
-            $user = AuthMiddleware::validateToken();
-            $data = json_decode(file_get_contents("php://input"), true);
-            $result = $friendship->declineFriendRequest($user, $data);
-            echo json_encode($result);
-        } else {
-            invalidMethodResponse();
-        }
+        $friendship->handleDeclineFriend($data);
         break;
 
     case 'acceptfriend':
-        if ($request_method == "POST") {
-            $user = AuthMiddleware::validateToken();
-            $data = json_decode(file_get_contents("php://input"), true);
-            $result = $friendship->acceptFriendRequest($user, $data);
-            echo json_encode($result);
-        } else {
-            invalidMethodResponse();
-        }
+        $friendship->handleAcceptFriend($data);
         break;
 
     default:

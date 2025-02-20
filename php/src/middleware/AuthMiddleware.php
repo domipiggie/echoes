@@ -113,4 +113,15 @@ class AuthMiddleware
             exit();
         }
     }
+
+    public static function validateAuthData($data)
+    {
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            throw new Exception("Invalid e-mail format.");
+        }
+
+        if (strlen($data['password']) < 6){
+            throw new LengthException("Password too short.");
+        }
+    }
 }
