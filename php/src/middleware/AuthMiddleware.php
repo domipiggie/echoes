@@ -37,12 +37,12 @@ class AuthMiddleware
     {
         // Verify issuer
         if (!isset($decoded->iss) || $decoded->iss !== JWT_ISSUER) {
-            throw new Exception('Invalid token issuer');
+            throw new SignatureInvalidException('Invalid token issuer');
         }
 
         // Verify audience
         if (!isset($decoded->aud) || $decoded->aud !== JWT_AUDIENCE) {
-            throw new Exception('Invalid token audience');
+            throw new SignatureInvalidException('Invalid token audience');
         }
 
         // Check if token was issued in the future
@@ -52,7 +52,7 @@ class AuthMiddleware
 
         // Check if token is expired
         if (!isset($decoded->exp) || $decoded->exp < time()) {
-            throw new Exception('Token has expired');
+            throw new ExpiredException('Token has expired');
         }
 
         // Verify token hasn't been used before its nbf time
@@ -111,6 +111,17 @@ class AuthMiddleware
                 "error_type" => "token_invalid"
             ]);
             exit();
+        }
+    }
+
+    public static function validateAuthData($data)
+    {
+        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            throw new Exception("Invalid e-mail format.");
+        }
+
+        if (strlen($data['password']) < 6){
+            throw new LengthException("Password too short.");
         }
     }
 }
