@@ -1,23 +1,25 @@
 <script setup>
 import { ref } from 'vue';
-import SideBar from './SideBar.vue';
+import Sidebar from './Sidebar.vue';
 import ChatWindow from './ChatWindow.vue';
 
-
 const recentChats = ref([
-  { id: 1, name: 'János', lastSeen: '2 perce' },
-  { id: 2, name: 'Éva', lastSeen: '10 perce' },
-  { id: 3, name: 'Péter', lastSeen: '15 perce' },
-  { id: 4, name: 'Anna', lastSeen: '1 órája' },
-  { id: 5, name: 'Gábor', lastSeen: '3 órája' },
-  { id: 6, name: 'Márta', lastSeen: '5 órája' },
-  { id: 7, name: 'Tamás', lastSeen: '1 napja' }
+  { id: 1, name: 'János', lastSeen: '2 perce', avatar: '' },
+  { id: 2, name: 'Éva', lastSeen: '10 perce', avatar: '' },
+  { id: 3, name: 'Péter', lastSeen: '15 perce', avatar: '' },
+  { id: 4, name: 'Anna', lastSeen: '1 órája', avatar: '' },
+  { id: 5, name: 'Gábor', lastSeen: '3 órája', avatar: '' },
+  { id: 6, name: 'Márta', lastSeen: '5 órája', avatar: '' },
+  { id: 7, name: 'Tamás', lastSeen: '1 napja', avatar: '' },
+  { id: 8, name: 'Tamás', lastSeen: '1 napja', avatar: '' },
+  { id: 9, name: 'Tamás', lastSeen: '1 napja', avatar: '' }
 ]);
 
 const currentChat = ref({
   id: 1,
   name: 'Név',
-  online: true
+  online: true,
+  lastSeen: '2 perce'
 });
 
 const messages = ref([
@@ -38,14 +40,10 @@ const sendMessage = (text) => {
   });
 };
 </script>
-<script>
-export default {
-  name: 'Chat'
-}
-</script>
+
 <template>
   <div class="chat-application">
-    <SideBar :recents="recentChats" />
+    <Sidebar :recents="recentChats" />
     <ChatWindow
       :currentChat="currentChat"
       :messages="messages"
@@ -54,12 +52,10 @@ export default {
   </div>
 </template>
 
-
-
 <style scoped>
 .chat-application {
   display: flex;
-  height: 100vh;
+  height: 100%;
   width: 100%;
   overflow: hidden;
   font-family: Arial, sans-serif;

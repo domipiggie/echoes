@@ -23,7 +23,7 @@
     }
   };
   
-  // Scroll to bottom when new messages arrive
+ 
   watch(() => props.messages.length, async () => {
     await nextTick();
     if (messagesContainer.value) {
@@ -76,7 +76,8 @@
           </div>
         </div>
       </div>
-    </div>
+      <ChatProfile v-if="showProfile" :currentChat="currentChat" />
+  </div>
   </template>
   
   
