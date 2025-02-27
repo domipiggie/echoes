@@ -1,39 +1,61 @@
-<script>
-export default {
-  name: 'App'
-}
+<script setup>
+import Chat from './components/Chat.vue'
 </script>
 
 <template>
-  <div id="app">
-    <router-view/>
+  <div class="app-container">
+    <div class="floating-container">
+      <Chat />
+    </div>
   </div>
-  <footer>
-    <p>Copyright - All rights reserved! &copy;</p>
-  </footer>
 </template>
 
-<style scoped>
-footer {
-  background-color: #222;
-  color: #fff;
-  font-size: 14px;
-  bottom: 0;
-  position: fixed;
-  left: 0;
-  right: 0;
-  text-align: center;
-  z-index: 999;
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #18191a;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-footer p {
-  margin: 10px 0;
+.app-container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
-footer a , i{
-  color: #3c97bf;
-  text-decoration: none;
+.floating-container {
+  width: 1450px;  /* Increased from 1200px */
+  height: 95vh;
+  background-color: #242526;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  display: flex;
+}
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #242526;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3a3b3c;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4a4b4c;
 }
 </style>
-
-

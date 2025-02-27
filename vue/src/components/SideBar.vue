@@ -17,24 +17,24 @@
 
 <template>
     <div class="sidebar">
-      <div class="settings-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-          <path fill="white" d="M12,15.5A3.5,3.5,0,0,1,8.5,12,3.5,3.5,0,0,1,12,8.5a3.5,3.5,0,0,1,3.5,3.5A3.5,3.5,0,0,1,12,15.5Zm7.43-2.53c.1-.35.17-.71.23-1.09l2.2-.64a1,1,0,0,0,.73-1.2l-1.62-4.83a1,1,0,0,0-1.21-.73l-2.37.65a8.63,8.63,0,0,0-1.67-1l-.34-2.36a1,1,0,0,0-1-.86H9.59a1,1,0,0,0-1,.82L8.27,4.1a8.3,8.3,0,0,0-1.72,1l-2.2-.6a1,1,0,0,0-1.21.74L1.47,11a1,1,0,0,0,.73,1.2l2.11.56a8.13,8.13,0,0,0,.26,1.9l-1.63,1.5a1,1,0,0,0-.12,1.41l3.5,4.4a1,1,0,0,0,1.41.12l1.84-1.5a8.59,8.59,0,0,0,1.76.69l.53,2.19a1,1,0,0,0,1,.8h5.38a1,1,0,0,0,1-.81l.47-2.06a8.4,8.4,0,0,0,1.94-.73l1.8,1.44a1,1,0,0,0,1.41-.14l3.39-4.44a1,1,0,0,0-.09-1.36Z"/>
-        </svg>
-      </div>
-      
-      <div class="header">
-        <h1>Chats</h1>
+      <div class="sidebar-header">
+        <div class="title-section">
+          <h1>Üzenetek</h1>
+          <button class="new-message-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+              <path fill="currentColor" d="M19,3H5C3.89,3,3,3.89,3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M17,13H13V17H11V13H7V11H11V7H13V11H17V13Z"/>
+            </svg>
+          </button>
+        </div>
         <div class="search-bar">
-          <input type="text" placeholder="Keresés..." />
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16">
+            <path fill="currentColor" d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/>
+          </svg>
+          <input type="text" placeholder="Keresés az üzenetek között" />
         </div>
       </div>
-      
-      <div class="recent-header">
-        <h2>Recents</h2>
-      </div>
-      
-      <div class="recent-chats">
+  
+      <div class="chats-list">
         <div 
           v-for="chat in recents" 
           :key="chat.id" 
@@ -45,65 +45,80 @@
             <div class="avatar-circle"></div>
           </div>
           <div class="chat-info">
-            <span class="chat-name">{{ chat.name }}</span>
+            <div class="chat-name">{{ chat.name }}</div>
+            <div class="last-seen">{{ chat.lastSeen }}</div>
           </div>
         </div>
       </div>
     </div>
   </template>
   
-  
-  
   <style scoped>
   .sidebar {
-    width: 320px;
-    height: 100%;
-    background-color: #17404D;
+    width: 360px;
+    background-color: #242526;
     color: white;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    position: relative;
+    height: 100%;
   }
   
-  .settings-icon {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    z-index: 10;
+  .sidebar-header {
+    padding: 8px 16px;
+    border-bottom: 1px solid #393a3b;
   }
   
-  .header {
-    padding: 16px;
-    padding-top: 48px;
+  .title-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
   }
   
-  h1 {
-    font-size: 32px;
-    margin-bottom: 16px;
-    font-weight: normal;
+  .title-section h1 {
+    font-size: 24px;
+    margin: 0;
+  }
+  
+  .new-message-btn {
+    background: none;
+    border: none;
+    color: #e4e6eb;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+  }
+  
+  .new-message-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .search-bar {
+    display: flex;
+    align-items: center;
+    background-color: #3a3b3c;
+    border-radius: 50px;
+    padding: 8px 12px;
+    gap: 8px;
+  }
+  
+  .search-bar svg {
+    color: #b0b3b8;
   }
   
   .search-bar input {
-    width: 100%;
-    padding: 12px;
-    background-color: white;
+    background: none;
     border: none;
-    border-radius: 4px;
-    margin-bottom: 16px;
+    color: #e4e6eb;
+    width: 100%;
+    font-size: 15px;
   }
   
-  .recent-header {
-    padding: 0 16px;
+  .search-bar input::placeholder {
+    color: #b0b3b8;
   }
   
-  h2 {
-    font-size: 20px;
-    margin-bottom: 8px;
-    font-weight: normal;
-  }
-  
-  .recent-chats {
+  .chats-list {
     overflow-y: auto;
     flex: 1;
   }
@@ -111,33 +126,41 @@
   .chat-item {
     display: flex;
     align-items: center;
-    padding: 12px 16px;
+    padding: 8px 16px;
+    gap: 12px;
     cursor: pointer;
-    border-radius: 4px;
-    margin: 0 8px 4px 8px;
+  }
+  
+  .chat-item:hover {
     background-color: rgba(255, 255, 255, 0.1);
   }
   
   .avatar {
-    margin-right: 12px;
+    width: 56px;
+    height: 56px;
   }
   
   .avatar-circle {
-    width: 40px;
-    height: 40px;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
-    background-color: #4E7886;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background-color: #3a3b3c;
   }
   
   .chat-info {
     flex: 1;
+    border-bottom: 1px solid #393a3b;
+    padding: 8px 0;
   }
   
   .chat-name {
-    font-size: 16px;
-    display: block;
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  
+  .last-seen {
+    font-size: 13px;
+    color: #b0b3b8;
   }
   </style>
