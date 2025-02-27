@@ -9,6 +9,7 @@ require_once '../src/config/database.php';
 require_once '../src/config/core.php';
 require_once '../src/controllers/AuthController.php';
 require_once '../src/controllers/FriendshipController.php';
+require_once '../src/controllers/ChannelController.php';
 require_once '../src/middleware/AuthMiddleware.php';
 require_once '../src/models/User.php';
 require_once '../src/models/RefreshToken.php';
@@ -65,6 +66,10 @@ switch ($uri[1]) {
 
     case 'acceptfriend':
         $friendship->handleAcceptFriend($data);
+        break;
+    
+    case 'getFriendList':
+        $friendship->handleGetFriendList();
         break;
 
     default:

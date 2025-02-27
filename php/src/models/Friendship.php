@@ -65,8 +65,9 @@ class Friendship
             $this->conn->beginTransaction();
 
             if ($stmt->execute()) {
+                $id = $this->conn->lastInsertId();
                 $this->conn->commit();
-                return true;
+                return $id;
             }
         } catch (PDOException $e) {
             $this->conn->rollBack();

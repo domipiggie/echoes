@@ -3,10 +3,14 @@ require_once '../src/middleware/FriendshipMiddleware.php';
 class FriendshipController
 {
     private $friendship;
+    private $db;
+    private $channel;
 
     public function __construct($db)
     {
         $this->friendship = new Friendship($db);
+        $this->channel = new ChannelController($db);
+        $this->db = $db;
     }
 
     public function sendFriendRequest($user, $data)
@@ -23,8 +27,9 @@ class FriendshipController
                 "status" => "UserIDs can't match."
             );
         }
-
-        if ($this->friendship->sendFriendRequest()) {
+        $id = $this->friendship->sendFriendRequest();
+        if ($id != false) {
+            $this->channel->createFriendshipChannel($id);
             return array(
                 "status" => "Successfully added friend!"
             );
@@ -83,6 +88,17 @@ class FriendshipController
         }
     }
 
+    public function getFriendList($user)
+    {
+        $query = "SELECT friendshipID, user1ID, user2ID, status
+                    FROM friendship INNER JOIN friendshipStatus ON friendship.statusID = friendshipStatus.statusID
+                        WHERE friendshipStatus.status = 1;";
+        
+        $stmt = $this->db->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function handleAddFriend($data)
     {
         if ($_SERVER['REQUEST_METHOD'] != 'POST') {
@@ -116,6 +132,18 @@ class FriendshipController
 
         $user = AuthMiddleware::validateToken();
         $result = $this->acceptFriendRequest($user, $data);
+        echo json_encode($result);
+    }
+
+    public function handleGetFriendList()
+    {
+        if ($_SERVER['REQUEST_METHOD'] != 'GET') {
+            echo json_encode(['message' => 'Invalid method!']);
+            exit();
+        }
+
+        $user = AuthMiddleware::validateToken();
+        $result = $this->getFriendList($user);
         echo json_encode($result);
     }
 }
