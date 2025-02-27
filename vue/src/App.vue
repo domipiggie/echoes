@@ -32,7 +32,7 @@ body {
 }
 
 .floating-container {
-  width: 1450px;  /* Increased from 1200px */
+  width: 1450px;  
   height: 95vh;
   background-color: #242526;
   border-radius: 8px;
@@ -41,7 +41,7 @@ body {
   display: flex;
 }
 
-/* Custom Scrollbar Styles */
+
 ::-webkit-scrollbar {
   width: 8px;
 }

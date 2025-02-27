@@ -60,4 +60,33 @@ const sendMessage = (text) => {
   overflow: hidden;
   font-family: Arial, sans-serif;
 }
+
+.chat-window {
+  background-color: #7078e6; 
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.message {
+  margin: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  animation: fadeIn 1s ease-out; 
+}
+
+.message.me {
+  background-color: #d1eeff; 
+  align-self: flex-end;
+}
+
+.message.other {
+  background-color: #e6e6e6; 
+  align-self: flex-start;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
 </style>
