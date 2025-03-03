@@ -7,10 +7,10 @@ class AuthController
     private $user;
     private $refreshToken;
 
-    public function __construct($db)
+    public function __construct($dbConn)
     {
-        $this->user = new User($db);
-        $this->refreshToken = new RefreshToken($db);
+        $this->user = new User($dbConn);
+        $this->refreshToken = new RefreshToken($dbConn);
     }
 
     private function generateAccessToken($userID, $username, $email)
@@ -43,14 +43,12 @@ class AuthController
         if (!isset($data['email']) || !isset($data['password']))
             return array("message" => "You must enter an email and a password!");
 
-        $this->user->email = $data['email'];
-
         if (
-            $this->user->getByEmail() &&
-            hash_equals(hash('sha256', $data['password']), $this->user->password)
+            $this->user->loadFromEmail($data['email']) &&
+            hash_equals(hash('sha256', $data['password']), $this->user->getPasswordHash())
         ) {
-            $accessToken = $this->generateAccessToken($this->user->userID, $this->user->username, $this->user->email);
-            $refreshToken = $this->refreshToken->create($this->user->userID);
+            $accessToken = $this->generateAccessToken($this->user->getUserID(), $this->user->getUsername(), $this->user->getEmail());
+            $refreshToken = $this->refreshToken->create($this->user->getUserID());
 
             return array(
                 "status" => "success",
@@ -74,10 +72,6 @@ class AuthController
         if (!isset($data['email']) || !isset($data['username']) || !isset($data['password']))
             return array("message" => "You must enter an email, username and password!");
 
-        $this->user->email = $data['email'];
-        $this->user->username = $data['username'];
-        $this->user->password = $data['password'];
-
         // check if e-mail already in use
         if ($this->user->emailExists())
             return array("message" => "E-mail already in use!");
@@ -87,7 +81,7 @@ class AuthController
             return array("message" => "Username already in use!");
 
         // create user
-        if ($this->user->create())
+        if ($this->user->createUser($data['username'], $data['email'], $data['password']))
             return array("message" => "User was created.");
 
         // default
@@ -99,13 +93,11 @@ class AuthController
         try {
             $userID = $this->refreshToken->validate($refreshToken);
 
-            $this->user->userID = $userID;
-
-            if (!$this->user->getById()) {
+            if (!$this->user->loadFromID($userID)) {
                 throw new Exception("User not found");
             }
 
-            $accessToken = $this->generateAccessToken($userID, $this->user->username, $this->user->email);
+            $accessToken = $this->generateAccessToken($userID, $this->user->getUsername(), $this->user->getEmail());
 
             $this->refreshToken->revoke($refreshToken);
             $newRefreshToken = $this->refreshToken->create($userID);

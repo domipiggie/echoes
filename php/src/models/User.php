@@ -1,54 +1,61 @@
 <?php
 class User
 {
-    private $conn;
+    private $dbConn;
+
     private $table_name = "user";
 
-    public $userID;
-    public $username;
-    public $email;
-    public $password;
+    private $userID;
+    private $username;
+    private $email;
+    private $passwordHash;
 
-    public function __construct($db)
+
+    public function __construct($dbConn)
     {
-        $this->conn = $db;
+        $this->dbConn = $dbConn;
     }
 
-    public function create()
+    public function createUser($username, $email, $password)
     {
+        $hashedPassword = hash('sha256', $password);
         $query = "INSERT INTO " . $this->table_name . "
                 SET
                     email = :email,
                     username = :username,
                     password = :password";
 
-        $stmt = $this->conn->prepare($query);
+        $dbStmt = $this->dbConn->prepare($query);
+        $dbStmt->bindParam(':email', $email);
+        $dbStmt->bindParam(':username', $username);
+        $dbStmt->bindParam(':password', $hashedPassword);
 
-        $this->email = htmlspecialchars(strip_tags($this->email));
-        $this->username = htmlspecialchars(strip_tags($this->username));
-        $this->password = htmlspecialchars(strip_tags($this->password));
+        try {
+            $this->dbConn->beginTransaction();
 
-        $password_hash = hash('sha256', $this->password);
-
-        $stmt->bindParam(':email', $this->email);
-        $stmt->bindParam(':username', $this->username);
-        $stmt->bindParam(':password', $password_hash);
-
-        if ($stmt->execute()) {
-            return true;
+            if ($dbStmt->execute()) {
+                $this->userID = $this->dbConn->lastInsertId();
+                $this->username = $username;
+                $this->email = $email;
+                $this->passwordHash = $hashedPassword;
+                $this->dbConn->commit();
+                return true;
+            }
+        } catch (PDOException $e) {
+            $this->dbConn->rollBack();
+            return false;
         }
-        return false;
     }
 
-    public function getById()
+    public function loadFromID($id)
     {
         $query = "SELECT userID, username, email, password
                 FROM " . $this->table_name . "
                 WHERE userID = :userID
                 LIMIT 0,1";
 
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':userID', $this->userID);
+        $stmt = $this->dbConn->prepare($query);
+        $stmt->bindParam(':userID', $id);
         $stmt->execute();
 
         if ($stmt->rowCount() > 0) {
@@ -56,21 +63,21 @@ class User
             $this->userID = $row['userID'];
             $this->email = $row['email'];
             $this->username = $row['username'];
-            $this->password = $row['password'];
+            $this->passwordHash = $row['password'];
             return true;
         }
         return false;
     }
 
-    public function getByEmail()
+    public function loadFromEmail($email)
     {
         $query = "SELECT userID, username, email, password
                 FROM " . $this->table_name . "
                 WHERE email = :email
                 LIMIT 0,1";
 
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':email', $this->email);
+        $stmt = $this->dbConn->prepare($query);
+        $stmt->bindParam(':email', $email);
         $stmt->execute();
 
         if ($stmt->rowCount() > 0) {
@@ -78,9 +85,17 @@ class User
             $this->userID = $row['userID'];
             $this->email = $row['email'];
             $this->username = $row['username'];
-            $this->password = $row['password'];
+            $this->passwordHash = $row['password'];
             return true;
         }
+        return false;
+    }
+
+    //misc methods
+    public function isUserFullyLoaded()
+    {
+        if (isset($this->userID) && isset($this->username) && isset($this->email) && isset($this->passwordHash))
+            return true;
         return false;
     }
 
@@ -91,7 +106,7 @@ class User
                 WHERE email = ?
                 LIMIT 0,1";
 
-        $stmt = $this->conn->prepare($query);
+        $stmt = $this->dbConn->prepare($query);
         $stmt->bindParam(1, $this->email);
         $stmt->execute();
 
@@ -107,7 +122,7 @@ class User
                 WHERE username = ?
                 LIMIT 0,1";
 
-        $stmt = $this->conn->prepare($query);
+        $stmt = $this->dbConn->prepare($query);
         $stmt->bindParam(1, $this->username);
         $stmt->execute();
 
@@ -115,4 +130,26 @@ class User
 
         return $num > 0;
     }
+
+    //getters
+    public function getUserID()
+    {
+        return $this->userID;
+    }
+
+    public function getUsername()
+    {
+        return $this->username;
+    }
+
+    public function getEmail()
+    {
+        return $this->email;
+    }
+
+    public function getPasswordHash()
+    {
+        return $this->passwordHash;
+    }
 }
+?>
