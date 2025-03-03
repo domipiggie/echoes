@@ -28,58 +28,72 @@ $data = json_decode(file_get_contents("php://input"), true);
 
 // Routes
 switch ($uri[1]) {
-    case 'register':
-        $auth->handleRegister($data);
-        break;
+    case "auth":
+        isUriSet($uri[2]);
 
-    case 'login':
-        $auth->handleLogin($data);
-        break;
-
-    case 'protected':
-        if ($request_method == "GET") {
-            $user = AuthMiddleware::validateToken();
-            echo json_encode(array(
-                "message" => "Access granted.",
-                "user" => $user->id
-            ));
-        } else {
-            invalidMethodResponse();
+        switch ($uri[2]) {
+            case "login":
+                $auth->handleLogin($data);
+                break;
+            case "register":
+                $auth->handleRegister($data);
+                break;
+            case "refresh":
+                $auth->handleRefresh($data);
+                break;
+            case "logout":
+                $auth->handleLogout($data);
+                break;
+            default:
+                noRouteFound();
+                break;
         }
         break;
 
-    case 'refresh':
-        $auth->handleRefresh($data);
-        break;
+    case "friend":
+        isUriSet($uri[2]);
 
-    case 'logout':
-        $auth->handleLogout($data);
-        break;
-
-    case 'addfriend':
-        $friendship->handleAddFriend($data);
-        break;
-
-    case 'declinefriend':
-        $friendship->handleDeclineFriend($data);
-        break;
-
-    case 'acceptfriend':
-        $friendship->handleAcceptFriend($data);
+        switch ($uri[2]) {
+            case "add":
+                $friendship->handleAddFriend($data);
+                break;
+            case "accept":
+                $friendship->handleAcceptFriend($data);
+                break;
+            case "deny":
+                $friendship->handleDeclineFriend($data);
+                break;
+            case "revoke":
+                //TODO: create friend request revoke logic
+                break;
+            case "block":
+                //TODO: create blocking functionality
+                break;
+            case "unblock":
+                //TODO: create unblock functionality
+                break;
+            default:
+                noRouteFound();
+                break;
+        }
         break;
     
-    case 'getFriendList':
-        $friendship->handleGetFriendList();
-        break;
-
     default:
-        http_response_code(404);
-        echo json_encode(array("message" => "Route not found."));
+        noRouteFound();
         break;
 }
 
-function invalidMethodResponse()
+function isUriSet($uri)
 {
-    http_response_code(405);
-    echo json_encode(array('message' => 'Invalid method.'));
+    if (!isset($uri)) {
+        http_response_code(404);
+        echo json_encode(array("message" => "Route not found."));
+        die;
+    }
+}
+
+function noRouteFound()
+{
+    http_response_code(404);
+    echo json_encode(array("message" => "Route not found."));
 }
