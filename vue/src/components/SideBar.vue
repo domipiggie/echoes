@@ -3,7 +3,7 @@
     <div class="sidebar-header">
       <div class="title-section">
         <h1>Üzenetek</h1>
-        <button class="new-message-btn">
+        <button class="new-message-btn" @click="createNewMessage">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
             <path fill="currentColor" d="M19,3H5C3.89,3,3,3.89,3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M17,13H13V17H11V13H7V11H11V7H13V11H17V13Z"/>
           </svg>
@@ -46,101 +46,140 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['select-chat']);
+const emit = defineEmits(['select-chat', 'new-message']);
 
 const selectChat = (chat) => {
   emit('select-chat', chat);
 };
+
+const createNewMessage = () => {
+    emit('new-message');
+};
+
 </script>
 
 <style scoped>
 .sidebar {
   width: 100%;
   max-width: 360px;
-  background-color: #2b1285;
-  color: rgb(55, 16, 99);
+  background: linear-gradient(135deg, #b13030, rgb(222, 96, 33)); 
+  color: #e0e0e0; 
   display: flex;
   flex-direction: column;
   height: 100vh;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5); 
+  transition: transform 0.3s ease-in-out;
+}
+
+.sidebar:hover {
+  transform: translateY(-4px);
 }
 
 .sidebar-header {
-  padding: 16px;
-  background: #4b42b8;
-  border-bottom: 1px solid #3a3696;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.08); 
+  border-bottom: 1px solid #333; 
+}
+
+.title-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
 }
 
 .title-section h1 {
-  font-size: 26px;
+  font-size: 28px;
   margin: 0;
-  color: #fff;
+  color: #e0e0e0; 
+  font-weight: 600;
 }
 
 .new-message-btn {
-  background: #6a61d1;
+  background: linear-gradient(135deg, rgb(222, 96, 33), rgb(255, 120, 0)); 
   border: none;
   color: #fff;
   cursor: pointer;
-  padding: 10px;
+  padding: 12px;
   border-radius: 50%;
-  transition: background 0.3s;
+  transition: transform 0.2s ease-in-out;
 }
 
 .new-message-btn:hover {
-  background: #7b73e0;
+  transform: scale(1.1);
 }
 
 .search-bar {
   display: flex;
   align-items: center;
-  background-color: #6a61d1;
+  background-color: rgba(255, 255, 255, 0.15); 
   border-radius: 30px;
-  padding: 10px 15px;
-  gap: 8px;
-  border: 3px solid white;
+  padding: 12px 18px;
+  gap: 10px;
+  border: 2px solid #333; 
+  transition: border-color 0.3s;
+}
+
+.search-bar:focus-within {
+  border-color: rgb(255, 120, 0); 
 }
 
 .search-bar input {
   background: none;
   border: none;
-  color: #fff;
+  color: #e0e0e0; 
   width: 100%;
+  font-size: 16px;
+}
+
+.search-bar input::placeholder {
+  color: #9e9e9e; 
+}
+
+.chats-list {
+  overflow-y: auto;
+  flex-grow: 1;
 }
 
 .chat-item {
   display: flex;
   align-items: center;
-  padding: 10px 15px;
+  padding: 15px 20px;
   cursor: pointer;
-  transition: background 0.3s;
-  border-radius: 8px;
+  transition: background 0.3s ease, transform 0.2s ease;
+  border-radius: 10px;
 }
 
 .chat-item:hover {
-  background-color: #7b73e0;
+  background-color: rgba(255, 255, 255, 0.1); 
+  transform: translateX(4px);
 }
 
 .avatar-circle {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  background-color: #4b42b8;
+  background: linear-gradient(135deg, #333, #555); 
+  margin-right: 15px;
 }
 
 .chat-name {
-  font-size: 16px;
-  color: #fff;
-  font-weight: bold;
+  font-size: 18px;
+  color: #e0e0e0; 
+  font-weight: 500;
 }
 
 .last-seen {
-  font-size: 12px;
-  color: #c0bfff;
-}
-.search-bar input::placeholder {
-  color: #ffffff;
+  font-size: 14px;
+  color: #9e9e9e; 
 }
 
+@media (max-width: 768px) {
+  .sidebar {
+    max-width: 100%;
+    border-radius: 0;
+  }
+}
 </style>
