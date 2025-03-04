@@ -78,6 +78,19 @@ switch ($uri[1]) {
         }
         break;
     
+    case "usrinfo":
+        isUriSet($uri[2]);
+
+        switch ($uri[2]) {
+            case "friendlist":
+                $friendship->handleGetFriendList();
+                break;
+            default:
+                noRouteFound();
+                break;
+        }
+        break;
+    
     default:
         noRouteFound();
         break;

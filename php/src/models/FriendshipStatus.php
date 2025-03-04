@@ -1,15 +1,15 @@
 <?php
 class FriendshipStatus
 {
-    private $conn;
+    private $dbConn;
     private $status_table = 'friendshipStatus';
-    public $statusID;
-    public $initiator;
-    public $status;
+    private $statusID;
+    private $initiator;
+    private $status;
 
-    public function __construct($db)
+    public function __construct($dbConn)
     {
-        $this->conn = $db;
+        $this->dbConn = $dbConn;
     }
 
     public function loadFromDB($statusID)
@@ -18,11 +18,11 @@ class FriendshipStatus
                 WHERE 
                     statusID = :statusID";
             
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':statusID', $statusID);
-        $stmt->execute();
-        if ($stmt->rowCount() > 0) {
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $dbStmt = $this->dbConn->prepare($query);
+        $dbStmt->bindParam(':statusID', $statusID);
+        $dbStmt->execute();
+        if ($dbStmt->rowCount() > 0) {
+            $row = $dbStmt->fetch(PDO::FETCH_ASSOC);
             $this->statusID = $row['statusID'];
             $this->initiator = $row['initiator'];
             $this->status = $row['status'];
@@ -39,13 +39,13 @@ class FriendshipStatus
                     initiator = :initiator,
                     status = 0;";
 
-        $stmt = $this->conn->prepare($sql);
+        $dbStmt = $this->dbConn->prepare($sql);
 
-        $stmt->bindParam(':initiator', $this->initiator);
+        $dbStmt->bindParam(':initiator', $this->initiator);
 
-        $stmt->execute();
+        $dbStmt->execute();
 
-        $this->statusID = $this->conn->lastInsertId();
+        $this->statusID = $this->dbConn->lastInsertId();
         $this->status = 0;
     }
 
@@ -55,9 +55,9 @@ class FriendshipStatus
                 WHERE
                     statusID = :statusID";
 
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':statusID', $this->statusID);
-        $stmt->execute();
+        $dbStmt = $this->dbConn->prepare($query);
+        $dbStmt->bindParam(':statusID', $this->statusID);
+        $dbStmt->execute();
     }
 
     public function updateStatus($status)
@@ -68,13 +68,29 @@ class FriendshipStatus
                 WHERE
                     statusID = :statusID";
                 
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':newStatus', $status);
-        $stmt->bindParam(':statusID', $this->statusID);
-        $stmt->execute();
-        if ($stmt->rowCount() > 0){
+        $dbStmt = $this->dbConn->prepare($query);
+        $dbStmt->bindParam(':newStatus', $status);
+        $dbStmt->bindParam(':statusID', $this->statusID);
+        $dbStmt->execute();
+        if ($dbStmt->rowCount() > 0){
             return true;
         }
         return false;
+    }
+
+    //getters
+    public function getStatusID()
+    {
+        return $this->statusID;
+    }
+
+    public function getInitiator()
+    {
+        return $this->initiator;
+    }
+
+    public function getStatus()
+    {
+        return $this->status;
     }
 }

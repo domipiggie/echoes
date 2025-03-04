@@ -123,9 +123,5 @@ class AuthMiddleware
         if (strlen($data['password']) < 6) {
             throw new LengthException("Password too short.");
         }
-
-        if (strlen($data['username'] < 3)) {
-            throw new LengthException("Username too short.");
-        }
     }
 }
