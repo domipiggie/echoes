@@ -3,14 +3,11 @@ require_once '../src/middleware/FriendshipMiddleware.php';
 class FriendshipController
 {
     private $friendship;
-    private $db;
-    private $channel;
+    private $dbConn;
 
-    public function __construct($db)
+    public function __construct($dbConn)
     {
-        $this->friendship = new Friendship($db);
-        $this->channel = new ChannelController($db);
-        $this->db = $db;
+        $this->dbConn = $dbConn;
     }
 
     public function sendFriendRequest($user, $data)
@@ -19,20 +16,18 @@ class FriendshipController
             return array("message" => "UserID not provided!");
         }
 
-        $this->friendship->user1ID = $user->id;
-        $this->friendship->user2ID = $data['userID'];
+        $this->friendship = new Friendship($this->dbConn, $user->id, $data["userID"]);
 
         if (!FriendshipMiddleware::validateUserIDs($this->friendship)) {
             return array(
                 "status" => "UserIDs can't match."
             );
         }
+
         $id = $this->friendship->sendFriendRequest();
+
         if ($id != false) {
-            $this->channel->createFriendshipChannel($id);
-            return array(
-                "status" => "Successfully added friend!"
-            );
+            return $id;
         } else {
             return array(
                 "status" => "Error while adding friend!"
@@ -46,8 +41,7 @@ class FriendshipController
             return array("message" => "UserID not provided!");
         }
 
-        $this->friendship->user1ID = $user->id;
-        $this->friendship->user2ID = $data['userID'];
+        $this->friendship = new Friendship($this->dbConn, $user->id, $data["userID"]);
 
         if (!FriendshipMiddleware::validateUserIDs($this->friendship)) {
             return array("status" => "UserIDs can't match.");
@@ -70,8 +64,7 @@ class FriendshipController
             return array("message" => "UserID not provided!");
         }
 
-        $this->friendship->user1ID = $user->id;
-        $this->friendship->user2ID = $data['userID'];
+        $this->friendship = new Friendship($this->dbConn, $user->id, $data["userID"]);
 
         if (!FriendshipMiddleware::validateUserIDs($this->friendship)) {
             return array("status" => "UserIDs can't match.");
@@ -88,17 +81,6 @@ class FriendshipController
         }
     }
 
-    public function getFriendList($user)
-    {
-        $query = "SELECT friendshipID, user1ID, user2ID, status
-                    FROM friendship INNER JOIN friendshipStatus ON friendship.statusID = friendshipStatus.statusID
-                        WHERE friendshipStatus.status = 1;";
-        
-        $stmt = $this->db->prepare($query);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
     public function handleAddFriend($data)
     {
         if ($_SERVER['REQUEST_METHOD'] != 'POST') {
@@ -108,7 +90,7 @@ class FriendshipController
 
         $user = AuthMiddleware::validateToken();
         $result = $this->sendFriendRequest($user, $data);
-        echo json_encode($result);
+        echo $result;
     }
 
     public function handleDeclineFriend($data)
@@ -142,8 +124,10 @@ class FriendshipController
             exit();
         }
 
+        $this->friendship = new Friendship($this->dbConn, null, null);
+
         $user = AuthMiddleware::validateToken();
-        $result = $this->getFriendList($user);
+        $result = $this->friendship->getFriendList($user);
         echo json_encode($result);
     }
 }

@@ -1,12 +1,12 @@
 <?php
 class RefreshToken
 {
-    private $conn;
+    private $dbConn;
     private $table_name = "refresh_token";
 
-    public function __construct($db)
+    public function __construct($dbConn)
     {
-        $this->conn = $db;
+        $this->dbConn = $dbConn;
     }
 
     public function create($userID)
@@ -18,7 +18,7 @@ class RefreshToken
                 (userID, token, expires_at)
                 VALUES (:userID, :token, :expires_at)";
 
-        $stmt = $this->conn->prepare($query);
+        $stmt = $this->dbConn->prepare($query);
 
         $stmt->bindParam(":userID", $userID);
         $stmt->bindParam(":token", $token);
@@ -40,7 +40,7 @@ class RefreshToken
                  WHERE token = :token
                  LIMIT 1";
 
-        $stmt = $this->conn->prepare($query);
+        $stmt = $this->dbConn->prepare($query);
         $stmt->bindParam(":token", $token);
         $stmt->execute();
 
@@ -66,7 +66,7 @@ class RefreshToken
                  SET revoked = true
                  WHERE token = :token";
 
-        $stmt = $this->conn->prepare($query);
+        $stmt = $this->dbConn->prepare($query);
         $stmt->bindParam(":token", $token);
         return $stmt->execute();
     }
