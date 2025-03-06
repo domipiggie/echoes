@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import Sidebar from './Sidebar.vue';
+import Sidebar from './SideBar.vue';
 import ChatWindow from './ChatWindow.vue';
 
 const recentChats = ref([
@@ -42,7 +42,9 @@ const sendMessage = (text) => {
 </script>
 
 <template>
-  <div class="chat-application">
+  <div class="app-container">
+    <div class="floating-container">
+      <div class="chat-application">
     <Sidebar :recents="recentChats" />
     <ChatWindow
       :currentChat="currentChat"
@@ -50,6 +52,8 @@ const sendMessage = (text) => {
       @send-message="sendMessage"
     />
   </div>
+</div>
+</div>
 </template>
 
 <style scoped>

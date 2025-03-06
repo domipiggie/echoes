@@ -3,10 +3,8 @@ import Chat from './components/Chat.vue'
 </script>
 
 <template>
-  <div class="app-container">
-    <div class="floating-container">
-      <Chat />
-    </div>
+  <div id="app">
+    <router-view/>
   </div>
 </template>
 

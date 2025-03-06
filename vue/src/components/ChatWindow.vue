@@ -207,7 +207,7 @@ watch(() => props.messages.length, async () => {
   align-items: center;
   background-color: #333;
   border-radius: 30px;
-  padding: 12px 20px;
+  padding: 0px 20px;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
 }
 
@@ -215,8 +215,8 @@ watch(() => props.messages.length, async () => {
   flex: 1;
   border: none;
   outline: none;
-  padding: 10px 0;
-  font-size: 18px;
+  padding: 5px 0;
+  font-size: 16px;
   color: #e0e0e0;
   background-color: transparent;
 }
