@@ -19,7 +19,7 @@ const deactivateRightPanel = () => {
 }
 
 const sendRegisterRequest = (username, birthdate, email, password) => {
-	axios.post('http://localhost/register', {
+	axios.post('http://localhost/auth/register', {
 		username: username,
 		email: email,
 		password: password
@@ -33,7 +33,7 @@ const sendRegisterRequest = (username, birthdate, email, password) => {
 		})
 }
 const sendLoginRequest = (email, password) => {
-	axios.post('http://localhost/login', {
+	axios.post('http://localhost/auth/login', {
 		email: email,
 		password: password
 	})
@@ -50,15 +50,6 @@ const sendLoginRequest = (email, password) => {
 			alert(exception);
 		})
 }
-const testAccessToken = () => {
-	axios.get('http://localhost/protected', { headers: { Authorization: 'Bearer ' + userdata.getAccessToken() } })
-		.then(response => {
-			alert(response.data['user']);
-		})
-		.catch(exception => {
-			alert(exception);
-		})
-}
 </script>
 <script>
 export default {
@@ -67,7 +58,6 @@ export default {
 </script>
 
 <template>
-	<!--<button @click="testAccessToken">Login test</button>-->
 	<div class="container" :class="{ 'right-panel-active': isRightPanelActive }">
 		<LoginForm @login="sendLoginRequest" />
 		<RegisterForm @register="sendRegisterRequest" />

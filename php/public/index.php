@@ -10,6 +10,7 @@ require_once '../src/config/core.php';
 require_once '../src/controllers/AuthController.php';
 require_once '../src/controllers/FriendshipController.php';
 require_once '../src/controllers/ChannelController.php';
+require_once '../src/controllers/UserinfoController.php';
 require_once '../src/middleware/AuthMiddleware.php';
 require_once '../src/models/User.php';
 require_once '../src/models/RefreshToken.php';
@@ -84,6 +85,9 @@ switch ($uri[1]) {
         switch ($uri[2]) {
             case "friendlist":
                 $friendship->handleGetFriendList();
+                break;
+            case "userdata":
+                UserinfoController::handleGetUserInfo($uri[3],$db);
                 break;
             default:
                 noRouteFound();

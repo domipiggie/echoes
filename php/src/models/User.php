@@ -7,8 +7,10 @@ class User
 
     private $userID;
     private $username;
+    private $displayName;
     private $email;
     private $passwordHash;
+    private $profilePicture;
 
 
     public function __construct($dbConn)
@@ -142,6 +144,11 @@ class User
         return $this->username;
     }
 
+    public function getDisplayName()
+    {
+        return $this->displayName;
+    }
+
     public function getEmail()
     {
         return $this->email;
@@ -150,6 +157,11 @@ class User
     public function getPasswordHash()
     {
         return $this->passwordHash;
+    }
+
+    public function getProfilePicture()
+    {
+        return $this->profilePicture;
     }
 }
 ?>
