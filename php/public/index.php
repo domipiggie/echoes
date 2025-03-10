@@ -21,6 +21,7 @@ $database = new Database();
 $db = $database->getConnection();
 $auth = new AuthController($db);
 $friendship = new FriendshipController($db);
+$channel = new ChannelController($db);
 
 $request_method = $_SERVER["REQUEST_METHOD"];
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -56,7 +57,8 @@ switch ($uri[1]) {
 
         switch ($uri[2]) {
             case "add":
-                $friendship->handleAddFriend($data);
+                $result = $friendship->handleAddFriend($data);
+                $channel->createFriendshipChannel($result['friendshipID']);
                 break;
             case "accept":
                 $friendship->handleAcceptFriend($data);
@@ -88,6 +90,9 @@ switch ($uri[1]) {
                 break;
             case "userdata":
                 UserinfoController::handleGetUserInfo($uri[3],$db);
+                break;
+            case "channellist":
+                $channel->handleGetChannelList();
                 break;
             default:
                 noRouteFound();

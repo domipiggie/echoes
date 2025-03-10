@@ -25,11 +25,13 @@ class User
                 SET
                     email = :email,
                     username = :username,
+                    displayName = :displayName,
                     password = :password";
 
         $dbStmt = $this->dbConn->prepare($query);
         $dbStmt->bindParam(':email', $email);
         $dbStmt->bindParam(':username', $username);
+        $dbStmt->bindParam(':displayName', $username);
         $dbStmt->bindParam(':password', $hashedPassword);
 
         try {

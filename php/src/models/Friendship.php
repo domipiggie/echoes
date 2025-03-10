@@ -69,7 +69,7 @@ class Friendship
             if ($stmt->execute()) {
                 $id = $this->dbConn->lastInsertId();
                 $this->dbConn->commit();
-                return json_encode(array("message"=>"Successfully added friend!", "friendshipID"=>$id));
+                return array("message"=>"Successfully added friend!", "friendshipID"=>$id);
             }
         } catch (PDOException $e) {
             $this->dbConn->rollBack();

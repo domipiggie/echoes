@@ -90,7 +90,8 @@ class FriendshipController
 
         $user = AuthMiddleware::validateToken();
         $result = $this->sendFriendRequest($user, $data);
-        echo $result;
+        echo json_encode($result);
+        return $result;
     }
 
     public function handleDeclineFriend($data)
