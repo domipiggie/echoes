@@ -16,12 +16,15 @@ require_once '../src/models/User.php';
 require_once '../src/models/RefreshToken.php';
 require_once '../src/models/Friendship.php';
 require_once '../src/models/FriendshipStatus.php';
+require_once '../src/models/Message.php';
+require_once '../src/controllers/MessageController.php';
 
 $database = new Database();
 $db = $database->getConnection();
 $auth = new AuthController($db);
 $friendship = new FriendshipController($db);
 $channel = new ChannelController($db);
+$message = new MessageController($db);
 
 $request_method = $_SERVER["REQUEST_METHOD"];
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -99,6 +102,22 @@ switch ($uri[1]) {
                 break;
         }
         break;
+
+        case "message":
+            isUriSet($uri[2]);
+    
+            switch ($uri[2]) {
+                case "send":
+                    $message->handleSendMessage($data);
+                    break;
+                case "get":
+                    $message->handleGetMessages($_GET);
+                    break;
+                default:
+                    noRouteFound();
+                    break;
+            }
+            break;
     
     default:
         noRouteFound();
