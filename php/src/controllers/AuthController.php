@@ -1,5 +1,6 @@
 <?php
 require_once '../vendor/autoload.php';
+
 use \Firebase\JWT\JWT;
 
 class AuthController
@@ -109,7 +110,6 @@ class AuthController
                 "expires_in" => $accessToken['expires_in'],
                 "refresh_token" => $newRefreshToken['token']
             );
-
         } catch (Exception $e) {
             return array(
                 "status" => "error",
@@ -136,67 +136,69 @@ class AuthController
 
     public function handleRegister($data)
     {
-        if ($_SERVER['REQUEST_METHOD'] != 'POST') {
-            echo json_encode(['message' => 'Invalid method!']);
-            exit();
-        }
-
         try {
-            AuthMiddleware::validateAuthData($data);
-        } catch (Exception $e) {
-            echo json_encode(['message' => $e->getMessage()]);
-            exit();
-        }
+            if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+                throw new ApiException('Invalid method', 405);
+            }
+            if (!isset($data['username']) || !isset($data['email']) || !isset($data['password'])) {
+                throw new ApiException('Missing required fields', 400);
+            }
 
-        echo json_encode($this->register($data));
+            AuthMiddleware::validateAuthData($data);
+
+            echo json_encode($this->register($data));
+        } catch (Exception $e) {
+            throw new ApiException($e->getMessage(), 500);
+        }
     }
 
     public function handleLogin($data)
     {
-        if ($_SERVER['REQUEST_METHOD'] != 'POST') {
-            echo json_encode(['message' => 'Invalid method!']);
-            exit();
-        }
-
         try {
-            AuthMiddleware::validateAuthData($data);
-        } catch (Exception $e) {
-            echo json_encode(['message' => $e->getMessage()]);
-            exit();
-        }
+            if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+                throw new ApiException('Invalid method', 405);
+            }
+            if (!isset($data['username']) || !isset($data['password'])) {
+                throw new ApiException('Missing required fields', 400);
+            }
 
-        echo json_encode($this->login($data));
+            AuthMiddleware::validateAuthData($data);
+
+            echo json_encode($this->login($data));
+        } catch (Exception $e) {
+            throw new ApiException($e->getMessage(), 500);
+        }
     }
 
     public function handleRefresh($data)
     {
-        if ($_SERVER['REQUEST_METHOD'] != 'POST') {
-            echo json_encode(['message' => 'Invalid method!']);
-            exit();
-        }
+        try {
+            if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+                throw new ApiException('Invalid method', 405);
+            }
+            if (!isset($data['refresh_token'])) {
+                throw new ApiException('Missing required fields', 400);
+            }
 
-        if (isset($data['refresh_token'])) {
-            $result = $this->refresh($data['refresh_token']);
-            echo json_encode($result);
-        } else {
-            http_response_code(400);
-            echo json_encode(array("message" => "Refresh token is required"));
+            echo json_encode($this->refresh($data['refresh_token']));
+        } catch (Exception $e) {
+            throw new ApiException($e->getMessage(), 500);
         }
     }
 
     public function handleLogout($data)
     {
-        if ($_SERVER['REQUEST_METHOD'] != 'POST') {
-            echo json_encode(['message' => 'Invalid method!']);
-            exit();
-        }
+        try {
+            if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+                throw new ApiException('Invalid method', 405);
+            }
+            if (!isset($data['refresh_token'])) {
+                throw new ApiException('Missing required fields', 400);
+            }
 
-        if (isset($data['refresh_token'])) {
-            $result = $this->logout($data['refresh_token']);
-            echo json_encode($result);
-        } else {
-            http_response_code(400);
-            echo json_encode(array("message" => "Refresh token is required"));
+            echo json_encode($this->logout($data['refresh_token']));
+        } catch (Exception $e) {
+            throw new ApiException($e->getMessage(), 500);
         }
     }
 }

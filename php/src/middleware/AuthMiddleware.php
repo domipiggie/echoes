@@ -29,7 +29,7 @@ class AuthMiddleware
     {
         // JWT format check (3 parts separated by dots)
         if (!preg_match('/^[a-zA-Z0-9\-\_\=]+\.[a-zA-Z0-9\-\_\=]+\.[a-zA-Z0-9\-\_\=]+$/', $token)) {
-            throw new Exception('Invalid token format');
+            throw new ApiException('Invalid token format', 401);
         }
     }
 
@@ -37,27 +37,27 @@ class AuthMiddleware
     {
         // Verify issuer
         if (!isset($decoded->iss) || $decoded->iss !== JWT_ISSUER) {
-            throw new SignatureInvalidException('Invalid token issuer');
+            throw new ApiException('Invalid token issuer', 401);
         }
 
         // Verify audience
         if (!isset($decoded->aud) || $decoded->aud !== JWT_AUDIENCE) {
-            throw new SignatureInvalidException('Invalid token audience');
+            throw new ApiException('Invalid token audience', 401);
         }
 
         // Check if token was issued in the future
         if (!isset($decoded->iat) || $decoded->iat > time()) {
-            throw new Exception('Invalid token issue time');
+            throw new ApiException('Invalid token issue time', 401);
         }
 
         // Check if token is expired
         if (!isset($decoded->exp) || $decoded->exp < time()) {
-            throw new ExpiredException('Token has expired');
+            throw new ApiException('Token has expired', 401);
         }
 
         // Verify token hasn't been used before its nbf time
         if (isset($decoded->nbf) && $decoded->nbf > time()) {
-            throw new Exception('Token not yet valid');
+            throw new ApiException('Token not yet valid', 401);
         }
     }
 
@@ -67,11 +67,11 @@ class AuthMiddleware
             $headers = self::getAuthorizationHeader();
 
             if (!$headers) {
-                throw new Exception('Authorization header not found');
+                throw new ApiException('Authorization header not found', 401);
             }
 
             if (!preg_match('/Bearer\s(\S+)/', $headers, $matches)) {
-                throw new Exception('Token not found in Bearer header');
+                throw new ApiException('Token not found in Bearer header', 401);
             }
 
             $token = $matches[1];
@@ -87,41 +87,19 @@ class AuthMiddleware
 
             return $decoded->data;
 
-        } catch (ExpiredException $e) {
-            http_response_code(401);
-            echo json_encode([
-                "status" => "error",
-                "message" => "Token has expired",
-                "error_type" => "token_expired"
-            ]);
-            exit();
-        } catch (SignatureInvalidException $e) {
-            http_response_code(401);
-            echo json_encode([
-                "status" => "error",
-                "message" => "Invalid token signature",
-                "error_type" => "invalid_signature"
-            ]);
-            exit();
         } catch (Exception $e) {
-            http_response_code(401);
-            echo json_encode([
-                "status" => "error",
-                "message" => $e->getMessage(),
-                "error_type" => "token_invalid"
-            ]);
-            exit();
+            throw new ApiException($e->getMessage(), 500);
         }
     }
 
     public static function validateAuthData($data)
     {
         if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            throw new Exception("Invalid e-mail format.");
+            throw new ApiException('Invalid e-mail format', 400);
         }
 
         if (strlen($data['password']) < 6) {
-            throw new LengthException("Password too short.");
+            throw new ApiException('Password too short', 400);
         }
     }
 }

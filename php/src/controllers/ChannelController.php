@@ -2,7 +2,6 @@
 class ChannelController
 {
     private $db;
-    private $channel;
 
     public function __construct($db)
     {
@@ -11,60 +10,62 @@ class ChannelController
 
     public function createFriendshipChannel($friendshipId)
     {
-        if ($friendshipId == null)
-            throw new Exception("Friendship id not provided!");
+        try {
+            if ($friendshipId == null) {
+                throw new ApiException('Missing required fields', 400);
+            }
 
-        $query = "INSERT INTO channel_list
+            $query = "INSERT INTO channel_list
                     SET
                         friendshipID = :friendshipID";
 
-        $stmt = $this->db->prepare($query);
-        $stmt->bindParam(':friendshipID', $friendshipId);
+            $stmt = $this->db->prepare($query);
+            $stmt->bindParam(':friendshipID', $friendshipId);
 
-        try {
-            $this->db->beginTransaction();
+            try {
+                $this->db->beginTransaction();
 
-            if ($stmt->execute()) {
-                $this->db->commit();
-                return false;
+                if ($stmt->execute()) {
+                    $this->db->commit();
+                }
+            } catch (PDOException $e) {
+                $this->db->rollBack();
+                throw new ApiException('Database error: ' . $e->getMessage(), 500);
             }
-        } catch (PDOException $e) {
-            $this->db->rollBack();
-            return false;
+        } catch (Exception $e) {
+            throw new ApiException($e->getMessage(), 500);
         }
-        return false;
     }
 
     public function handleGetChannelList()
     {
+        try {
+            if ($_SERVER['REQUEST_METHOD'] != 'GET') {
+                throw new ApiException('Invalid method!', 400);
+            }
 
-        if ($_SERVER['REQUEST_METHOD'] != 'GET') {
-            echo json_encode(['message' => 'Invalid method!']);
-            exit();
-        }
+            $user = AuthMiddleware::validateToken();
+            $channels = array("friendshipChannels" => array(), "groupChannels" => array());
 
-        $user = AuthMiddleware::validateToken();
-        $channels = array("friendshipChannels" => array(), "groupChannels" => array());
-
-        $sql = "SELECT channelID, user1ID, user2ID FROM `channel_list`
+            $sql = "SELECT channelID, user1ID, user2ID FROM `channel_list`
                 INNER JOIN `friendship`
                 ON
                     `channel_list`.`friendshipID` = `friendship`.`friendshipID`
                 WHERE
                     `friendship`.`user1ID` = :userID OR `friendship`.`user2ID` = :userID;";
 
-        $dbStmt = $this->db->prepare($sql);
-        $dbStmt->bindParam(':userID', $user->id);
-        $dbStmt->execute();
+            $dbStmt = $this->db->prepare($sql);
+            $dbStmt->bindParam(':userID', $user->id);
+            $dbStmt->execute();
 
-        if ($dbStmt->rowCount() > 0) {
+            if ($dbStmt->rowCount() > 0) {
 
-            while ($row = $dbStmt->fetch(PDO::FETCH_ASSOC)) {
-                $channels["friendshipChannels"][] = array("channelID" => $row['channelID'], "user1ID" => $row['user1ID'], "user2ID" => $row['user2ID']);
+                while ($row = $dbStmt->fetch(PDO::FETCH_ASSOC)) {
+                    $channels["friendshipChannels"][] = array("channelID" => $row['channelID'], "user1ID" => $row['user1ID'], "user2ID" => $row['user2ID']);
+                }
             }
-        }
 
-        $sql = "SELECT ca.channelID, ca.userID FROM channel_access ca
+            $sql = "SELECT ca.channelID, ca.userID FROM channel_access ca
                 WHERE 
                     ca.channelID IN (
                     SELECT cl.channelID FROM channel_list cl
@@ -75,24 +76,26 @@ class ChannelController
                         ca.userID = :userID
                 );";
 
-        $dbStmt = $this->db->prepare($sql);
-        $dbStmt->bindParam(':userID', $user->id);
-        $dbStmt->execute();
+            $dbStmt = $this->db->prepare($sql);
+            $dbStmt->bindParam(':userID', $user->id);
+            $dbStmt->execute();
 
-        if ($dbStmt->rowCount() > 0) {
-            $prevId = null;
+            if ($dbStmt->rowCount() > 0) {
+                $prevId = null;
 
-            while ($row = $dbStmt->fetch(PDO::FETCH_ASSOC)) {
-                if ($row["channelID"] !== $prevId) {
-                    $prevId = $row['channelID'];
-                    $channels["groupChannels"][] = array("channelID" => $row['channelID'], "users" => array($row["userID"]));
-                } else {
-                    $channels["groupChannels"][count($channels["groupChannels"]) - 1]["users"][] = $row['userID'];
+                while ($row = $dbStmt->fetch(PDO::FETCH_ASSOC)) {
+                    if ($row["channelID"] !== $prevId) {
+                        $prevId = $row['channelID'];
+                        $channels["groupChannels"][] = array("channelID" => $row['channelID'], "users" => array($row["userID"]));
+                    } else {
+                        $channels["groupChannels"][count($channels["groupChannels"]) - 1]["users"][] = $row['userID'];
+                    }
                 }
             }
-        }
 
-        echo json_encode($channels);
+            echo json_encode($channels);
+        } catch (Exception $e) {
+            throw new ApiException($e->getMessage(), 500);
+        }
     }
 }
-?>

@@ -5,6 +5,8 @@ header("Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE");
 header("Access-Control-Max-Age: 3600");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
+require_once '../src/exceptions/ApiException.php';
+require_once '../src/utils/ErrorHandler.php';
 require_once '../src/config/database.php';
 require_once '../src/config/core.php';
 require_once '../src/controllers/AuthController.php';
@@ -19,93 +21,105 @@ require_once '../src/models/FriendshipStatus.php';
 require_once '../src/models/Message.php';
 require_once '../src/controllers/MessageController.php';
 
-$database = new Database();
-$db = $database->getConnection();
-$auth = new AuthController($db);
-$friendship = new FriendshipController($db);
-$channel = new ChannelController($db);
-$message = new MessageController($db);
+// Set error handling
+set_exception_handler([ErrorHandler::class, 'handleError']);
 
-$request_method = $_SERVER["REQUEST_METHOD"];
-$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$uri = explode('/', $uri);
-$data = json_decode(file_get_contents("php://input"), true);
+try {
+    $database = new Database();
+    $db = $database->getConnection();
+    $auth = new AuthController($db);
+    $friendship = new FriendshipController($db);
+    $channel = new ChannelController($db);
+    $message = new MessageController($db);
 
-// Routes
-switch ($uri[1]) {
-    case "auth":
-        isUriSet($uri[2]);
+    $request_method = $_SERVER["REQUEST_METHOD"];
+    $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    $uri = explode('/', $uri);
+    $data = json_decode(file_get_contents("php://input"), true);
 
-        switch ($uri[2]) {
-            case "login":
-                $auth->handleLogin($data);
-                break;
-            case "register":
-                $auth->handleRegister($data);
-                break;
-            case "refresh":
-                $auth->handleRefresh($data);
-                break;
-            case "logout":
-                $auth->handleLogout($data);
-                break;
-            default:
-                noRouteFound();
-                break;
-        }
-        break;
+    // Routes
+    switch ($uri[1]) {
+        case "auth":
+            if (!isset($uri[2])) {
+                throw new ApiException('Invalid route', 404);
+            }
 
-    case "friend":
-        isUriSet($uri[2]);
+            switch ($uri[2]) {
+                case "login":
+                    $auth->handleLogin($data);
+                    break;
+                case "register":
+                    $auth->handleRegister($data);
+                    break;
+                case "refresh":
+                    $auth->handleRefresh($data);
+                    break;
+                case "logout":
+                    $auth->handleLogout($data);
+                    break;
+                default:
+                    throw new ApiException('Invalid route', 404);
+                    break;
+            }
+            break;
 
-        switch ($uri[2]) {
-            case "add":
-                $result = $friendship->handleAddFriend($data);
-                $channel->createFriendshipChannel($result['friendshipID']);
-                break;
-            case "accept":
-                $friendship->handleAcceptFriend($data);
-                break;
-            case "deny":
-                $friendship->handleDeclineFriend($data);
-                break;
-            case "revoke":
-                //TODO: create friend request revoke logic
-                break;
-            case "block":
-                //TODO: create blocking functionality
-                break;
-            case "unblock":
-                //TODO: create unblock functionality
-                break;
-            default:
-                noRouteFound();
-                break;
-        }
-        break;
-    
-    case "usrinfo":
-        isUriSet($uri[2]);
+        case "friend":
+            if (!isset($uri[2])) {
+                throw new ApiException('Invalid route', 404);
+            }
 
-        switch ($uri[2]) {
-            case "friendlist":
-                $friendship->handleGetFriendList();
-                break;
-            case "userdata":
-                UserinfoController::handleGetUserInfo($uri[3],$db);
-                break;
-            case "channellist":
-                $channel->handleGetChannelList();
-                break;
-            default:
-                noRouteFound();
-                break;
-        }
-        break;
+            switch ($uri[2]) {
+                case "add":
+                    $result = $friendship->handleAddFriend($data);
+                    $channel->createFriendshipChannel($result['friendshipID']);
+                    break;
+                case "accept":
+                    $friendship->handleAcceptFriend($data);
+                    break;
+                case "deny":
+                    $friendship->handleDeclineFriend($data);
+                    break;
+                case "revoke":
+                    //TODO: create friend request revoke logic
+                    break;
+                case "block":
+                    //TODO: create blocking functionality
+                    break;
+                case "unblock":
+                    //TODO: create unblock functionality
+                    break;
+                default:
+                    throw new ApiException('Invalid route', 404);
+                    break;
+            }
+            break;
+
+        case "usrinfo":
+            if (!isset($uri[2])) {
+                throw new ApiException('Invalid route', 404);
+            }
+
+            switch ($uri[2]) {
+                case "friendlist":
+                    $friendship->handleGetFriendList();
+                    break;
+                case "userdata":
+                    UserinfoController::handleGetUserInfo($uri[3], $db);
+                    break;
+                case "channellist":
+                    $channel->handleGetChannelList();
+                    break;
+                default:
+                    throw new ApiException('Invalid route', 404);
+                    break;
+            }
+            break;
 
         case "message":
-            isUriSet($uri[2]);
-    
+            if (!isset($uri[2])) {
+                throw new ApiException('Invalid route', 404);
+            }
+
             switch ($uri[2]) {
                 case "send":
                     $message->handleSendMessage($data);
@@ -114,27 +128,17 @@ switch ($uri[1]) {
                     $message->handleGetMessages($_GET);
                     break;
                 default:
-                    noRouteFound();
+                    throw new ApiException('Invalid route', 404);
                     break;
             }
             break;
-    
-    default:
-        noRouteFound();
-        break;
-}
 
-function isUriSet($uri)
-{
-    if (!isset($uri)) {
-        http_response_code(404);
-        echo json_encode(array("message" => "Route not found."));
-        die;
+        default:
+            throw new ApiException('Invalid route', 404);
+            break;
     }
-}
-
-function noRouteFound()
-{
-    http_response_code(404);
-    echo json_encode(array("message" => "Route not found."));
+} catch (PDOException $e) {
+    throw new ApiException('Database error: ' . $e->getMessage(), 500);
+} catch (Exception $e) {
+    throw new ApiException($e->getMessage(), 500);
 }
