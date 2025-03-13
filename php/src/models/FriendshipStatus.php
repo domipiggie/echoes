@@ -14,68 +14,84 @@ class FriendshipStatus
 
     public function loadFromDB($statusID)
     {
-        $query = "SELECT * FROM " . $this->status_table ."
-                WHERE 
-                    statusID = :statusID";
-            
-        $dbStmt = $this->dbConn->prepare($query);
-        $dbStmt->bindParam(':statusID', $statusID);
-        $dbStmt->execute();
-        if ($dbStmt->rowCount() > 0) {
-            $row = $dbStmt->fetch(PDO::FETCH_ASSOC);
-            $this->statusID = $row['statusID'];
-            $this->initiator = $row['initiator'];
-            $this->status = $row['status'];
-            return true;
+        try {
+            $query = "SELECT * FROM " . $this->status_table . "
+            WHERE 
+                statusID = :statusID";
+
+            $dbStmt = $this->dbConn->prepare($query);
+            $dbStmt->bindParam(':statusID', $statusID);
+            $dbStmt->execute();
+            if ($dbStmt->rowCount() > 0) {
+                $row = $dbStmt->fetch(PDO::FETCH_ASSOC);
+                $this->statusID = $row['statusID'];
+                $this->initiator = $row['initiator'];
+                $this->status = $row['status'];
+                return true;
+            }
+            throw new ApiException('Failed to load friendship status', 500);
+        } catch (Exception $e) {
+            throw new ApiException($e->getMessage(), 500);
         }
-        return false;
     }
 
     public function createNewEntry($initiator)
     {
-        $this->initiator = $initiator;
-        $sql = "INSERT INTO " . $this->status_table . "
-                SET
-                    initiator = :initiator,
-                    status = 0;";
+        try {
+            $this->initiator = $initiator;
+            $sql = "INSERT INTO " . $this->status_table . "
+            SET
+                initiator = :initiator,
+                status = 0;";
 
-        $dbStmt = $this->dbConn->prepare($sql);
+            $dbStmt = $this->dbConn->prepare($sql);
 
-        $dbStmt->bindParam(':initiator', $this->initiator);
+            $dbStmt->bindParam(':initiator', $this->initiator);
 
-        $dbStmt->execute();
+            $dbStmt->execute();
 
-        $this->statusID = $this->dbConn->lastInsertId();
-        $this->status = 0;
+            $this->statusID = $this->dbConn->lastInsertId();
+            $this->status = 0;
+        } catch (Exception $e) {
+            throw new ApiException($e->getMessage(), 500);
+        }
     }
 
     public function removeEntry()
     {
-        $query = "DELETE FROM " . $this->status_table . "
-                WHERE
-                    statusID = :statusID";
+        try {
+            $query = "DELETE FROM " . $this->status_table . "
+        WHERE
+            statusID = :statusID";
 
-        $dbStmt = $this->dbConn->prepare($query);
-        $dbStmt->bindParam(':statusID', $this->statusID);
-        $dbStmt->execute();
+            $dbStmt = $this->dbConn->prepare($query);
+            $dbStmt->bindParam(':statusID', $this->statusID);
+            $dbStmt->execute();
+        } catch (Exception $e) {
+            throw new ApiException($e->getMessage(), 500);
+        }
     }
 
     public function updateStatus($status)
     {
-        $query = "UPDATE " . $this->status_table . "
-                SET
-                    status = :newStatus
-                WHERE
-                    statusID = :statusID";
-                
-        $dbStmt = $this->dbConn->prepare($query);
-        $dbStmt->bindParam(':newStatus', $status);
-        $dbStmt->bindParam(':statusID', $this->statusID);
-        $dbStmt->execute();
-        if ($dbStmt->rowCount() > 0){
-            return true;
+        try {
+            $query = "UPDATE " . $this->status_table . "
+            SET
+                status = :newStatus
+            WHERE
+                statusID = :statusID";
+
+            $dbStmt = $this->dbConn->prepare($query);
+            $dbStmt->bindParam(':newStatus', $status);
+            $dbStmt->bindParam(':statusID', $this->statusID);
+            $dbStmt->execute();
+            if ($dbStmt->rowCount() > 0) {
+                return true;
+            }
+            throw new ApiException('Failed to update friendship status', 500);
+        } catch (Exception $e) {
+            throw new ApiException($e->getMessage(), 500);
         }
-        return false;
     }
 
     //getters
