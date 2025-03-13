@@ -57,7 +57,7 @@
 .sidebar {
   width: 100%;
   max-width: 360px;
-  background: linear-gradient(135deg, #b13030, rgb(222, 96, 33)); 
+  background: linear-gradient(135deg, #7078e6, #4e55df); 
   color: #e0e0e0; 
   display: flex;
   flex-direction: column;
@@ -91,7 +91,7 @@
 }
 
 .new-message-btn {
-  background: linear-gradient(135deg, rgb(222, 96, 33), rgb(255, 120, 0)); 
+  background: linear-gradient(135deg, #7078e6, #969bdf); 
   border: none;
   color: #fff;
   cursor: pointer;
@@ -116,7 +116,7 @@
 }
 
 .search-bar:focus-within {
-  border-color: rgb(255, 120, 0); 
+  border-color:#7078e6; 
 }
 
 .search-bar input {

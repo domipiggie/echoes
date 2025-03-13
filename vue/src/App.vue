@@ -14,7 +14,7 @@ import Chat from './components/Chat.vue'
 body {
   margin: 0;
   padding: 0;
-  background-color: #18191a;
+  background-color: #ffffff;
   height: 100vh;
   display: flex;
   justify-content: center;
@@ -41,7 +41,6 @@ body {
 .floating-container {
   width: 100vw;
   height: 100vh;
-  background-color: #18191a;  /* Changed to match body background */
   overflow: hidden;
   display: flex;
 }

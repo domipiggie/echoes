@@ -56,8 +56,8 @@
           </svg>
         </button>
         <div class="avatar">
-          <img src="" alt="" class="avatar-img" />
-        </div>
+       <img src=".src/images/test.jpg" alt="Profilkép">
+  </div>
         <div class="user-name">{{ currentChat.name }}</div>
       </div>
       <div class="header-actions">
@@ -106,11 +106,11 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(135deg, #121212, #212121); 
+    background: linear-gradient(135deg, #ffffff, #313cd6); 
     position: relative;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 8px 20px rgba(238, 223, 223, 0.5);
     color: #e0e0e0; 
   }
   
@@ -119,8 +119,8 @@
     align-items: center;
     justify-content: space-between;
     padding: 10px 16px;
-    background: linear-gradient(135deg, #222, #333); 
-    border-bottom: 1px solid #444;
+    background: linear-gradient(135deg, #b1b1b1, #353ec2); 
+    border-bottom: 1px solid #ffffff;
     height: 70px;
   }
   
@@ -173,6 +173,7 @@
     padding: 20px;
     display: flex;
     flex-direction: column;
+    
   }
   
   .message {
@@ -192,14 +193,14 @@
     padding: 12px 20px;
     border-radius: 30px;
     word-break: break-word;
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 5px 10px #7078e6;
   }
   .message-received .message-bubble {
-    background-color: #333;
-    color: #e0e0e0;
+    background-color: #ffffff;
+    color: #000000;
   }
   .message-sent .message-bubble {
-    background: linear-gradient(135deg, #ac3333, rgb(222, 96, 33)); 
+    background: linear-gradient(135deg, #7078e6, #4e55df);  
     color: #e0e0e0;
   }
   /* Removed:
@@ -212,17 +213,18 @@
   
   .input-area {
     padding: 20px;
-    background-color: #3b3a3a; 
-    border-top: 1px solid #333;
+    background-color: #7078e6; 
+    border-top: 1px solid #ffffff;
   }
   
   .message-box {
     display: flex;
     align-items: center;
-    background-color: #333;
+    background-color: #ffffff;
     border-radius: 30px;
     padding: 5px 20px;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 3px 8px rgba(207, 207, 207, 0.3);
+    
   }
   
   .message-box input {
@@ -251,33 +253,33 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #444;
+    color: #7078e6;
     transition: transform 0.5s ease-in-out, color 0.5s ease;
   }
   
   .send-button:hover {
     transform: scale(1.1);
-    color: rgb(255, 120, 0);
+    color: #2530ce;
   }
   
   .send-button.sending { 
     transform: scale(1.2);
-    color: #444;
+    color: #7078e6;
   }
   
   .gif-button {
-    background-color: #444;
+    background-color: #7078e6;
     border-radius: 5px;
-    border: 1px solid #555;
+    border: 1px solid #2530ce;
     padding: 8px 12px;
-    color: #e0e0e0;
+    color: #ffffff;
     cursor: pointer;
     margin-right: 8px;
     transition: transform 0.5s ease-in-out, color 0.5s ease;
   }
   
   .gif-button:hover {
-    background-color: rgb(255, 120, 0);
+    background-color: #2530ce;
   }
 
   @media (max-width: 1200px) {

@@ -1,14 +1,23 @@
 <script setup>
-defineProps({
+import { defineProps, defineEmits } from 'vue';
+
+const props = defineProps({
   currentChat: {
     type: Object,
-    required: true
-  }
+    required: true,
+  },
 });
+
+const emit = defineEmits(['close']);
+
+const closeProfile = () => {
+  emit('close');
+};
 </script>
 
 <template>
   <div class="profile-sidebar">
+    <button @click="closeProfile">Bezárás</button>
     <div class="profile-header">
       <div class="profile-image">
         <img src="" alt="" />
@@ -20,11 +29,11 @@ defineProps({
     <div class="profile-section">
       <h3>Chat testreszabása</h3>
       <button class="profile-button">
-        <span class="button-icon">🎨</span>
+        <span class="button-icon"></span>
         Téma megváltoztatása
       </button>
       <button class="profile-button">
-        <span class="button-icon">😊</span>
+        <span class="button-icon"></span>
         Hangulatjel megváltoztatása
       </button>
       <button class="profile-button">
@@ -56,6 +65,10 @@ defineProps({
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100vh;
 }
 
 .profile-header {

@@ -89,10 +89,9 @@ const sendMessage = (text) => {
   overflow: hidden;
   font-family: Arial, sans-serif;
   gap: 24px; /* Increased from 16px to 24px */
-  background-color: #18191a;
+  background-color: #dfdfdf;
   margin: 2.5vh 2.5vw;
   border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
 }
 
 @media (max-width: 768px) {
