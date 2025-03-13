@@ -47,18 +47,16 @@ class User
             }
         } catch (PDOException $e) {
             $this->dbConn->rollBack();
-            return false;
+            throw new ApiException('Failed to create user', 500);
+        } catch (Exception $e) {
+            throw new ApiException('Failed to create user', 500);
         }
     }
 
     public function loadFromID($id)
     {
         try {
-            if (!is_numeric($id)) {
-                throw new ApiException('Invalid user ID format', 400);
-            }
-
-            $query = "SELECT * FROM users WHERE id = ?";
+            $query = "SELECT * FROM user WHERE userID = ?";
             $stmt = $this->dbConn->prepare($query);
             $stmt->execute([$id]);
 
@@ -72,31 +70,40 @@ class User
             $this->username = $row['username'];
             $this->passwordHash = $row['password'];
             return true;
-        } catch (PDOException $e) {
-            throw new ApiException('Database error while loading user: ' . $e->getMessage(), 500);
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to load user', 500);
         }
     }
 
     public function loadFromEmail($email)
     {
-        $query = "SELECT userID, username, email, password
+        try {
+            $query = "SELECT userID, username, email, password
                 FROM " . $this->table_name . "
                 WHERE email = :email
                 LIMIT 0,1";
 
-        $stmt = $this->dbConn->prepare($query);
-        $stmt->bindParam(':email', $email);
-        $stmt->execute();
+            $stmt = $this->dbConn->prepare($query);
+            $stmt->bindParam(':email', $email);
+            $stmt->execute();
 
-        if ($stmt->rowCount() > 0) {
+            if ($stmt->rowCount() === 0) {
+                throw new ApiException('User not found', 404);
+            }
+
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             $this->userID = $row['userID'];
             $this->email = $row['email'];
             $this->username = $row['username'];
             $this->passwordHash = $row['password'];
             return true;
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to load user', 500);
         }
-        return false;
     }
 
     //misc methods
@@ -107,43 +114,43 @@ class User
         return false;
     }
 
-    public function emailExists()
+    public function emailExists($email)
     {
         try {
             $query = "SELECT email
                     FROM " . $this->table_name . "
                     WHERE email = ?
                     LIMIT 0,1";
-    
+
             $stmt = $this->dbConn->prepare($query);
-            $stmt->bindParam(1, $this->email);
+            $stmt->bindParam(1, $email);
             $stmt->execute();
-    
+
             $num = $stmt->rowCount();
-    
+
             return $num > 0;
-        } catch (PDOException $e) {
-            throw new ApiException($e->getMessage(), 500);
+        } catch (Exception $e) {
+            throw new ApiException('Failed to check if email exists', 500);
         }
     }
 
-    public function usernameExists()
+    public function usernameExists($username)
     {
-        try{
+        try {
             $query = "SELECT username
                     FROM " . $this->table_name . "
                     WHERE username = ?
                     LIMIT 0,1";
-    
+
             $stmt = $this->dbConn->prepare($query);
-            $stmt->bindParam(1, $this->username);
+            $stmt->bindParam(1, $username);
             $stmt->execute();
-    
+
             $num = $stmt->rowCount();
-    
+
             return $num > 0;
-        } catch (PDOException $e) {
-            throw new ApiException($e->getMessage(), 500);
+        } catch (Exception $e) {
+            throw new ApiException('Failed to check if username exists', 500);
         }
     }
 
@@ -178,4 +185,3 @@ class User
         return $this->profilePicture;
     }
 }
-?>

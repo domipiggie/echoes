@@ -30,8 +30,10 @@ class FriendshipStatus
                 return true;
             }
             throw new ApiException('Failed to load friendship status', 500);
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Failed to load friendship status', 500);
         }
     }
 
@@ -53,22 +55,7 @@ class FriendshipStatus
             $this->statusID = $this->dbConn->lastInsertId();
             $this->status = 0;
         } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
-        }
-    }
-
-    public function removeEntry()
-    {
-        try {
-            $query = "DELETE FROM " . $this->status_table . "
-        WHERE
-            statusID = :statusID";
-
-            $dbStmt = $this->dbConn->prepare($query);
-            $dbStmt->bindParam(':statusID', $this->statusID);
-            $dbStmt->execute();
-        } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Failed to create new friendship status', 500);
         }
     }
 
@@ -89,8 +76,10 @@ class FriendshipStatus
                 return true;
             }
             throw new ApiException('Failed to update friendship status', 500);
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Failed to update friendship status', 500);
         }
     }
 

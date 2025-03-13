@@ -27,7 +27,9 @@ class FriendshipController
                 throw new ApiException('Error while sending friend request', 500);
             }
         } catch (ApiException $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to send friend request', 500);
         }
     }
 
@@ -48,10 +50,9 @@ class FriendshipController
                 throw new ApiException('Error while denying friend request', 500);
             }
         } catch (ApiException $e) {
-            throw new ApiException($e->getMessage(), 500);
-        }
-        if (!isset($data['userID'])) {
-            return array("message" => "UserID not provided!");
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to decline friend request', 500);
         }
     }
 
@@ -72,14 +73,16 @@ class FriendshipController
                 throw new ApiException('Error while accepting friend request', 500);
             }
         } catch (ApiException $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to accept friend request', 500);
         }
     }
 
     public function handleAddFriend($data)
     {
         try {
-            if ($_SERVER['REQUEST_METHOD']!= 'POST') {
+            if ($_SERVER['REQUEST_METHOD'] != 'POST') {
                 throw new ApiException('Invalid method!', 405);
             }
 
@@ -97,14 +100,16 @@ class FriendshipController
             echo json_encode($result);
             return $result;
         } catch (ApiException $e) {
-            echo json_encode(['message' => $e->getMessage()]);
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to add friend', 500);
         }
     }
 
     public function handleDeclineFriend($data)
     {
         try {
-            if ($_SERVER['REQUEST_METHOD']!= 'PUT') {
+            if ($_SERVER['REQUEST_METHOD'] != 'PUT') {
                 throw new ApiException('Invalid method!', 405);
             }
 
@@ -116,14 +121,16 @@ class FriendshipController
             $result = $this->declineFriendRequest($user, $data);
             echo json_encode($result);
         } catch (ApiException $e) {
-            echo json_encode(['message' => $e->getMessage()]);
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to decline friend', 500);
         }
     }
 
     public function handleAcceptFriend($data)
     {
         try {
-            if ($_SERVER['REQUEST_METHOD']!= 'PUT') {
+            if ($_SERVER['REQUEST_METHOD'] != 'PUT') {
                 throw new ApiException('Invalid method!', 405);
             }
 
@@ -135,22 +142,9 @@ class FriendshipController
             $result = $this->acceptFriendRequest($user, $data);
             echo json_encode($result);
         } catch (ApiException $e) {
-            echo json_encode(['message' => $e->getMessage()]);
-        }
-    }
-
-    public function handleGetFriendList()
-    {
-        try {
-            if ($_SERVER['REQUEST_METHOD']!= 'GET') {
-                throw new ApiException('Invalid method!', 405);
-            }
-
-            $user = AuthMiddleware::validateToken();
-            $result = $this->friendship->getFriendList($user);
-            echo json_encode($result);
-        } catch (ApiException $e) {
-            echo json_encode(['message' => $e->getMessage()]);
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to accept friend', 500);
         }
     }
 }

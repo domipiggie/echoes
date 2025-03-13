@@ -16,77 +16,80 @@ class AuthController
 
     private function generateAccessToken($userID, $username, $email)
     {
-        $issuedAt = time();
-        $expirationTime = $issuedAt + JWT_EXPIRATION_TIME;
+        try {
+            $issuedAt = time();
+            $expirationTime = $issuedAt + JWT_EXPIRATION_TIME;
 
-        $token = array(
-            "iss" => JWT_ISSUER,
-            "aud" => JWT_AUDIENCE,
-            "iat" => $issuedAt,
-            "nbf" => $issuedAt,
-            "exp" => $expirationTime,
-            "jti" => base64_encode(random_bytes(16)),
-            "data" => array(
-                "id" => $userID,
-                "username" => $username,
-                "email" => $email
-            )
-        );
+            $token = array(
+                "iss" => JWT_ISSUER,
+                "aud" => JWT_AUDIENCE,
+                "iat" => $issuedAt,
+                "nbf" => $issuedAt,
+                "exp" => $expirationTime,
+                "jti" => base64_encode(random_bytes(16)),
+                "data" => array(
+                    "id" => $userID,
+                    "username" => $username,
+                    "email" => $email
+                )
+            );
 
-        return [
-            'token' => JWT::encode($token, JWT_SECRET_KEY, JWT_ALGORITHM),
-            'expires_in' => JWT_EXPIRATION_TIME
-        ];
+            return [
+                'token' => JWT::encode($token, JWT_SECRET_KEY, JWT_ALGORITHM),
+                'expires_in' => JWT_EXPIRATION_TIME
+            ];
+        } catch (Exception $e) {
+            throw new ApiException('Failed to create access token', 500);
+        }
     }
 
     public function login($data)
     {
-        if (!isset($data['email']) || !isset($data['password']))
-            return array("message" => "You must enter an email and a password!");
+        try {
+            if (
+                $this->user->loadFromEmail($data['email']) &&
+                hash_equals(hash('sha256', $data['password']), $this->user->getPasswordHash())
+            ) {
+                $accessToken = $this->generateAccessToken($this->user->getUserID(), $this->user->getUsername(), $this->user->getEmail());
+                $refreshToken = $this->refreshToken->create($this->user->getUserID());
 
-        if (
-            $this->user->loadFromEmail($data['email']) &&
-            hash_equals(hash('sha256', $data['password']), $this->user->getPasswordHash())
-        ) {
-            $accessToken = $this->generateAccessToken($this->user->getUserID(), $this->user->getUsername(), $this->user->getEmail());
-            $refreshToken = $this->refreshToken->create($this->user->getUserID());
-
-            return array(
-                "status" => "success",
-                "message" => "Login successful",
-                "access_token" => $accessToken['token'],
-                "token_type" => "Bearer",
-                "expires_in" => $accessToken['expires_in'],
-                "refresh_token" => $refreshToken['token']
-            );
+                return array(
+                    "status" => "success",
+                    "message" => "Login successful",
+                    "access_token" => $accessToken['token'],
+                    "token_type" => "Bearer",
+                    "expires_in" => $accessToken['expires_in'],
+                    "refresh_token" => $refreshToken['token']
+                );
+            } else {
+                throw new ApiException('Invalid password', 401);
+            }
+        } catch (ApiException $apie) {
+            throw new ApiException($apie->getMessage(), $apie->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Login failed', 500);
         }
-
-        return array(
-            "status" => "error",
-            "message" => "Invalid credentials"
-        );
     }
 
     public function register($data)
     {
-        // check for email and password in request body
-        if (!isset($data['email']) || !isset($data['username']) || !isset($data['password']))
-            return array("message" => "You must enter an email, username and password!");
+        try {
+            if ($this->user->emailExists($data['email'])) {
+                throw new ApiException('Email already in use', 400);
+            }
 
-        // check if e-mail already in use
-        if ($this->user->emailExists())
-            return array("message" => "E-mail already in use!");
+            if ($this->user->usernameExists($data['username'])) {
+                throw new ApiException('Username already in use', 400);
+            }
 
-        // check if username already in use
-        if ($this->user->usernameExists())
-            return array("message" => "Username already in use!");
+            $this->user->createUser($data['username'], $data['email'], $data['password']);
 
-        // create user
-        if ($this->user->createUser($data['username'], $data['email'], $data['password']))
             return array("message" => "User was created.");
-
-        // default
-        return array("message" => "Unable to create user.");
+        } catch (ApiException $apie) {
+            throw new ApiException($apie->getMessage(), $apie->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to create user', 500);
+        }
     }
 
     public function refresh($refreshToken)
@@ -95,7 +98,7 @@ class AuthController
             $userID = $this->refreshToken->validate($refreshToken);
 
             if (!$this->user->loadFromID($userID)) {
-                throw new Exception("User not found");
+                throw new ApiException("User not found", 401);
             }
 
             $accessToken = $this->generateAccessToken($userID, $this->user->getUsername(), $this->user->getEmail());
@@ -110,11 +113,10 @@ class AuthController
                 "expires_in" => $accessToken['expires_in'],
                 "refresh_token" => $newRefreshToken['token']
             );
+        } catch (ApiException $apie) {
+            throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            return array(
-                "status" => "error",
-                "message" => $e->getMessage()
-            );
+            throw new ApiException('Failed to refresh token', 500);
         }
     }
 
@@ -127,10 +129,7 @@ class AuthController
                 "message" => "Successfully logged out"
             );
         } catch (Exception $e) {
-            return array(
-                "status" => "error",
-                "message" => "Error during logout"
-            );
+            throw new ApiException('Failed to logout', 500);
         }
     }
 
@@ -147,8 +146,10 @@ class AuthController
             AuthMiddleware::validateAuthData($data);
 
             echo json_encode($this->register($data));
+        } catch (ApiException $apie) {
+            throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Failed to register', 500);
         }
     }
 
@@ -158,15 +159,17 @@ class AuthController
             if ($_SERVER['REQUEST_METHOD'] != 'POST') {
                 throw new ApiException('Invalid method', 405);
             }
-            if (!isset($data['username']) || !isset($data['password'])) {
+            if (!isset($data['email']) || !isset($data['password'])) {
                 throw new ApiException('Missing required fields', 400);
             }
 
             AuthMiddleware::validateAuthData($data);
 
             echo json_encode($this->login($data));
+        } catch (ApiException $apie) {
+            throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Failed to log in', 500);
         }
     }
 
@@ -181,8 +184,10 @@ class AuthController
             }
 
             echo json_encode($this->refresh($data['refresh_token']));
+        } catch (ApiException $apie) {
+            throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Faild to generate refresh token', 500);
         }
     }
 
@@ -197,8 +202,10 @@ class AuthController
             }
 
             echo json_encode($this->logout($data['refresh_token']));
+        } catch (ApiException $apie) {
+            throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Failed to log out', 500);
         }
     }
 }

@@ -32,8 +32,10 @@ class ChannelController
                 $this->db->rollBack();
                 throw new ApiException('Database error: ' . $e->getMessage(), 500);
             }
+        } catch (ApiException $apie) {
+            throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Failed to create channel for friendship', 500);
         }
     }
 
@@ -94,8 +96,10 @@ class ChannelController
             }
 
             echo json_encode($channels);
+        } catch (ApiException $apie) {
+            throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Failed to get channel list', 500);
         }
     }
 }

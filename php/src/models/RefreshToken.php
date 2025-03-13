@@ -33,6 +33,8 @@ class RefreshToken
             }
 
             throw new ApiException("Failed to create refresh token", 500);
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
             throw new ApiException($e->getMessage(), 500);
         }
@@ -64,6 +66,8 @@ class RefreshToken
                 return $row['userID'];
             }
             throw new ApiException("Invalid refresh token", 401);
+        } catch (ApiException $apie) {
+            throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
             throw new ApiException($e->getMessage(), 500);
         }

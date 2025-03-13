@@ -49,15 +49,17 @@ class MessageController
             } else {
                 throw new ApiException('Failed to send message', 500);
             }
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Failed to send message', 500);
         }
     }
 
     public function handleGetMessages($data)
     {
         try {
-            if ($_SERVER['REQUEST_METHOD']!= 'GET') {
+            if ($_SERVER['REQUEST_METHOD'] != 'GET') {
                 throw new ApiException('Invalid method', 405);
             }
 
@@ -75,19 +77,21 @@ class MessageController
 
             $messages = $this->message->getChannelMessages($data['channelID'], $offset);
 
-            if ($messages!== false) {
+            if ($messages !== false) {
                 http_response_code(200);
                 echo json_encode([
-                   'status' =>'success',
-                   'messages' => $messages,
+                    'status' => 'success',
+                    'messages' => $messages,
                     'offset' => $offset,
                     'limit' => 20
                 ]);
             } else {
                 throw new ApiException('Failed to fetch messages', 500);
             }
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Failed to fetch messages', 500);
         }
     }
 }

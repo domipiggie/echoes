@@ -1,5 +1,6 @@
 <?php
 require_once '../vendor/autoload.php';
+
 use \Firebase\JWT\JWT;
 use \Firebase\JWT\Key;
 use \Firebase\JWT\ExpiredException;
@@ -9,55 +10,71 @@ class AuthMiddleware
 {
     private static function getAuthorizationHeader()
     {
-        $headers = null;
+        try {
+            $headers = null;
 
-        if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
-            $headers = trim($_SERVER["HTTP_AUTHORIZATION"]);
-        } elseif (isset($_SERVER['Authorization'])) {
-            $headers = trim($_SERVER["Authorization"]);
-        } elseif (function_exists('apache_request_headers')) {
-            $requestHeaders = apache_request_headers();
-            if (isset($requestHeaders['Authorization'])) {
-                $headers = trim($requestHeaders['Authorization']);
+            if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+                $headers = trim($_SERVER["HTTP_AUTHORIZATION"]);
+            } elseif (isset($_SERVER['Authorization'])) {
+                $headers = trim($_SERVER["Authorization"]);
+            } elseif (function_exists('apache_request_headers')) {
+                $requestHeaders = apache_request_headers();
+                if (isset($requestHeaders['Authorization'])) {
+                    $headers = trim($requestHeaders['Authorization']);
+                }
             }
-        }
 
-        return $headers;
+            return $headers;
+        } catch (Exception $e) {
+            throw new ApiException('Failed to get authorization header', 500);
+        }
     }
 
     private static function validateTokenFormat($token)
     {
-        // JWT format check (3 parts separated by dots)
-        if (!preg_match('/^[a-zA-Z0-9\-\_\=]+\.[a-zA-Z0-9\-\_\=]+\.[a-zA-Z0-9\-\_\=]+$/', $token)) {
-            throw new ApiException('Invalid token format', 401);
+        try {
+            // JWT format check (3 parts separated by dots)
+            if (!preg_match('/^[a-zA-Z0-9\-\_\=]+\.[a-zA-Z0-9\-\_\=]+\.[a-zA-Z0-9\-\_\=]+$/', $token)) {
+                throw new ApiException('Invalid token format', 401);
+            }
+        } catch (ApiException $apie) {
+            throw new ApiException($apie->getMessage(), $apie->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to validate token format', 500);
         }
     }
 
     private static function validateTokenClaims($decoded)
     {
-        // Verify issuer
-        if (!isset($decoded->iss) || $decoded->iss !== JWT_ISSUER) {
-            throw new ApiException('Invalid token issuer', 401);
-        }
+        try {
+            // Verify issuer
+            if (!isset($decoded->iss) || $decoded->iss !== JWT_ISSUER) {
+                throw new ApiException('Invalid token issuer', 401);
+            }
 
-        // Verify audience
-        if (!isset($decoded->aud) || $decoded->aud !== JWT_AUDIENCE) {
-            throw new ApiException('Invalid token audience', 401);
-        }
+            // Verify audience
+            if (!isset($decoded->aud) || $decoded->aud !== JWT_AUDIENCE) {
+                throw new ApiException('Invalid token audience', 401);
+            }
 
-        // Check if token was issued in the future
-        if (!isset($decoded->iat) || $decoded->iat > time()) {
-            throw new ApiException('Invalid token issue time', 401);
-        }
+            // Check if token was issued in the future
+            if (!isset($decoded->iat) || $decoded->iat > time()) {
+                throw new ApiException('Invalid token issue time', 401);
+            }
 
-        // Check if token is expired
-        if (!isset($decoded->exp) || $decoded->exp < time()) {
-            throw new ApiException('Token has expired', 401);
-        }
+            // Check if token is expired
+            if (!isset($decoded->exp) || $decoded->exp < time()) {
+                throw new ApiException('Token has expired', 401);
+            }
 
-        // Verify token hasn't been used before its nbf time
-        if (isset($decoded->nbf) && $decoded->nbf > time()) {
-            throw new ApiException('Token not yet valid', 401);
+            // Verify token hasn't been used before its nbf time
+            if (isset($decoded->nbf) && $decoded->nbf > time()) {
+                throw new ApiException('Token not yet valid', 401);
+            }
+        } catch (ApiException $apie) {
+            throw new ApiException($apie->getMessage(), $apie->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to validate token claims', 500);
         }
     }
 
@@ -86,20 +103,29 @@ class AuthMiddleware
             self::validateTokenClaims($decoded);
 
             return $decoded->data;
-
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (ExpiredException $expe) {
+            throw new ApiException('Token has expired', 401);
         } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Failed to validate token', 500);
         }
     }
 
     public static function validateAuthData($data)
     {
-        if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            throw new ApiException('Invalid e-mail format', 400);
-        }
+        try {
+            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                throw new ApiException('Invalid e-mail format', 400);
+            }
 
-        if (strlen($data['password']) < 6) {
-            throw new ApiException('Password too short', 400);
+            if (strlen($data['password']) < 6) {
+                throw new ApiException('Password too short', 400);
+            }
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to validate authentication data', 500);
         }
     }
 }

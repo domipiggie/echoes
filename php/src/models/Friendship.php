@@ -39,8 +39,10 @@ class Friendship
                 return true;
             }
             return false;
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Couldn\'t check if friendship exists', 500);
         }
     }
 
@@ -67,9 +69,12 @@ class Friendship
 
             $stmt->bindParam(':user1ID', $this->user1ID);
             $stmt->bindParam(':user2ID', $this->user2ID);
-            $stmt->bindParam(':statusID', $this->friendshipStatus->getStatusID());
+            $statusid = $this->friendshipStatus->getStatusID();
+            $stmt->bindParam(':statusID', $statusid);
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Couldn\'t prepare friend request', 500);
         }
 
         try {
@@ -84,35 +89,31 @@ class Friendship
             }
         } catch (PDOException $e) {
             $this->dbConn->rollBack();
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Couldn\'t send friend request', 500);
+        } catch (ApiException $apie) {
+            throw new ApiException($apie->getMessage(), $apie->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Couldn\'t send friend request', 500);
         }
     }
 
     public function declineFriendRequest()
     {
         try {
-            if ($this->doesFriendshipExist()) {
-                throw new ApiException('Friendship already exists!', 400);
+            if (!$this->doesFriendshipExist()) {
+                throw new ApiException('Friendship doesn\'t exist!', 400);
             }
 
-            $query = "DELETE FROM " . $this->friendship_table . "
-            WHERE
-                user1ID = :user1ID AND user2ID = :user2ID
-                OR
-                user1ID = :user2ID AND user2ID = :user1ID";
-
-            $stmt = $this->dbConn->prepare($query);
-            $stmt->bindParam(':user1ID', $this->user1ID);
-            $stmt->bindParam(':user2ID', $this->user2ID);
-
-            if ($stmt->execute()) {
-                $this->friendshipStatus->removeEntry();
-                return true;
-            } else {
-                throw new ApiException('Couldn\'t deny friendship', 500);
+            if ($this->friendshipStatus->getStatus() != 0) {
+                throw new ApiException('Friendship isn\'t peinding!', 400);
             }
+            
+            $this->friendshipStatus->updateStatus(-1);
+            return true;
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Couldn\'t deny friendship' . $e->getMessage() . $e->getLine() . $e->getFile(), 500);
         }
     }
 
@@ -127,8 +128,8 @@ class Friendship
                 throw new ApiException('Friendship already accepted!', 400);
             }
 
-            if ($this->friendshipStatus->getInitiator() != $user) {
-                throw new ApiException('You are not the initiator of this friendship!', 400);
+            if ($this->friendshipStatus->getInitiator() == $user) {
+                throw new ApiException('You are the initiator of this friendship!', 400);
             }
 
             if ($this->friendshipStatus->updateStatus(1)) {
@@ -136,25 +137,10 @@ class Friendship
             } else {
                 throw new ApiException('Friendship not accepted!', 500);
             }
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
-        }
-    }
-
-    public function getFriendList($user)
-    {
-        try {
-
-            $query = "SELECT friendshipID, user1ID, user2ID, status
-            FROM friendship INNER JOIN friendshipStatus ON friendship.statusID = friendshipStatus.statusID
-                WHERE friendshipStatus.status = 1 AND (friendship.user1ID = :user OR friendship.user2ID = :user);";
-
-            $stmt = $this->dbConn->prepare($query);
-            $stmt->bindParam(':user', $user->id);
-            $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Couldn\'t accept friendship', 500);
         }
     }
 

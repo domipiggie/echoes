@@ -27,8 +27,10 @@ class Message
             }
 
             throw new ApiException("Failed to send message", 500);
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Couldn\'t send message', 500);
         }
     }
 
@@ -64,7 +66,7 @@ class Message
 
             return $stmt->rowCount() > 0;
         } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Couldn\'t check channel access', 500);
         }
     }
 
@@ -85,7 +87,7 @@ class Message
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Couldn\'t get channel messages', 500);
         }
     }
 }
