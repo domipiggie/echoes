@@ -53,24 +53,28 @@ class User
 
     public function loadFromID($id)
     {
-        $query = "SELECT userID, username, email, password
-                FROM " . $this->table_name . "
-                WHERE userID = :userID
-                LIMIT 0,1";
+        try {
+            if (!is_numeric($id)) {
+                throw new ApiException('Invalid user ID format', 400);
+            }
 
-        $stmt = $this->dbConn->prepare($query);
-        $stmt->bindParam(':userID', $id);
-        $stmt->execute();
+            $query = "SELECT * FROM users WHERE id = ?";
+            $stmt = $this->dbConn->prepare($query);
+            $stmt->execute([$id]);
 
-        if ($stmt->rowCount() > 0) {
+            if ($stmt->rowCount() === 0) {
+                throw new ApiException('User not found', 404);
+            }
+
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             $this->userID = $row['userID'];
             $this->email = $row['email'];
             $this->username = $row['username'];
             $this->passwordHash = $row['password'];
             return true;
+        } catch (PDOException $e) {
+            throw new ApiException('Database error while loading user: ' . $e->getMessage(), 500);
         }
-        return false;
     }
 
     public function loadFromEmail($email)
@@ -105,34 +109,42 @@ class User
 
     public function emailExists()
     {
-        $query = "SELECT email
-                FROM " . $this->table_name . "
-                WHERE email = ?
-                LIMIT 0,1";
-
-        $stmt = $this->dbConn->prepare($query);
-        $stmt->bindParam(1, $this->email);
-        $stmt->execute();
-
-        $num = $stmt->rowCount();
-
-        return $num > 0;
+        try {
+            $query = "SELECT email
+                    FROM " . $this->table_name . "
+                    WHERE email = ?
+                    LIMIT 0,1";
+    
+            $stmt = $this->dbConn->prepare($query);
+            $stmt->bindParam(1, $this->email);
+            $stmt->execute();
+    
+            $num = $stmt->rowCount();
+    
+            return $num > 0;
+        } catch (PDOException $e) {
+            throw new ApiException($e->getMessage(), 500);
+        }
     }
 
     public function usernameExists()
     {
-        $query = "SELECT username
-                FROM " . $this->table_name . "
-                WHERE username = ?
-                LIMIT 0,1";
-
-        $stmt = $this->dbConn->prepare($query);
-        $stmt->bindParam(1, $this->username);
-        $stmt->execute();
-
-        $num = $stmt->rowCount();
-
-        return $num > 0;
+        try{
+            $query = "SELECT username
+                    FROM " . $this->table_name . "
+                    WHERE username = ?
+                    LIMIT 0,1";
+    
+            $stmt = $this->dbConn->prepare($query);
+            $stmt->bindParam(1, $this->username);
+            $stmt->execute();
+    
+            $num = $stmt->rowCount();
+    
+            return $num > 0;
+        } catch (PDOException $e) {
+            throw new ApiException($e->getMessage(), 500);
+        }
     }
 
     //getters
