@@ -3,8 +3,10 @@ import Chat from './components/Chat.vue'
 </script>
 
 <template>
-  <div id="app">
-    <router-view/>
+  <div class="app-container">
+    <div class="floating-container">
+      <Chat />
+    </div>
   </div>
 </template>
 
@@ -15,8 +17,15 @@ body {
   background-color: #18191a;
   height: 100vh;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .app-container {
@@ -30,16 +39,33 @@ body {
 }
 
 .floating-container {
-  width: 1450px;  
-  height: 95vh;
-  background-color: #242526;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  width: 100vw;
+  height: 100vh;
+  background-color: #18191a;  /* Changed to match body background */
   overflow: hidden;
   display: flex;
 }
 
+@media (min-width: 1600px) {
+  .floating-container {
+    width: 95%;
+    max-width: 1450px;
+    height: 95vh;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  }
+}
 
+
+@media (max-width: 768px) {
+  .floating-container {
+    width: 100%;
+    height: 100vh;
+    border-radius: 0;
+  }
+}
+
+/* Custom Scrollbar Styles */
 ::-webkit-scrollbar {
   width: 8px;
 }
