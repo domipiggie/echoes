@@ -2,8 +2,13 @@
 
 namespace WebSocket;
 
+require_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'middleware' . DIRECTORY_SEPARATOR . 'AuthMiddleware.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'exceptions' . DIRECTORY_SEPARATOR . 'ApiException.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'core.php';
+
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
+use AuthMiddleware;
 
 class MessageNotifier implements MessageComponentInterface
 {
@@ -24,9 +29,18 @@ class MessageNotifier implements MessageComponentInterface
     public function onMessage(ConnectionInterface $from, $msg)
     {
         $data = json_decode($msg, true);
-
+        
         if (isset($data['type']) && $data['type'] === 'auth' && isset($data['userID'])) {
-            $userID = $data['userID'];
+            $userID = AuthMiddleware::validateToken($data['userID'])->id;
+
+            if (is_null($userID)) {
+                $from->send(json_encode([
+                    'type' => 'auth_error',
+                    'message' => 'Authentication failed'
+                ]));
+                $from->close();
+            }
+
             $this->userConnections[$userID][] = $from;
             echo "User {$userID} authenticated on connection {$from->resourceId}\n";
 

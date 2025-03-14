@@ -26,6 +26,7 @@ class EchoesWebSocket {
                 console.log('Authentication successful');
             } else if (data.type === 'new_message') {
                 console.log('New message received in channel:', data.channelID);
+                console.log(data.message.content);
 
                 this.messageHandlers.forEach(handler => {
                     handler(data.message, data.channelID);

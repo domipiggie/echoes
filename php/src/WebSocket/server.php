@@ -1,4 +1,5 @@
 <?php
+error_reporting(E_ALL & ~E_DEPRECATED);  // Add this line at the top
 require dirname(__DIR__, 2) . '/vendor/autoload.php';
 
 use Ratchet\Server\IoServer;
