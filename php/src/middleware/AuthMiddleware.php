@@ -1,10 +1,9 @@
 <?php
-require_once '../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 use \Firebase\JWT\JWT;
 use \Firebase\JWT\Key;
 use \Firebase\JWT\ExpiredException;
-use \Firebase\JWT\SignatureInvalidException;
 
 class AuthMiddleware
 {
@@ -78,20 +77,22 @@ class AuthMiddleware
         }
     }
 
-    public static function validateToken()
+    public static function validateToken($token = null)
     {
         try {
-            $headers = self::getAuthorizationHeader();
+            if (is_null($token)) {
+                $headers = self::getAuthorizationHeader();
 
-            if (!$headers) {
-                throw new ApiException('Authorization header not found', 401);
+                if (!$headers) {
+                    throw new ApiException('Authorization header not found', 401);
+                }
+
+                if (!preg_match('/Bearer\s(\S+)/', $headers, $matches)) {
+                    throw new ApiException('Token not found in Bearer header', 401);
+                }
+
+                $token = $matches[1];
             }
-
-            if (!preg_match('/Bearer\s(\S+)/', $headers, $matches)) {
-                throw new ApiException('Token not found in Bearer header', 401);
-            }
-
-            $token = $matches[1];
 
             // Validate token format
             self::validateTokenFormat($token);

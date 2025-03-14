@@ -23,7 +23,21 @@ class Message
             $stmt->bindParam(":content", $content);
 
             if ($stmt->execute()) {
-                return $this->dbConn->lastInsertId();
+                $messageID = $this->dbConn->lastInsertId();
+
+                $messageData = [
+                    'messageID' => $messageID,
+                    'channelID' => $channelID,
+                    'userID' => $userID,
+                    'content' => $content,
+                    'sent_at' => date('Y-m-d H:i:s')
+                ];
+
+                $accessibleUsers = $this->getUsersWithChannelAccess($channelID);
+
+                $this->notifyNewMessage($messageData, $channelID, $accessibleUsers);
+
+                return $messageID;
             }
 
             throw new ApiException("Failed to send message", 500);
@@ -34,10 +48,72 @@ class Message
         }
     }
 
+    private function getUsersWithChannelAccess($channelID)
+    {
+        try {
+            $query = "SELECT userID FROM channel_access WHERE channelID = :channelID";
+            $stmt = $this->dbConn->prepare($query);
+            $stmt->bindParam(":channelID", $channelID);
+            $stmt->execute();
+            $directUsers = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            $query = "SELECT f.user1ID, f.user2ID FROM channel_list cl
+                      INNER JOIN friendship f ON cl.friendshipID = f.friendshipID
+                      WHERE cl.channelID = :channelID";
+            $stmt = $this->dbConn->prepare($query);
+            $stmt->bindParam(":channelID", $channelID);
+            $stmt->execute();
+
+            $friendshipUsers = [];
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $friendshipUsers[] = $row['user1ID'];
+                $friendshipUsers[] = $row['user2ID'];
+            }
+
+            return array_unique(array_merge($directUsers, $friendshipUsers));
+        } catch (Exception $e) {
+            throw new ApiException('Couldn\'t get users with channel access', 500);
+        }
+    }
+
+    private function notifyNewMessage($messageData, $channelID, $accessibleUsers)
+    {
+        try {
+            global $messageNotifier;
+
+            if (isset($messageNotifier)) {
+                $messageNotifier->notifyNewMessage($messageData, $channelID, $accessibleUsers);
+            } else {
+                $data = json_encode([
+                    'messageData' => $messageData,
+                    'channelID' => $channelID,
+                    'accessibleUsers' => $accessibleUsers
+                ]);
+
+                $options = [
+                    'http' => [
+                        'method' => 'POST',
+                        'header' => 'Content-Type: application/json',
+                        'content' => $data
+                    ]
+                ];
+
+                $context = stream_context_create($options);
+                $result = @file_get_contents('http://localhost/notify', false, $context);
+
+                error_log("Sent notification request for users " . implode(',', $accessibleUsers) . " about new message in channel $channelID");
+                if ($result === false) {
+                    error_log("Failed to send notification request: " . error_get_last()['message']);
+                }
+            }
+        } catch (Exception $e) {
+            error_log("Failed to send WebSocket notification: " . $e->getMessage());
+        }
+    }
+
     public function hasChannelAccess($userID, $channelID)
     {
         try {
-            // Check direct channel access first
             $query = "SELECT 1 FROM channel_access 
             WHERE userID = :userID 
             AND channelID = :channelID 
@@ -52,7 +128,6 @@ class Message
                 return true;
             }
 
-            // Check friendship-based access
             $query = "SELECT 1 FROM channel_list cl
             INNER JOIN friendship f ON cl.friendshipID = f.friendshipID
             WHERE cl.channelID = :channelID

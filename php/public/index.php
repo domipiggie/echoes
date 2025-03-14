@@ -26,6 +26,7 @@ require_once '../src/config/core.php';
 //Other
 require_once '../src/exceptions/ApiException.php';
 require_once '../src/utils/ErrorHandler.php';
+require_once '../src/websocket/MessageNotifier.php';
 
 // Set error handling
 set_exception_handler([ErrorHandler::class, 'handleError']);
@@ -137,6 +138,10 @@ try {
                     throw new ApiException('Invalid route', 404);
                     break;
             }
+            break;
+
+        case "notify":
+            include './notify.php';
             break;
 
         default:

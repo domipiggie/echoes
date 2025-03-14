@@ -4,14 +4,16 @@
     "type": "project",
     "require": {
         "php": "^7.4|^8.0",
-        "firebase/php-jwt": "^6.0"
+        "firebase/php-jwt": "^6.0",
+        "cboden/ratchet": "^0.4.4"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.0"
     },
     "autoload": {
         "psr-4": {
-            "echoes\\": "src/"
+            "echoes\\": "src/",
+            "WebSocket\\": "src/WebSocket/"
         }
     }
 }
