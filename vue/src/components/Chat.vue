@@ -24,7 +24,13 @@ const recentChats = ref([
   { id: 6, name: 'Márta', lastSeen: '5 órája', avatar: '' },
   { id: 7, name: 'Tamás', lastSeen: '1 napja', avatar: '' },
   { id: 8, name: 'Tamás', lastSeen: '1 napja', avatar: '' },
-  { id: 9, name: 'Tamás', lastSeen: '1 napja', avatar: '' }
+  { id: 9, name: 'Tamás', lastSeen: '1 napja', avatar: '' },
+  { id: 10, name: 'Tamás', lastSeen: '1 napja', avatar: '' },
+  { id:11, name: 'Tamás', lastSeen: '1 napja', avatar: '' },
+  { id: 12, name: 'Tamás', lastSeen: '1 napja', avatar: '' },
+  { id: 13, name: 'Tamás', lastSeen: '1 napja', avatar: '' },
+  { id: 14, name: 'Tamás', lastSeen: '1 napja', avatar: '' },
+  { id: 15, name: 'Tamás', lastSeen: '1 napja', avatar: '' }
 ]);
 
 const currentChat = ref({
@@ -55,30 +61,29 @@ const goBackToList = () => {
 
 const sendMessage = (text) => {
   const newId = messages.value.length + 1;
-  messages.value.push({
-    id: newId,
-    text,
-    sender: 'me',
-    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  });
+  
+  // Handle GIF messages
+  if (typeof text === 'object' && text.type === 'gif') {
+    messages.value.push({
+      id: newId,
+      text: text.text,
+      type: 'gif',
+      sender: 'me',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    });
+  } else {
+    messages.value.push({
+      id: newId,
+      text,
+      sender: 'me',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    });
+  }
 };
 </script>
 
 <template>
   <div class="chat-application">
-    <div class="side-buttons">
-      <button class="side-button active">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
-          <path d="M12 4V2m0 20v-2m8-8h2M2 12h2m13.657-5.657L19.07 4.93M4.93 19.07l1.414-1.414m0-11.314L4.93 4.93m14.14 14.14l-1.414-1.414" />
-        </svg>
-      </button>
-      <button class="side-button">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-        </svg>
-      </button>
-    </div>
     <Sidebar 
       v-if="!isMobile || !showChat" 
       :recents="recentChats" 
@@ -106,6 +111,8 @@ const sendMessage = (text) => {
   margin: 2.5vh 2.5vw;
   border-radius: 12px;
 }
+
+/* Remove .side-buttons and .side-button styles */
 
 /* Add this new style to ensure bottom corners are rounded */
 :deep(.chat-window) {

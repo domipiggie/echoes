@@ -16,73 +16,81 @@ const closeProfile = () => {
 </script>
 
 <template>
-  <div class="profile-sidebar">
-    <button class="close-button" @click="closeProfile">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M19 12H5M12 19l-7-7 7-7"/>
-      </svg>
-    </button>
-    <div class="profile-header">
-      <div class="profile-image">
-        <img src="" alt="" />
+  <div class="profile-overlay">
+    <div class="profile-sidebar">
+      <button class="close-button" @click="closeProfile">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <div class="profile-header">
+        <div class="profile-image">
+          <img src="" alt="" />
+        </div>
+        <h2>{{ currentChat.name }}</h2>
+        <div class="last-seen">Elérhető volt: {{ currentChat.lastSeen }}</div>
       </div>
-      <h2>{{ currentChat.name }}</h2>
-      <div class="last-seen">Elérhető volt: {{ currentChat.lastSeen }}</div>
-    </div>
 
-    <div class="profile-section">
-      <h3>Chat testreszabása</h3>
-      <button class="profile-button">
-        <span class="button-icon"></span>
-        Téma megváltoztatása
-      </button>
-      <button class="profile-button">
-        <span class="button-icon">Aa</span>
-        Hangulatjel megváltoztatása
-      </button>
-      <button class="profile-button">
-        <span class="button-icon">Aa</span>
-        Becenevek módosítása
-      </button>
-    </div>
-
-    <div class="profile-section">
-      <h3>Médiatartalom és fájlok</h3>
-      <div class="media-grid">
-        <div class="media-placeholder"></div>
-        <div class="media-placeholder"></div>
-        <div class="media-placeholder"></div>
+      <div class="profile-section">
+        <h3>Chat testreszabása</h3>
+        <button class="profile-button">
+          <span class="button-icon"></span>
+          Téma megváltoztatása
+        </button>
+        <button class="profile-button">
+          <span class="button-icon">Aa</span>
+          Hangulatjel megváltoztatása
+        </button>
+        <button class="profile-button">
+          <span class="button-icon">Aa</span>
+          Becenevek módosítása
+        </button>
       </div>
-    </div>
 
-    <div class="profile-section">
-      <h3>Személyes adatok védelme és támogatás</h3>
+      <div class="profile-section">
+        <h3>Médiatartalom és fájlok</h3>
+        <div class="media-grid">
+          <div class="media-placeholder"></div>
+          <div class="media-placeholder"></div>
+          <div class="media-placeholder"></div>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <h3>Személyes adatok védelme és támogatás</h3>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.profile-sidebar {
+.profile-overlay {
+  position: fixed;
+  top: 2.5vh;
+  right: 2.5vw;
+  bottom: 2.5vh;
   width: 360px;
+  background: white;
+  z-index: 9998;
+  border-radius: 16px;
+  box-shadow: -4px 0 20px rgba(112, 120, 230, 0.15);
+}
+
+.profile-sidebar {
+  width: 100%;
+  height: 100%;
   background-color: #ffffff;
-  border-left: 1px solid rgba(112, 120, 230, 0.2);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  position: fixed;
-  top: 24px;
-  right: 48px; /* Increased right margin */
-  height: calc(100vh - 120px);
-  max-height: 800px;
-  z-index: 9999;
+  position: relative;
   animation: slideIn 0.3s ease-out;
-  box-shadow: -4px 0 20px rgba(112, 120, 230, 0.15);
   border-radius: 16px;
 }
 
 @keyframes slideIn {
   from {
-    transform: translateX(calc(100% + 48px)); /* Adjusted for new margin */
+    transform: translateX(100%);
     opacity: 0;
   }
   to {
@@ -94,7 +102,7 @@ const closeProfile = () => {
 .profile-header {
   padding: 24px;
   text-align: center;
-  border-bottom: 1px solid rgba(112, 120, 230, 0.1);
+  border-bottom: 1px solid rgba(238, 230, 230, 0.1);
   background: linear-gradient(135deg, #7078e6, #4e55df);
   color: white;
   border-radius: 16px 16px 0 0;
@@ -106,7 +114,7 @@ const closeProfile = () => {
   left: 16px;
   background: none;
   border: none;
-  color: #7078e6;
+  color: white;
   cursor: pointer;
   padding: 8px;
   border-radius: 50%;
@@ -114,7 +122,7 @@ const closeProfile = () => {
 }
 
 .close-button:hover {
-  background-color: rgba(112, 120, 230, 0.1);
+  background-color: rgba(255, 255, 255, 0.2);
   transform: scale(1.1);
 }
 

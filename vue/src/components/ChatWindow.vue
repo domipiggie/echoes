@@ -1,6 +1,7 @@
 <script setup>
   import { defineProps, defineEmits, ref, watch, nextTick, onMounted } from 'vue';
-  import ChatProfile from './ChatProfile.vue';  // Add this import
+  import ChatProfile from './ChatProfile.vue';
+  import GifPicker from './GifPicker.vue'; // Győződj meg róla, hogy ez az import létezik
   
   const props = defineProps({
     currentChat: {
@@ -18,6 +19,8 @@
   const messagesContainer = ref(null);
   const isMobile = ref(false);
   const showProfile = ref(false);
+  const showGifPicker = ref(false);
+  const gifButtonRef = ref(null);
   
   onMounted(() => {
     checkScreenSize();
@@ -44,22 +47,33 @@
   };
   
   watch(() => props.messages.length, scrollToBottom);
+  
+  const toggleGifPicker = (event) => {
+    event.stopPropagation(); // Megakadályozza a kattintás továbbterjedését
+    showGifPicker.value = !showGifPicker.value;
+    console.log('GIF picker toggled:', showGifPicker.value);
+  };
+  
+  const handleGifSelect = (gifUrl) => {
+    emit('send-message', { text: gifUrl, type: 'gif' });
+    showGifPicker.value = false;
+  };
 </script>
 
 <template>
   <div class="chat-window container-fluid p-0">
     <div class="chat-header row m-0 align-items-center">
       <div class="col d-flex align-items-center">
-        <button 
-          class="back-button btn"
-          @click="$emit('go-back')"
-          v-if="isMobile"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-            <path fill="currentColor" d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
-          </svg>
-        </button>
         <div class="user-info">
+          <button 
+            class="back-button btn"
+            @click="$emit('go-back')"
+            v-if="isMobile"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+              <path fill="currentColor" d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
+            </svg>
+          </button>
           <div class="avatar">
             <img src=".src/images/test.jpg" alt="Profilkép">
           </div>
@@ -87,13 +101,30 @@
         :class="['message', message.sender === 'me' ? 'message-sent' : 'message-received']"
       >
         <div class="message-bubble">
-          {{ message.text }}
+          <img v-if="message.type === 'gif'" :src="message.text" class="message-gif" />
+          <span v-else>{{ message.text }}</span>
         </div>
       </div>
     </div>
     
     <div class="input-area">
       <div class="modern-message-box">
+        <div class="message-actions left-actions">
+          <div class="gif-button-container" style="position: relative;">
+            <button 
+              class="action-button gif-button"
+              @click.stop="toggleGifPicker"
+            >
+              <span>GIF</span>
+            </button>
+            <GifPicker
+              v-if="showGifPicker"
+              :is-open="showGifPicker"
+              @select-gif="handleGifSelect"
+              @close="showGifPicker = false"
+            />
+          </div>
+        </div>
         <input 
           v-model="newMessage" 
           type="text" 
@@ -101,9 +132,6 @@
           @keyup.enter="submitMessage"
         />
         <div class="message-actions">
-          <button class="action-button gif-button">
-            <span>GIF</span>
-          </button>
           <button class="action-button send-button" @click="submitMessage">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -129,6 +157,30 @@
 </template>
   
 <style scoped>
+.message-gif {
+  max-width: 200px;
+  border-radius: 8px;
+}
+
+.chat-window {
+  overflow: visible !important;
+}
+
+.gif-button {
+  background-color: #f0f4ff;
+  color: #7078e6;
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: 16px;
+  padding: 6px 12px;
+  border: none;
+}
+
+.gif-button:hover {
+  background-color: #e6eaff;
+  transform: translateY(-1px);
+}
+
 /* Alapvető stílusok */
 .chat-window {
   flex: 1;
@@ -157,7 +209,7 @@
 .user-info {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
 }
 
 .user-details {
@@ -323,25 +375,43 @@
   border-top: 1px solid rgba(112, 120, 230, 0.05);
 }
 
+.left-actions {
+  margin-right: 8px;
+  margin-left: 4px;
+  position: relative;
+}
+
+.gif-button-container {
+  position: relative;
+  z-index: 1001;
+  display: inline-block;
+}
+
 .modern-message-box {
   display: flex;
   align-items: center;
   background: #ffffff;
   border-radius: 24px;
-  padding: 4px 8px 4px 20px;
+  padding: 4px 8px 4px 8px;
   border: 1px solid rgba(112, 120, 230, 0.1);
 }
-
 input {
   flex: 1;
   border: none;
   outline: none;
-  padding: 12px 8px 12px 8px;
+  padding: 12px 24px 12px 8px;  /* Increased right padding */
   font-size: 15px;
   color: #2d3748;
   background: transparent;
 }
 
+.message-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-right: 4px;
+  margin-left: 12px;  /* Added left margin */
+}
 input::placeholder {
   color: #a0aec0;
 }
@@ -349,7 +419,7 @@ input::placeholder {
 .message-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 16px;  /* Increased from 8px */
   margin-right: 4px;
 }
 
@@ -368,21 +438,6 @@ input::placeholder {
 
 .action-button:active {
   transform: translateY(0);
-}
-
-.gif-button {
-  background-color: #f0f4ff;
-  color: #7078e6;
-  font-weight: 600;
-  font-size: 13px;
-  border-radius: 16px;
-  padding: 6px 12px;
-  border: none;
-}
-
-.gif-button:hover {
-  background-color: #e6eaff;
-  transform: translateY(-1px);
 }
 
 .send-button {
