@@ -56,6 +56,7 @@ class AuthController
                 return array(
                     "status" => "success",
                     "message" => "Login successful",
+                    "userID" => $this->user->getUserID(), // Added user ID to the response
                     "access_token" => $accessToken['token'],
                     "token_type" => "Bearer",
                     "expires_in" => $accessToken['expires_in'],
@@ -108,6 +109,7 @@ class AuthController
 
             return array(
                 "status" => "success",
+                "userID" => $userID, // Added user ID to the response
                 "access_token" => $accessToken['token'],
                 "token_type" => "Bearer",
                 "expires_in" => $accessToken['expires_in'],

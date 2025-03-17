@@ -10,6 +10,7 @@ class HeartbeatHandler
     protected $lastPings;
     protected $timeout;
     protected $logger;
+    protected $errorHandler;
 
     public function __construct($timeout = 30, $logger = null)
     {
@@ -17,6 +18,7 @@ class HeartbeatHandler
         $this->lastPings = [];
         $this->timeout = $timeout;
         $this->logger = $logger;
+        $this->errorHandler = new WebSocketErrorHandler($logger);
     }
 
     public function addConnection(ConnectionInterface $conn)
@@ -38,30 +40,48 @@ class HeartbeatHandler
 
     public function checkConnections()
     {
-        $now = time();
-        $disconnected = [];
-        
-        foreach ($this->connections as $conn) {
-            if (!isset($this->lastPings[$conn->resourceId])) {
-                $this->lastPings[$conn->resourceId] = $now;
-                continue;
+        try {
+            $now = time();
+            $disconnected = [];
+            
+            foreach ($this->connections as $conn) {
+                if (!isset($this->lastPings[$conn->resourceId])) {
+                    $this->lastPings[$conn->resourceId] = $now;
+                    continue;
+                }
+                
+                if ($now - $this->lastPings[$conn->resourceId] > $this->timeout) {
+                    $this->log("Connection {$conn->resourceId} timed out");
+                    $disconnected[] = $conn;
+                }
             }
             
-            if ($now - $this->lastPings[$conn->resourceId] > $this->timeout) {
-                $this->log("Connection {$conn->resourceId} timed out");
-                $disconnected[] = $conn;
+            foreach ($disconnected as $conn) {
+                try {
+                    $conn->close();
+                } catch (\Exception $e) {
+                    $this->log("Error closing connection: " . $e->getMessage(), "error");
+                }
             }
+            
+            foreach ($this->connections as $conn) {
+                try {
+                    $conn->send(json_encode(['type' => 'ping', 'time' => $now]));
+                } catch (\Exception $e) {
+                    $this->log("Error sending ping: " . $e->getMessage(), "error");
+                }
+            }
+            
+            return count($disconnected);
+        } catch (WebSocketException $e) {
+            $this->errorHandler->handleException($e);
+            return 0;
+        } catch (\Exception $e) {
+            $this->errorHandler->handleException(
+                new WebSocketException("Heartbeat error: " . $e->getMessage(), 5001, "heartbeat_error")
+            );
+            return 0;
         }
-        
-        foreach ($disconnected as $conn) {
-            $conn->close();
-        }
-        
-        foreach ($this->connections as $conn) {
-            $conn->send(json_encode(['type' => 'ping', 'time' => $now]));
-        }
-        
-        return count($disconnected);
     }
     
     protected function log($message, $level = 'info')

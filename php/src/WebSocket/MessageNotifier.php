@@ -5,6 +5,8 @@ namespace WebSocket;
 require_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'middleware' . DIRECTORY_SEPARATOR . 'AuthMiddleware.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'exceptions' . DIRECTORY_SEPARATOR . 'ApiException.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'core.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'WebSocketException.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'WebSocketErrorHandler.php';
 
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
@@ -18,6 +20,7 @@ class MessageNotifier implements MessageComponentInterface
     protected $rateLimiter;
     protected $notificationQueue;
     protected $logger;
+    protected $errorHandler;
 
     public function __construct($logger = null)
     {
@@ -26,6 +29,7 @@ class MessageNotifier implements MessageComponentInterface
         $this->notificationQueue = new NotificationQueue(50, $logger);
         $this->logger = $logger;
         $this->log("MessageNotifier initialized");
+        $this->errorHandler = new WebSocketErrorHandler($logger);
     }
 
     protected function log($message, $level = 'info')
@@ -47,19 +51,12 @@ class MessageNotifier implements MessageComponentInterface
     public function onMessage(ConnectionInterface $from, $msg)
     {
         try {
-            if (!$this->rateLimiter->isAllowed($from->resourceId)) {
-                $this->log("Rate limit exceeded for connection {$from->resourceId}", "warning");
-                $from->send(json_encode([
-                    'type' => 'error',
-                    'message' => 'Rate limit exceeded. Please slow down.'
-                ]));
-                return;
-            }
+            $this->rateLimiter->isAllowed($from->resourceId);
             
             $data = json_decode($msg, true);
             
             if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new \Exception("Invalid JSON received");
+                throw new WebSocketException("Invalid JSON received", 4000, "invalid_format");
             }
             
             if (isset($data['type']) && $data['type'] === 'ping') {
@@ -83,14 +80,12 @@ class MessageNotifier implements MessageComponentInterface
                 $this->log("Received admin notification: " . json_encode($data));
                 $this->processAdminNotification($data);
             } else {
-                $this->log("Received unknown message type: " . ($data['type'] ?? 'undefined'), "warning");
+                throw new WebSocketException("Unknown message type: " . ($data['type'] ?? 'undefined'), 4001, "unknown_type");
             }
+        } catch (WebSocketException $e) {
+            $this->errorHandler->handleException($e, $from);
         } catch (\Exception $e) {
-            $this->log("Error processing message: " . $e->getMessage(), "error");
-            $from->send(json_encode([
-                'type' => 'error',
-                'message' => 'Error processing your request'
-            ]));
+            $this->errorHandler->handleException($e, $from);
         }
     }
 
@@ -98,30 +93,34 @@ class MessageNotifier implements MessageComponentInterface
     {
         try {
             $userID = AuthMiddleware::validateToken($data['userID'])->id;
-
+    
             if (is_null($userID)) {
-                $from->send(json_encode([
-                    'type' => 'auth_error',
-                    'message' => 'Authentication failed'
-                ]));
-                $from->close();
-                return;
+                throw new WebSocketException(
+                    "Authentication failed", 
+                    4003, 
+                    "auth_error",
+                    true
+                );
             }
 
             $this->userConnections[$userID][] = $from;
-            $this->log("User {$userID} authenticated on connection {$from->resourceId}");
-
             $from->send(json_encode([
                 'type' => 'auth_success',
                 'message' => 'Authentication successful'
             ]));
+            
+        } catch (WebSocketException $e) {
+            $this->errorHandler->handleException($e, $from);
         } catch (\Exception $e) {
-            $this->log("Authentication error: " . $e->getMessage(), "error");
-            $from->send(json_encode([
-                'type' => 'auth_error',
-                'message' => 'Authentication failed'
-            ]));
-            $from->close();
+            $this->errorHandler->handleException(
+                new WebSocketException(
+                    "Authentication error: " . $e->getMessage(), 
+                    4003, 
+                    "auth_error",
+                    true
+                ), 
+                $from
+            );
         }
     }
 
@@ -185,40 +184,16 @@ class MessageNotifier implements MessageComponentInterface
 
     public function sendHeartbeat()
     {
-        $now = time();
-        $timedOutConnections = [];
-
-        foreach ($this->lastPings as $resourceId => $lastPing) {
-            if ($now - $lastPing > 30) {
-                foreach ($this->clients as $conn) {
-                    if ($conn->resourceId == $resourceId) {
-                        $timedOutConnections[] = $conn;
-                        $this->log("Connection {$resourceId} timed out", "warning");
-                        break;
-                    }
-                }
+        try {
+            $now = time();
+            foreach ($this->clients as $client) {
+                $client->send(json_encode([
+                    'type' => 'ping',
+                    'timestamp' => $now
+                ]));
             }
+        } catch (\Exception $e) {
+            $this->log("Error sending heartbeat: " . $e->getMessage(), "error");
         }
-
-        foreach ($timedOutConnections as $conn) {
-            $conn->close();
-        }
-
-        foreach ($this->clients as $conn) {
-            $conn->send(json_encode([
-                'type' => 'ping',
-                'timestamp' => $now
-            ]));
-        }
-
-        $this->log("Sent heartbeat to " . count($this->clients) . " connections");
-        return count($timedOutConnections);
-    }
-
-    public function processNotificationQueue()
-    {
-        $processed = $this->notificationQueue->process($this->userConnections);
-        $this->log("Processed {$processed} notifications from queue");
-        return $processed;
     }
 }

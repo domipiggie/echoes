@@ -36,7 +36,15 @@ class RateLimiter
         
         $this->limits[$identifier]['count']++;
         
-        return $this->limits[$identifier]['count'] <= $this->maxRequests;
+        if ($this->limits[$identifier]['count'] > $this->maxRequests) {
+            throw new WebSocketException(
+                'Rate limit exceeded. Please slow down.',
+                4029, // Custom code for rate limiting
+                'rate_limit_exceeded'
+            );
+        }
+        
+        return true;
     }
     
     public function getRemainingLimit($identifier)
