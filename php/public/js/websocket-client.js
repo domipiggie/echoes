@@ -9,7 +9,7 @@ class EchoesWebSocket {
         this.reconnectInterval = options.reconnectInterval || 5000;
         this.pingInterval = options.pingInterval || 25000;
         this.pingTimer = null;
-        this.url = options.url || 'ws://localhost:8080';
+        this.url = options.url || 'ws://ws.griddy.hu:8080';
         this.debug = options.debug || false;
     }
 
