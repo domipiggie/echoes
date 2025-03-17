@@ -49,34 +49,66 @@ class ChannelController
             $user = AuthMiddleware::validateToken();
             $channels = array("friendshipChannels" => array(), "groupChannels" => array());
 
-            $sql = "SELECT channelID, user1ID, user2ID FROM `channel_list`
-                INNER JOIN `friendship`
-                ON
-                    `channel_list`.`friendshipID` = `friendship`.`friendshipID`
-                WHERE
-                    `friendship`.`user1ID` = :userID OR `friendship`.`user2ID` = :userID;";
+            // Modified query to include user details for friendship channels
+            $sql = "SELECT 
+                cl.channelID, 
+                f.user1ID, 
+                f.user2ID,
+                u1.username as user1_username,
+                u1.displayName as user1_displayName,
+                u1.profilePicture as user1_profilePicture,
+                u2.username as user2_username,
+                u2.displayName as user2_displayName,
+                u2.profilePicture as user2_profilePicture
+            FROM `channel_list` cl
+            INNER JOIN `friendship` f ON cl.`friendshipID` = f.`friendshipID`
+            INNER JOIN `user` u1 ON f.`user1ID` = u1.`userID`
+            INNER JOIN `user` u2 ON f.`user2ID` = u2.`userID`
+            WHERE
+                f.`user1ID` = :userID OR f.`user2ID` = :userID;";
 
             $dbStmt = $this->db->prepare($sql);
             $dbStmt->bindParam(':userID', $user->id);
             $dbStmt->execute();
 
             if ($dbStmt->rowCount() > 0) {
-
                 while ($row = $dbStmt->fetch(PDO::FETCH_ASSOC)) {
-                    $channels["friendshipChannels"][] = array("channelID" => $row['channelID'], "user1ID" => $row['user1ID'], "user2ID" => $row['user2ID']);
+                    $channels["friendshipChannels"][] = array(
+                        "channelID" => $row['channelID'], 
+                        "user1" => array(
+                            "id" => $row['user1ID'],
+                            "username" => $row['user1_username'],
+                            "displayName" => $row['user1_displayName'],
+                            "profilePicture" => $row['user1_profilePicture']
+                        ),
+                        "user2" => array(
+                            "id" => $row['user2ID'],
+                            "username" => $row['user2_username'],
+                            "displayName" => $row['user2_displayName'],
+                            "profilePicture" => $row['user2_profilePicture']
+                        )
+                    );
                 }
             }
 
-            $sql = "SELECT ca.channelID, ca.userID FROM channel_access ca
+            // Modified query to include user details for group channels
+            $sql = "SELECT 
+                ca.channelID, 
+                ca.userID,
+                u.username,
+                u.displayName,
+                u.profilePicture
+            FROM channel_access ca
+            INNER JOIN user u ON ca.userID = u.userID
+            WHERE 
+                ca.channelID IN (
+                SELECT cl.channelID FROM channel_list cl
+                JOIN channel_access ca
+                ON
+                    cl.channelID = ca.channelID
                 WHERE 
-                    ca.channelID IN (
-                    SELECT cl.channelID FROM channel_list cl
-                    JOIN channel_access ca
-                    ON
-                        cl.channelID = ca.channelID
-                    WHERE 
-                        ca.userID = :userID
-                );";
+                    ca.userID = :userID
+            );";
 
             $dbStmt = $this->db->prepare($sql);
             $dbStmt->bindParam(':userID', $user->id);
@@ -86,11 +118,21 @@ class ChannelController
                 $prevId = null;
 
                 while ($row = $dbStmt->fetch(PDO::FETCH_ASSOC)) {
+                    $userData = array(
+                        "id" => $row['userID'],
+                        "username" => $row['username'],
+                        "displayName" => $row['displayName'],
+                        "profilePicture" => $row['profilePicture']
+                    );
+                    
                     if ($row["channelID"] !== $prevId) {
                         $prevId = $row['channelID'];
-                        $channels["groupChannels"][] = array("channelID" => $row['channelID'], "users" => array($row["userID"]));
+                        $channels["groupChannels"][] = array(
+                            "channelID" => $row['channelID'], 
+                            "users" => array($userData)
+                        );
                     } else {
-                        $channels["groupChannels"][count($channels["groupChannels"]) - 1]["users"][] = $row['userID'];
+                        $channels["groupChannels"][count($channels["groupChannels"]) - 1]["users"][] = $userData;
                     }
                 }
             }
@@ -99,7 +141,7 @@ class ChannelController
         } catch (ApiException $apie) {
             throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to get channel list', 500);
+            throw new ApiException('Failed to get channel list'.$e->getMessage(), 500);
         }
     }
 }

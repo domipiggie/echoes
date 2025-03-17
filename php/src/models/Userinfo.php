@@ -11,9 +11,26 @@ class Userinfo
     public function getFriendList($user)
     {
         try {
-            $query = "SELECT friendshipID, user1ID, user2ID, status
-            FROM friendship INNER JOIN friendshipStatus ON friendship.statusID = friendshipStatus.statusID
-                WHERE (friendship.user1ID = :user OR friendship.user2ID = :user);";
+            $query = "SELECT 
+                f.friendshipID, 
+                f.statusID,
+                fs.status,
+                CASE 
+                    WHEN f.user1ID = :user THEN f.user2ID
+                    ELSE f.user1ID
+                END as friendID,
+                u.username,
+                u.displayName,
+                u.profilePicture
+            FROM friendship f
+            INNER JOIN friendshipStatus fs ON f.statusID = fs.statusID
+            INNER JOIN user u ON (
+                CASE 
+                    WHEN f.user1ID = :user THEN f.user2ID
+                    ELSE f.user1ID
+                END = u.userID
+            )
+            WHERE (f.user1ID = :user OR f.user2ID = :user)";
 
             $stmt = $this->dbConn->prepare($query);
             $stmt->bindParam(':user', $user->id);
