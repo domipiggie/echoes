@@ -5,28 +5,32 @@ header("Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE");
 header("Access-Control-Max-Age: 3600");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
+$rootDir = dirname(__DIR__);
+
 //Controllers
-require_once '../src/controllers/AuthController.php';
-require_once '../src/controllers/FriendshipController.php';
-require_once '../src/controllers/ChannelController.php';
-require_once '../src/controllers/UserinfoController.php';
-require_once '../src/controllers/MessageController.php';
+require_once $rootDir . '/src/controllers/AuthController.php';
+require_once $rootDir . '/src/controllers/FriendshipController.php';
+require_once $rootDir . '/src/controllers/ChannelController.php';
+require_once $rootDir . '/src/controllers/UserinfoController.php';
+require_once $rootDir . '/src/controllers/MessageController.php';
 //Models
-require_once '../src/models/User.php';
-require_once '../src/models/RefreshToken.php';
-require_once '../src/models/Friendship.php';
-require_once '../src/models/FriendshipStatus.php';
-require_once '../src/models/Message.php';
-require_once '../src/models/Userinfo.php';
+require_once $rootDir . '/src/models/User.php';
+require_once $rootDir . '/src/models/RefreshToken.php';
+require_once $rootDir . '/src/models/Friendship.php';
+require_once $rootDir . '/src/models/FriendshipStatus.php';
+require_once $rootDir . '/src/models/Message.php';
+require_once $rootDir . '/src/models/Userinfo.php';
 //Middleware
-require_once '../src/middleware/AuthMiddleware.php';
+require_once $rootDir . '/src/middleware/AuthMiddleware.php';
 //Config
-require_once '../src/config/database.php';
-require_once '../src/config/core.php';
+require_once $rootDir . '/src/config/database.php';
+require_once $rootDir . '/src/config/core.php';
 //Other
-require_once '../src/exceptions/ApiException.php';
-require_once '../src/utils/ErrorHandler.php';
-require_once '../src/websocket/MessageNotifier.php';
+require_once $rootDir . '/src/exceptions/ApiException.php';
+require_once $rootDir . '/src/utils/ErrorHandler.php';
+require_once $rootDir . '/src/WebSocket/MessageNotifier.php';
+require_once $rootDir . '/src/WebSocket/WebSocketException.php';
+require_once $rootDir . '/src/WebSocket/WebSocketErrorHandler.php';
 
 // Set error handling
 set_exception_handler([ErrorHandler::class, 'handleError']);
