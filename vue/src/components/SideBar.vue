@@ -26,11 +26,14 @@
             </svg>
           </button>
         </div>
-        <div class="search-bar">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16">
-            <path fill="currentColor" d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/>
-          </svg>
-          <input type="text" placeholder="Keresés az üzenetek között" />
+        <div class="search-container">
+          <div class="search-bar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" placeholder="Keresés az üzenetek között..." />
+          </div>
         </div>
       </div>
   
@@ -47,6 +50,7 @@
           <div class="chat-info">
             <div class="chat-name">{{ chat.name }}</div>
             <div class="last-seen">{{ chat.lastSeen }}</div>
+            <div class="last-message">{{ chat.lastMessage || 'Még nincs üzenet' }}</div>
           </div>
         </div>
       </div>
@@ -61,13 +65,27 @@
   color: #e0e0e0; 
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 95vh; /* Changed from 100vh */
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5); 
   transition: transform 0.3s ease-in-out;
 }
 
+.chats-list {
+  overflow-y: auto;
+  flex-grow: 1;
+  padding-bottom: 12px; /* Reduced from 24px */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  margin-bottom: 8px; /* Reduced from 12px */
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.chat-item:last-child {
+  margin-bottom: 0; /* Ensure last item has no margin */
+}
 
 
 .sidebar-header {
@@ -104,6 +122,47 @@
   transform: scale(1.1);
 }
 
+/* Updated search styles */
+.search-container {
+  margin-bottom: 15px;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 10px 16px;
+  gap: 12px;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.05);
+}
+
+.search-bar:focus-within {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.search-bar svg {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.search-bar input {
+  background: none;
+  border: none;
+  color: #fff;
+  width: 100%;
+  font-size: 14px;
+  outline: none;
+  padding: 4px 0;
+}
+
+.search-bar input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Remove all duplicate search-bar styles below this point */
 .search-bar {
   display: flex;
   align-items: center;
@@ -134,7 +193,14 @@
 .chats-list {
   overflow-y: auto;
   flex-grow: 1;
-  padding-bottom: 16px; /* Add padding to ensure last item is fully visible */
+  padding-bottom: 16px;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.chats-list::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+  width: 0;
 }
 
 .chat-item {
@@ -167,6 +233,26 @@
 .last-seen {
   font-size: 14px;
   color: #9e9e9e; 
+}
+
+.chat-info {
+  flex: 1;
+  min-width: 0; /* Prevents text overflow */
+}
+
+.last-message {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.last-seen {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 1px;
 }
 
 @media (max-width: 768px) {

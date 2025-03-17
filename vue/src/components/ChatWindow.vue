@@ -1,5 +1,6 @@
 <script setup>
   import { defineProps, defineEmits, ref, watch, nextTick, onMounted } from 'vue';
+  import ChatProfile from './ChatProfile.vue';  // Add this import
   
   const props = defineProps({
     currentChat: {
@@ -58,13 +59,18 @@
             <path fill="currentColor" d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
           </svg>
         </button>
-        <div class="avatar">
-          <img src=".src/images/test.jpg" alt="Profilkép">
+        <div class="user-info">
+          <div class="avatar">
+            <img src=".src/images/test.jpg" alt="Profilkép">
+          </div>
+          <div class="user-details">
+            <div class="user-name">{{ currentChat.name }}</div>
+            <div class="user-status">Online</div>
+          </div>
         </div>
-        <div class="user-name">{{ currentChat.name }}</div>
       </div>
       <div class="col-auto">
-        <button class="more-button btn">
+        <button class="more-button btn" @click="showProfile = !showProfile">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="1"></circle>
             <circle cx="19" cy="12" r="1"></circle>
@@ -87,26 +93,39 @@
     </div>
     
     <div class="input-area">
-      <div class="message-box">
+      <div class="modern-message-box">
         <input 
           v-model="newMessage" 
           type="text" 
           placeholder="Írj üzenetet..."
           @keyup.enter="submitMessage"
-          class="form-control"
         />
         <div class="message-actions">
-          <button class="gif-button">GIF</button>
-          <button class="send-button bi bi-send" @click="submitMessage">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"/>
+          <button class="action-button gif-button">
+            <span>GIF</span>
+          </button>
+          <button class="action-button send-button" @click="submitMessage">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
             </svg>
           </button>
         </div>
       </div>
     </div>
-    <ChatProfile v-if="showProfile" :currentChat="currentChat" />
+    
+    <ChatProfile 
+      v-if="showProfile" 
+      :currentChat="currentChat" 
+      class="chat-profile-sidebar" 
+    />
   </div>
+  <ChatProfile 
+    v-if="showProfile" 
+    :currentChat="currentChat" 
+    class="chat-profile-sidebar"
+    @update:showProfile="showProfile = $event"
+  />
 </template>
   
 <style scoped>
@@ -138,6 +157,24 @@
 .user-info {
   display: flex;
   align-items: center;
+  gap: 16px;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #484a6a;
+}
+
+.user-status {
+  font-size: 12px;
+  color: #7078e6;
 }
 
 .back-button {
@@ -283,82 +320,128 @@
 .input-area {
   padding: 16px;
   background-color: #ffffff;
-  border-top: 1px solid rgba(112, 120, 230, 0.2);
+  border-top: 1px solid rgba(112, 120, 230, 0.05);
 }
 
-.message-box {
+.modern-message-box {
   display: flex;
   align-items: center;
-  background-color: #f6f8ff;
+  background: #ffffff;
   border-radius: 24px;
-  padding: 6px 16px;
-  box-shadow: 0 2px 8px rgba(112, 120, 230, 0.1);
-  transition: box-shadow 0.3s ease;
+  padding: 4px 8px 4px 20px;
+  border: 1px solid rgba(112, 120, 230, 0.1);
 }
 
-.message-box:focus-within {
-  box-shadow: 0 4px 12px rgba(112, 120, 230, 0.2);
-}
-
-.message-box input {
+input {
   flex: 1;
   border: none;
   outline: none;
-  padding: 10px 0;
-  font-size: 14px;
-  color: #334155;
-  background-color: transparent;
+  padding: 12px 8px 12px 8px;
+  font-size: 15px;
+  color: #2d3748;
+  background: transparent;
 }
 
-.message-box input::placeholder {
-  color: #94a3b8;
+input::placeholder {
+  color: #a0aec0;
 }
 
 .message-actions {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-right: 4px;
 }
 
-.send-button {
-  background-color: #7078e6;
+.action-button {
   border: none;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  transform: translateY(-2px);
+}
+
+.action-button:active {
+  transform: translateY(0);
+}
+
+.gif-button {
+  background-color: #f0f4ff;
+  color: #7078e6;
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: 16px;
+  padding: 6px 12px;
+  border: none;
+}
+
+.gif-button:hover {
+  background-color: #e6eaff;
+  transform: translateY(-1px);
+}
+
+.send-button {
+  background-color: #7078e6;
   color: white;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.3s ease;
 }
 
 .send-button:hover {
   background-color: #5a61d2;
-  transform: scale(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(112, 120, 230, 0.3);
 }
 
 .send-button:active {
   transform: scale(0.95);
 }
 
-.gif-button {
-  background-color: white;
-  border-radius: 16px;
-  border: 1px solid rgba(112, 120, 230, 0.3);
-  padding: 6px 12px;
-  color: #7078e6;
-  font-weight: 600;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.send-button svg {
+  transform: rotate(45deg);
+  margin-left: -2px;
+  margin-top: -2px;
+}
+.chat-profile-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 360px;
+  background: #242526;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  animation: slideIn 0.3s ease-out;
+  overflow-y: auto;
 }
 
-.gif-button:hover {
-  background-color: rgba(112, 120, 230, 0.1);
-  border-color: #7078e6;
-  transform: translateY(-1px);
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Add to existing media query */
+@media (max-width: 768px) {
+  .chat-profile-sidebar {
+    width: 100%;
+  }
 }
 
 /* Reszponzív stílusok */
@@ -391,10 +474,6 @@
 
   .input-area {
     padding: 12px;
-  }
-  
-  .gif-button {
-    padding: 4px 8px;
   }
 }
 

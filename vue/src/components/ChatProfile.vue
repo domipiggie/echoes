@@ -8,16 +8,20 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['update:showProfile']);
 
 const closeProfile = () => {
-  emit('close');
+  emit('update:showProfile', false);
 };
 </script>
 
 <template>
   <div class="profile-sidebar">
-    <button @click="closeProfile">Bezárás</button>
+    <button class="close-button" @click="closeProfile">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+    </button>
     <div class="profile-header">
       <div class="profile-image">
         <img src="" alt="" />
@@ -33,7 +37,7 @@ const closeProfile = () => {
         Téma megváltoztatása
       </button>
       <button class="profile-button">
-        <span class="button-icon"></span>
+        <span class="button-icon">Aa</span>
         Hangulatjel megváltoztatása
       </button>
       <button class="profile-button">
@@ -60,91 +64,152 @@ const closeProfile = () => {
 <style scoped>
 .profile-sidebar {
   width: 360px;
-  background-color: #242526;
-  border-left: 1px solid #393a3b;
+  background-color: #ffffff;
+  border-left: 1px solid rgba(112, 120, 230, 0.2);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  position: absolute;
-  top: 0;
-  right: 0;
-  height: 100vh;
+  position: fixed;
+  top: 24px;
+  right: 48px; /* Increased right margin */
+  height: calc(100vh - 120px);
+  max-height: 800px;
+  z-index: 9999;
+  animation: slideIn 0.3s ease-out;
+  box-shadow: -4px 0 20px rgba(112, 120, 230, 0.15);
+  border-radius: 16px;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(calc(100% + 48px)); /* Adjusted for new margin */
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .profile-header {
   padding: 24px;
   text-align: center;
-  border-bottom: 1px solid #393a3b;
+  border-bottom: 1px solid rgba(112, 120, 230, 0.1);
+  background: linear-gradient(135deg, #7078e6, #4e55df);
+  color: white;
+  border-radius: 16px 16px 0 0;
+}
+
+.close-button {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: none;
+  border: none;
+  color: #7078e6;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover {
+  background-color: rgba(112, 120, 230, 0.1);
+  transform: scale(1.1);
+}
+
+.profile-header {
+  padding: 24px;
+  text-align: center;
+  border-bottom: 1px solid rgba(112, 120, 230, 0.1);
+  background: linear-gradient(135deg, #7078e6, #4e55df);
+  color: white;
 }
 
 .profile-image {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background-color: #3a3b3c;
+  background-color: rgba(255, 255, 255, 0.1);
   margin: 0 auto 16px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .profile-header h2 {
   margin: 0;
-  color: #e4e6eb;
+  color: #ffffff;
   font-size: 20px;
 }
 
 .last-seen {
-  color: #b0b3b8;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 13px;
   margin-top: 4px;
 }
 
 .profile-section {
-  padding: 16px;
-  border-bottom: 1px solid #393a3b;
+  padding: 20px;
+  border-bottom: 1px solid rgba(112, 120, 230, 0.1);
+  background: white;
 }
 
 .profile-section h3 {
-  color: #e4e6eb;
+  color: #484a6a;
   font-size: 16px;
-  margin: 0 0 12px 0;
+  margin: 0 0 16px 0;
+  font-weight: 600;
 }
 
 .profile-button {
   width: 100%;
-  padding: 8px 12px;
+  padding: 12px 16px;
   background: none;
   border: none;
-  color: #e4e6eb;
+  color: #484a6a;
   font-size: 15px;
   text-align: left;
   cursor: pointer;
   display: flex;
   align-items: center;
-  border-radius: 8px;
-  margin-bottom: 4px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
 }
 
 .profile-button:hover {
-  background-color: #3a3b3c;
+  background-color: rgba(112, 120, 230, 0.08);
+  transform: translateX(4px);
 }
 
 .button-icon {
   margin-right: 12px;
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(112, 120, 230, 0.1);
+  border-radius: 8px;
+  color: #7078e6;
 }
 
 .media-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 .media-placeholder {
   aspect-ratio: 1;
-  background-color: #3a3b3c;
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(112, 120, 230, 0.1), rgba(112, 120, 230, 0.05));
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.media-placeholder:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(112, 120, 230, 0.1);
 }
 </style>
