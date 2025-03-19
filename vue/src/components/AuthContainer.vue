@@ -43,6 +43,7 @@ const sendLoginRequest = (email, password) => {
 				return;
 			}
 			userdata.setAccessToken(response.data['access_token']);
+			userdata.setUserID(response.data.userID);
 			alert("Sikeres bejelentkezés!")
 			router.push("/chat")
 		})

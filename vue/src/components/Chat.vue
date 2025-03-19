@@ -1,37 +1,35 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import axios from 'axios';
 import Sidebar from './SideBar.vue';
 import ChatWindow from './ChatWindow.vue';
+import { userdataStore } from '../store/UserdataStore';
 
+const userStore = userdataStore();
 const showChat = ref(false);
 const isMobile = ref(false);
+const recentChats = ref([]);
 
-onMounted(() => {
+onMounted(async () => {
   checkScreenSize();
   window.addEventListener('resize', checkScreenSize);
+  await axios.get('http://localhost/usrinfo/channellist',{
+    headers: {
+      'Authorization': `Bearer ${userStore.getAccessToken()}`
+    }
+  })
+  .then(response => {
+    recentChats.value = response.data.friendshipChannels;
+    console.log(recentChats.value);
+  })
+  .catch(error => {
+    console.error('Error fetching recent chats:', error);
+  })
 });
 
 const checkScreenSize = () => {
   isMobile.value = window.innerWidth <= 768;
 };
-
-const recentChats = ref([
-  { id: 1, name: 'János', lastSeen: '2 perce', avatar: '' },
-  { id: 2, name: 'Éva', lastSeen: '10 perce', avatar: '' },
-  { id: 3, name: 'Péter', lastSeen: '15 perce', avatar: '' },
-  { id: 4, name: 'Anna', lastSeen: '1 órája', avatar: '' },
-  { id: 5, name: 'Gábor', lastSeen: '3 órája', avatar: '' },
-  { id: 6, name: 'Márta', lastSeen: '5 órája', avatar: '' },
-  { id: 7, name: 'Tamás', lastSeen: '1 napja', avatar: '' },
-  { id: 8, name: 'Tamás', lastSeen: '1 napja', avatar: '' },
-  { id: 9, name: 'Tamás', lastSeen: '1 napja', avatar: '' },
-  { id: 10, name: 'Tamás', lastSeen: '1 napja', avatar: '' },
-  { id:11, name: 'Tamás', lastSeen: '1 napja', avatar: '' },
-  { id: 12, name: 'Tamás', lastSeen: '1 napja', avatar: '' },
-  { id: 13, name: 'Tamás', lastSeen: '1 napja', avatar: '' },
-  { id: 14, name: 'Tamás', lastSeen: '1 napja', avatar: '' },
-  { id: 15, name: 'Tamás', lastSeen: '1 napja', avatar: '' }
-]);
 
 const currentChat = ref({
   id: 1,
