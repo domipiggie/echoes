@@ -62,12 +62,15 @@ const goBackToList = () => {
 const sendMessage = (text) => {
   const newId = messages.value.length + 1;
   
-  // Handle GIF messages
-  if (typeof text === 'object' && text.type === 'gif') {
+  // Handle different message types
+  if (typeof text === 'object') {
     messages.value.push({
       id: newId,
       text: text.text,
-      type: 'gif',
+      type: text.type,
+      fileName: text.fileName,
+      fileSize: text.fileSize,
+      fileType: text.fileType,
       sender: 'me',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     });
