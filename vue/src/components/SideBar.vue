@@ -1,6 +1,8 @@
 <script setup>
   import { defineProps, defineEmits } from 'vue';
+  import { userdataStore } from '../store/UserdataStore';
   
+  const userStore = userdataStore();
   const props = defineProps({
     recents: {
       type: Array,
@@ -47,7 +49,7 @@
       <div class="chats-list">
         <div 
           v-for="chat in recents" 
-          :key="chat.id" 
+          :key="chat.channelID" 
           class="chat-item"
           @click="selectChat(chat)"
         >
@@ -55,8 +57,8 @@
             <div class="avatar-circle"></div>
           </div>
           <div class="chat-info">
-            <div class="chat-name">{{ chat.name }}</div>
-            <div class="last-seen">{{ chat.lastSeen }}</div>
+            <div class="chat-name">{{ userStore.getUserID() == chat.user1.id ? chat.user2.username : chat.user1.username }}</div>
+            <div class="last-seen">{{  }}</div>
             <div class="last-message">{{ chat.lastMessage || 'Még nincs üzenet' }}</div>
           </div>
         </div>
