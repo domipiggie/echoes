@@ -194,4 +194,46 @@ const sendMessage = (text) => {
     display: none; /* Hide on mobile */
   }
 }
+
+.messenger-theme :deep(.message) {
+  display: flex;
+  padding: 4px 16px;
+  margin: 2px 0;
+  max-width: 70%;
+  align-items: flex-start;
+}
+
+.messenger-theme :deep(.message-avatar) {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  margin-right: 12px;
+  background-color: #e6eaee;
+  overflow: hidden;
+  border: 2px solid #7078e6;
+  box-shadow: 0 2px 4px rgba(112, 120, 230, 0.2);
+  flex-shrink: 0;
+}
+
+.messenger-theme :deep(.message-avatar img) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.messenger-theme :deep(.message-sent) {
+  margin-left: auto;
+  margin-right: 0;
+  flex-direction: row-reverse;
+  
+  .message-avatar {
+    margin-right: 0;
+    margin-left: 12px;
+  }
+}
+
+.messenger-theme :deep(.message-received) {
+  margin-right: auto;
+  margin-left: 0;
+}
 </style>

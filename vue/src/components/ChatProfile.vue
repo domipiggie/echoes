@@ -1,16 +1,30 @@
 <script setup>
-import { defineProps, defineEmits, computed, ref, watchEffect } from 'vue';
+import { ref, defineProps, defineEmits, watch } from 'vue';
 
 const props = defineProps({
   currentChat: {
     type: Object,
-    required: true,
+    required: true
   },
   messages: {
     type: Array,
-    required: true,
+    required: true
+  },
+  // Adjuk hozzá a currentTheme prop-ot
+  currentTheme: {
+    type: String,
+    default: 'messenger'
   }
 });
+
+const emit = defineEmits(['change-theme', 'update:showProfile']);
+
+const activeTab = ref('appearance'); // Alapértelmezetten a megjelenés fül legyen aktív
+
+// Téma váltás kezelése
+const changeTheme = (theme) => {
+  emit('change-theme', theme);
+};
 
 const getVideoThumbnail = (videoUrl) => {
   const video = document.createElement('video');
@@ -54,48 +68,6 @@ const mediaMessages = computed(async () => {
 
   return messages;
 });
-
-const emit = defineEmits(['update:showProfile']);
-
-const closeProfile = () => {
-  emit('update:showProfile', false);
-};
-
-const mediaMessagesData = ref([]);
-
-watchEffect(async () => {
-  if (!props.messages || !Array.isArray(props.messages)) {
-    mediaMessagesData.value = [];
-    return;
-  }
-  
-  const messages = props.messages
-    .filter(msg => {
-      return msg && msg.type && (
-        msg.type === 'image' || 
-        msg.type === 'video' || 
-        msg.type === 'gif'
-      ) && msg.text;
-    })
-    .slice(-9)
-    .reverse();
-
-  // Generate thumbnails for videos
-  for (const msg of messages) {
-    if (msg.type === 'video') {
-      try {
-        msg.thumbnail = await getVideoThumbnail(msg.text);
-      } catch (error) {
-        console.error('Error generating thumbnail:', error);
-        msg.thumbnail = null;
-      }
-    }
-  }
-
-  mediaMessagesData.value = messages;
-});
-
-// Remove the computed mediaMessages and use mediaMessagesData in template instead
 </script>
 
 <template>
@@ -116,7 +88,7 @@ watchEffect(async () => {
 
       <div class="profile-section">
         <h3>Chat testreszabása</h3>
-        <button class="profile-button">
+        <button class="profile-button" @click="showAppearanceSelector = true">
           <span class="button-icon"></span>
           Téma megváltoztatása
         </button>
@@ -127,6 +99,19 @@ watchEffect(async () => {
         <button class="profile-button">
           <span class="button-icon">Aa</span>
           Becenevek módosítása
+        </button>
+      </div>
+
+      <div class="profile-section">
+        <h3>Nézet</h3>
+        <button class="profile-button" @click="showAppearanceSelector = true">
+          <span class="button-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </span>
+          Megjelenés
         </button>
       </div>
 
@@ -168,6 +153,12 @@ watchEffect(async () => {
         <h3>Személyes adatok védelme és támogatás</h3>
       </div>
     </div>
+    
+    <AppearanceSelector 
+      v-if="showAppearanceSelector" 
+      @close="showAppearanceSelector = false"
+      @select="handleThemeSelect"
+    />
   </div>
 </template>
 
@@ -370,5 +361,101 @@ watchEffect(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.appearance-section {
+  padding: 16px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  margin-bottom: 16px;
+
+  h3 {
+    font-size: 16px;
+    color: #484a6a;
+    margin-bottom: 16px;
+  }
+
+  .theme-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 16px;
+    
+    .theme-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+      
+      &.selected {
+        border-color: #7078e6;
+        background-color: rgba(112, 120, 230, 0.05);
+      }
+      
+      .theme-preview {
+        width: 80px;
+        height: 60px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+      
+      span {
+        font-size: 14px;
+        color: #484a6a;
+      }
+    }
+  }
+}
+
+.theme-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.theme-option:hover {
+  background-color: rgba(112, 120, 230, 0.1);
+}
+
+.theme-option.selected {
+  border-color: #7078e6;
+  background-color: rgba(112, 120, 230, 0.05);
+}
+
+.theme-preview {
+  width: 80px;
+  height: 60px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.messenger-preview {
+  background: linear-gradient(to bottom, #ffffff 0%, #ffffff 70%, #f0f2ff 70%, #f0f2ff 100%);
+}
+
+.discord-preview {
+  background: linear-gradient(to bottom, #ffffff 0%, #ffffff 70%, #f0f2ff 70%, #f0f2ff 100%);
+  position: relative;
+}
+
+.discord-preview::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background-color: #7078e6;
 }
 </style>
