@@ -974,6 +974,108 @@ input::placeholder {
 	min-width: 150px;
 }
 
+.video-options-menu {
+	position: absolute;
+	right: 8px;
+	top: 40px;
+	background: #fff;
+	border-radius: 8px;
+	box-shadow: 0 2px 8px #0003;
+	z-index: 1000;
+	min-width: 150px;
+	padding: 4px 0;
+}
+
+.video-option-item {
+	padding: 10px 16px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	cursor: pointer;
+	color: #333;
+	transition: background-color .2s;
+	white-space: nowrap;
+}
+
+.video-option-item svg {
+	width: 16px;
+	height: 16px;
+	flex-shrink: 0;
+}
+
+.discord-style .video-options-menu {
+	top: 40px;
+	right: 8px;
+	bottom: auto;
+}
+
+.video-container {
+	position: relative;
+	display: inline-block;
+	border-radius: 4px;
+	overflow: hidden;
+	margin: 4px 0;
+	background: #000;
+	max-width: 300px;
+}
+
+.video-options {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+}
+
+.video-options-button {
+	background: rgba(0,0,0,0.5);
+	border: none;
+	border-radius: 4px;
+	width: 24px;
+	height: 24px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+}
+
+.video-options-menu {
+	position: absolute;
+	right: 0;
+	top: 28px;
+	background: #fff;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	z-index: 10;
+	width: 120px;
+}
+
+.video-option-item {
+	padding: 8px;
+	cursor: pointer;
+	color: #333;
+	font-size: 14px;
+}
+
+.video-option-item:hover {
+	background-color: #f0f0f0;
+}
+
+.message-video {
+	max-width: 300px;
+	max-height: 400px;
+	display: block;
+}
+
+.discord-style .video-container {
+	border-radius: 4px;
+	margin: 0;
+}
+
+.discord-style .video-options-menu {
+	top: 28px;
+	right: 0;
+}
+
 @media (min-resolution: 192dpi) {
 	.message-hover-actions {
 		flex-direction: column;

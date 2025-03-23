@@ -1,5 +1,7 @@
 <script setup>
-import { ref, defineProps, defineEmits, watch } from 'vue';
+import { ref, defineProps, defineEmits, watch, computed } from 'vue';
+// Hiányzó AppearanceSelector komponens importja
+import AppearanceSelector from './AppearanceSelector.vue';
 
 const props = defineProps({
   currentChat: {
@@ -20,10 +22,22 @@ const props = defineProps({
 const emit = defineEmits(['change-theme', 'update:showProfile']);
 
 const activeTab = ref('appearance'); // Alapértelmezetten a megjelenés fül legyen aktív
+const showAppearanceSelector = ref(false); // Hiányzó ref
 
 // Téma váltás kezelése
 const changeTheme = (theme) => {
   emit('change-theme', theme);
+};
+
+// Hiányzó closeProfile metódus
+const closeProfile = () => {
+  emit('update:showProfile', false);
+};
+
+// Hiányzó handleThemeSelect metódus
+const handleThemeSelect = (theme) => {
+  changeTheme(theme);
+  showAppearanceSelector.value = false;
 };
 
 const getVideoThumbnail = (videoUrl) => {
@@ -43,12 +57,12 @@ const getVideoThumbnail = (videoUrl) => {
 };
 
 // Update mediaMessages computed property
-const mediaMessages = computed(async () => {
+const mediaMessages = computed(() => {
   if (!props.messages || !Array.isArray(props.messages)) {
     return [];
   }
   
-  const messages = props.messages
+  return props.messages
     .filter(msg => {
       return msg && msg.type && (
         msg.type === 'image' || 
@@ -58,15 +72,11 @@ const mediaMessages = computed(async () => {
     })
     .slice(-9)
     .reverse();
+});
 
-  // Generate thumbnails for videos
-  for (const msg of messages) {
-    if (msg.type === 'video') {
-      msg.thumbnail = await getVideoThumbnail(msg.text);
-    }
-  }
-
-  return messages;
+// Hiányzó mediaMessagesData - egyszerűsített verzió a computed property-ből
+const mediaMessagesData = computed(() => {
+  return mediaMessages.value;
 });
 </script>
 
