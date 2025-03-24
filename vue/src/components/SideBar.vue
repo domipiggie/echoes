@@ -1,5 +1,5 @@
 <script setup>
-  import { defineProps, defineEmits } from 'vue';
+  import { defineProps, defineEmits, ref } from 'vue';
   import { userdataStore } from '../store/UserdataStore';
   
   const userStore = userdataStore();
@@ -15,7 +15,10 @@
   const selectChat = (chat) => {
     emit('select-chat', chat);
   };
-  </script>
+  
+  // Aktív nézet kezelése
+  const activeView = ref('chats'); // 'chats' vagy 'requests'
+</script>
 
 <template>
   <div class="sidebar">
@@ -35,64 +38,80 @@
           </button>
         </div>
       </div>
-        <div class="search-container">
-          <div class="search-bar">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            <input type="text" placeholder="Keresés az üzenetek között..." />
-          </div>
-        </div>
-      </div>
-  
-      <div class="chats-list">
-        <div 
-          v-for="chat in recents" 
-          :key="chat.channelID" 
-          class="chat-item"
-          @click="selectChat(chat)"
-        >
-          <div class="avatar">
-            <div class="avatar-circle"></div>
-          </div>
-          <div class="chat-info">
-            <div class="chat-name">{{ userStore.getUserID() == chat.user1.id ? chat.user2.username : chat.user1.username }}</div>
-            <div class="last-seen">{{  }}</div>
-            <div class="last-message">{{ chat.lastMessage || 'Még nincs üzenet' }}</div>
-          </div>
+      <div class="search-container">
+        <div class="search-bar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" placeholder="Keresés az üzenetek között..." />
         </div>
       </div>
     </div>
-    <!-- Remove the bottom-corner div completely -->
-  </template>
+    
+    <!-- Navigációs gombok -->
+    <div class="tab-navigation">
+      <button 
+        class="tab-button" 
+        :class="{ active: activeView === 'chats' }"
+        @click="activeView = 'chats'"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        ÜZENETEK
+      </button>
+      <button 
+        class="tab-button" 
+        :class="{ active: activeView === 'requests' }"
+        @click="activeView = 'requests'"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="8.5" cy="7" r="4"></circle>
+          <line x1="20" y1="8" x2="20" y2="14"></line>
+          <line x1="23" y1="11" x2="17" y2="11"></line>
+        </svg>
+        BARÁTKÉRELMEK
+      </button>
+    </div>
+
+    <!-- Üzenetek lista -->
+    <div v-if="activeView === 'chats'" class="chats-list">
+      <div 
+        v-for="chat in recents" 
+        :key="chat.channelID" 
+        class="chat-item"
+        @click="selectChat(chat)"
+      >
+        <div class="avatar">
+          <div class="avatar-circle"></div>
+        </div>
+        <div class="chat-info">
+          <div class="chat-name">{{ userStore.getUserID() == chat.user1.id ? chat.user2.username : chat.user1.username }}</div>
+          <div class="last-seen">{{  }}</div>
+          <div class="last-message">{{ chat.lastMessage || 'Még nincs üzenet' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barátkérelmek lista -->
+    <div v-if="activeView === 'requests'" class="chats-list">
+      <div class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="8.5" cy="7" r="4"></circle>
+          <line x1="20" y1="8" x2="20" y2="14"></line>
+          <line x1="23" y1="11" x2="17" y2="11"></line>
+        </svg>
+        <p>Nincsenek függőben lévő barátkérelmek</p>
+      </div>
+    </div>
+  </div>
+</template>
   
-  <style scoped>
-/* Remove these styles as they're no longer needed */
-.bottom-corner,
-.bottom-btn {
-  /* Remove these style blocks */
-}
-
-.sidebar {
-  position: relative;
-}
-
-.bottom-corner {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  z-index: 2;
-}
-
-.bottom-btn {
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.bottom-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
+<style scoped>
+/* Megtartott lila design stílusok */
 .sidebar {
   width: 100%;
   max-width: 360px;
@@ -107,6 +126,143 @@
   transition: transform 0.3s ease-in-out;
 }
 
+/* Második kép stílusú tab navigáció */
+/* Tab navigáció stílusa */
+.tab-navigation {
+  display: flex;
+  background: rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.tab-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  padding: 14px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.tab-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  height: 150%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translate(-50%, -50%) scale(0);
+  border-radius: 50%;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: -1;
+}
+
+.tab-button.active {
+  color: #fff;
+}
+
+.tab-button.active::before {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.tab-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: #fff;
+  transform: scaleX(1);
+  transform-origin: left;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-button:not(.active)::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: #fff;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-button:hover:not(.active)::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.tab-button svg {
+  opacity: 0.8;
+  transform: scale(1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-button.active svg {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.tab-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: #fff;
+  transform: scaleX(1);
+  transform-origin: left;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-button:not(.active)::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: #fff;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-button:hover:not(.active)::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.tab-button svg {
+  opacity: 0.8;
+  transform: scale(1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-button.active svg {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Meglévő stílusok megtartása */
 .sidebar-header {
   padding: 20px;
   background: rgba(255, 255, 255, 0.08);
@@ -140,57 +296,6 @@
   background: linear-gradient(135deg, #969bdf, #7078e6);
 }
 
-.chats-list {
-  overflow-y: auto;
-  flex-grow: 1;
-  padding-bottom: 12px; /* Reduced from 24px */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  margin-bottom: 8px; /* Reduced from 12px */
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-.chat-item:last-child {
-  margin-bottom: 0; /* Ensure last item has no margin */
-}
-
-
-.sidebar-header {
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.08); 
-  border-bottom: 1px solid #333; 
-}
-
-.title-section {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 15px;
-}
-
-.title-section h1 {
-  font-size: 28px;
-  margin: 0;
-  color: #e0e0e0; 
-  font-weight: 600;
-}
-
-.new-message-btn {
-  background: linear-gradient(135deg, #7078e6, #969bdf); 
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  padding: 12px;
-  border-radius: 50%;
-  transition: transform 0.2s ease-in-out;
-}
-
-.new-message-btn:hover {
-  transform: scale(1.1);
-}
-
-/* Updated search styles */
 .search-container {
   margin-bottom: 15px;
 }
@@ -230,45 +335,19 @@
   color: rgba(255, 255, 255, 0.5);
 }
 
-/* Remove all duplicate search-bar styles below this point */
-.search-bar {
-  display: flex;
-  align-items: center;
-  background-color: rgba(255, 255, 255, 0.15); 
-  border-radius: 30px;
-  padding: 12px 18px;
-  gap: 10px;
-  border: 2px solid #333; 
-  transition: border-color 0.3s;
-}
-
-.search-bar:focus-within {
-  border-color:#7078e6; 
-}
-
-.search-bar input {
-  background: none;
-  border: none;
-  color: #e0e0e0; 
-  width: 100%;
-  font-size: 16px;
-}
-
-.search-bar input::placeholder {
-  color: #9e9e9e; 
-}
-
 .chats-list {
   overflow-y: auto;
   flex-grow: 1;
-  padding-bottom: 16px;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  padding-bottom: 12px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  margin-bottom: 8px;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 
 .chats-list::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
-  width: 0;
+  display: none;
 }
 
 .chat-item {
@@ -280,7 +359,7 @@
 }
 
 .chat-item:hover {
-  background-color: rgba(255, 255, 255, 0.1); 
+  background-color: rgba(255, 255, 255, 0.1);
   transform: translateX(4px);
 }
 
@@ -288,24 +367,24 @@
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #333, #555); 
+  background: linear-gradient(135deg, #333, #555);
   margin-right: 15px;
 }
 
 .chat-name {
   font-size: 18px;
-  color: #e0e0e0; 
+  color: #e0e0e0;
   font-weight: 500;
 }
 
 .last-seen {
   font-size: 14px;
-  color: #9e9e9e; 
+  color: #9e9e9e;
 }
 
 .chat-info {
   flex: 1;
-  min-width: 0; /* Prevents text overflow */
+  min-width: 0;
 }
 
 .last-message {
@@ -321,6 +400,27 @@
   font-size: 12px;
   color: rgba(255, 255, 255, 0.4);
   margin-top: 1px;
+}
+
+/* Üres állapot stílusa */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  padding: 20px;
+}
+
+.empty-state svg {
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  font-size: 14px;
 }
 
 @media (max-width: 768px) {
