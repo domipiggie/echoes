@@ -46,8 +46,44 @@ const messages = ref([
   { id: 5, text: 'Válasz', sender: 'other', time: '14:40' }
 ]);
 
-const handleChatSelect = (chat) => {
+const handleChatSelect = async (chat) => {
   currentChat.value = chat;
+  
+  currentChat.value.name = userStore.getUserID() == chat.user1.id 
+    ? chat.user2.username 
+    : chat.user1.username;
+  
+  messages.value = [];
+  
+  try {
+    const response = await axios.get(`http://localhost/message/get`, {
+      params: {
+        channelID: chat.channelID
+      },
+      headers: {
+        'Authorization': `Bearer ${userStore.getAccessToken()}`
+      }
+    });
+    
+    if (response.data && Array.isArray(response.data.messages)) {
+      console.log(response.data);
+      messages.value = response.data.messages.map(msg => ({
+        id: msg.messageID,
+        text: msg.content,
+        sender: parseInt(msg.userID) === parseInt(userStore.getUserID()) ? 'me' : 'other',
+        time: new Date(msg.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        type: msg.type || 'text',
+        fileName: msg.fileName,
+        fileSize: msg.fileSize,
+        fileType: msg.fileType
+      })).reverse();
+    }
+    
+    console.log('Loaded messages:', messages.value);
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+  }
+  
   if (isMobile.value) {
     showChat.value = true;
   }
@@ -57,12 +93,16 @@ const goBackToList = () => {
   showChat.value = false;
 };
 
-const sendMessage = (text) => {
+const sendMessage = async (text) => {
   const newId = messages.value.length + 1;
+  let messageContent;
+  let messageType = 'text';
+  let messageObj = {};
   
-  // Handle different message types
   if (typeof text === 'object') {
-    messages.value.push({
+    messageContent = text.text;
+    messageType = text.type || 'text';
+    messageObj = {
       id: newId,
       text: text.text,
       type: text.type,
@@ -71,14 +111,38 @@ const sendMessage = (text) => {
       fileType: text.fileType,
       sender: 'me',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    });
+    };
   } else {
-    messages.value.push({
+    messageContent = text;
+    messageObj = {
       id: newId,
       text,
       sender: 'me',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+  }
+  
+  messages.value.push(messageObj);
+  
+  try {
+    const response = await axios.post('http://localhost/message/send', {
+      channelID: currentChat.value.channelID,
+      content: messageContent,
+      type: messageType
+    }, {
+      headers: {
+        'Authorization': `Bearer ${userStore.getAccessToken()}`
+      }
     });
+    
+    console.log('Message sent successfully:', response.data);
+    
+    if (response.data && response.data.messageID) {
+      messageObj.id = response.data.messageID;
+      console.log(response.data)
+    }
+  } catch (error) {
+    console.error('Error sending message:', error);
   }
 };
 </script>
