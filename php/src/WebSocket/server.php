@@ -70,8 +70,8 @@ class ServerManager {
             $httpServer = new HttpServer($wsServer);
             
             if ($secure) {
-                $certPath = __DIR__ . '/../../ssl/certificate.pem';
-                $keyPath = __DIR__ . '/../../ssl/private_key.pem';
+                $certPath = __DIR__ . '/ssl/echoes.pem';
+                $keyPath = __DIR__ . '/ssl/echoes.pem';
                 
                 if (!file_exists($certPath) || !file_exists($keyPath)) {
                     throw new WebSocketException(
