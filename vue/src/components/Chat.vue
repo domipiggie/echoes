@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
 import Sidebar from './SideBar.vue';
 import ChatWindow from './ChatWindow.vue';
@@ -9,6 +9,13 @@ const userStore = userdataStore();
 const showChat = ref(false);
 const isMobile = ref(false);
 const recentChats = ref([]);
+const socket = ref(null);
+const connected = ref(false);
+const reconnectAttempts = ref(0);
+const maxReconnectAttempts = 5;
+const reconnectInterval = 5000;
+const pingInterval = 25000;
+let pingTimer = null;
 
 onMounted(async () => {
   checkScreenSize();
@@ -24,8 +31,154 @@ onMounted(async () => {
   })
   .catch(error => {
     console.error('Error fetching recent chats:', error);
-  })
+  });
+  
+  // Initialize WebSocket connection
+  connectWebSocket();
 });
+
+onUnmounted(() => {
+  // Clean up WebSocket connection when component is unmounted
+  disconnectWebSocket();
+});
+
+const connectWebSocket = () => {
+  try {
+    socket.value = new WebSocket('ws://localhost:8080');
+  } catch (e) {
+    console.error('Error creating WebSocket connection:', e.message);
+    scheduleReconnect();
+    return;
+  }
+
+  socket.value.onopen = () => {
+    console.log('[WebSocket] Connection established');
+    connected.value = true;
+    reconnectAttempts.value = 0;
+
+    // Send authentication message
+    socket.value.send(JSON.stringify({
+      type: 'auth',
+      userID: userStore.getAccessToken()
+    }));
+    
+    startPingInterval();
+  };
+
+  socket.value.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      
+      if (data.type === 'ping') {
+        handlePing(data);
+        return;
+      }
+
+      if (data.type === 'auth_success') {
+        console.log('[WebSocket] Authentication successful');
+      } else if (data.type === 'auth_error') {
+        console.error('[WebSocket] Authentication failed:', data.message);
+        disconnectWebSocket();
+      } else if (data.type === 'error') {
+        console.error('[WebSocket] Server error:', data.message);
+      } else if (data.type === 'new_message') {
+        console.log('[WebSocket] New message received in channel:', data.channelID);
+        console.log('[WebSocket] Message data:', data.message);
+        
+        // Ignore messages sent by the current user (already displayed when sent)
+        if (parseInt(data.message.userID) === parseInt(userStore.getUserID())) {
+          console.log('[WebSocket] Ignoring message from self');
+          return;
+        }
+        
+        // Check if the message is for the currently selected chat
+        if (currentChat.value && currentChat.value.channelID == data.channelID) {
+          const message = data.message;
+          const formattedMessage = {
+            id: message.messageID,
+            text: message.content,
+            sender: 'other', // Always 'other' since we're filtering out self messages
+            time: new Date(message.sent_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            type: message.type || 'text',
+            fileName: message.fileName,
+            fileSize: message.fileSize,
+            fileType: message.fileType
+          };
+          
+          console.log('[WebSocket] Adding formatted message to chat:', formattedMessage);
+          messages.value.push(formattedMessage);
+        } else {
+          console.log('[WebSocket] Message not for current chat. Current:', 
+                     currentChat.value?.channelID, 'Message for:', data.channelID);
+        }
+      }
+    } catch (e) {
+      console.error('[WebSocket] Error processing message:', e.message);
+    }
+  };
+
+  socket.value.onclose = (event) => {
+    console.log('[WebSocket] Connection closed:', event.reason || 'No reason provided');
+    connected.value = false;
+    stopPingInterval();
+    
+    scheduleReconnect();
+  };
+
+  socket.value.onerror = (error) => {
+    console.error('[WebSocket] Error occurred');
+  };
+};
+
+const handlePing = (data) => {
+  if (connected.value && socket.value && socket.value.readyState === WebSocket.OPEN) {
+    socket.value.send(JSON.stringify({
+      type: 'pong',
+      timestamp: data.timestamp
+    }));
+  }
+};
+
+const startPingInterval = () => {
+  stopPingInterval();
+  pingTimer = setInterval(() => {
+    if (connected.value && socket.value && socket.value.readyState === WebSocket.OPEN) {
+      socket.value.send(JSON.stringify({
+        type: 'ping',
+        timestamp: Date.now()
+      }));
+    }
+  }, pingInterval);
+};
+
+const stopPingInterval = () => {
+  if (pingTimer) {
+    clearInterval(pingTimer);
+    pingTimer = null;
+  }
+};
+
+const scheduleReconnect = () => {
+  if (reconnectAttempts.value >= maxReconnectAttempts) {
+    console.error('[WebSocket] Maximum reconnection attempts reached');
+    return;
+  }
+  
+  reconnectAttempts.value++;
+  const delay = reconnectInterval * Math.pow(1.5, reconnectAttempts.value - 1);
+  
+  console.log(`[WebSocket] Scheduling reconnect attempt ${reconnectAttempts.value} in ${delay}ms`);
+  setTimeout(() => connectWebSocket(), delay);
+};
+
+const disconnectWebSocket = () => {
+  stopPingInterval();
+  if (socket.value) {
+    socket.value.close();
+    socket.value = null;
+  }
+  connected.value = false;
+};
 
 const checkScreenSize = () => {
   isMobile.value = window.innerWidth <= 768;
