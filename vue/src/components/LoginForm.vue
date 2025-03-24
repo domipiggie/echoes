@@ -83,12 +83,12 @@ form {
 
 input {
   background-color: #ffffff;
-  border: none;
-  padding: 12px 15px;
-  margin: 8px 0;
-  width: 100%;
   border: 1px solid #dcdef5;
   border-radius: 5px;
+  padding: 8px 12px;
+  margin: 8px 0;
+  width: 100%;
+  height: 36px;
 }
 
 input.error {

@@ -30,7 +30,7 @@ const selectTheme = () => {
               <div class="preview-message sent">Hali! Milyen Feri?</div>
               <div class="messenger-message-group">
                 <div class="messenger-avatar"></div>
-                <div class="preview-message received">Ouu te hülye</div>
+                <div class="preview-message received">...</div>
               </div>
             </div>
           </div>
@@ -47,21 +47,21 @@ const selectTheme = () => {
                 <div class="preview-avatar"></div>
                 <div class="message-content">
                   <div class="message-author">User1</div>
-                  <div class="preview-message received">Szia! Hogy vagy?</div>
+                  <div class="preview-message received">Keresett a Feri.</div>
                 </div>
               </div>
               <div class="message-group">
                 <div class="preview-avatar"></div>
                 <div class="message-content">
                   <div class="message-author">User2</div>
-                  <div class="preview-message sent">Helló! Köszönöm, jól!</div>
+                  <div class="preview-message sent">Szia! Milyen Feri?</div>
                 </div>
               </div>
               <div class="message-group">
                 <div class="preview-avatar"></div>
                 <div class="message-content">
                   <div class="message-author">User1</div>
-                  <div class="preview-message received">Mit csinálsz ma?</div>
+                  <div class="preview-message received">...</div>
                 </div>
               </div>
             </div>
@@ -97,32 +97,30 @@ const selectTheme = () => {
 .preview-chat.messenger {
   display: flex;
   flex-direction: column;
-  gap: 8px; /* Increased gap */
+  gap: 6px;
   padding: 8px;
   height: 100%;
-  overflow-y: auto;
 }
 
 .messenger-message-group {
   display: flex;
   align-items: flex-end;
-  gap: 6px; /* Increased gap */
+  gap: 4px;
 }
 
 .messenger-avatar {
-  width: 20px; /* Larger avatar */
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: #7078e6;
   flex-shrink: 0;
 }
 
-/* Messenger message bubbles - increased size */
 .messenger-preview .preview-message {
-  padding: 8px 10px; /* Larger padding */
-  font-size: 10px; /* Larger font */
-  max-width: 70%; /* Adjusted width */
-  border-radius: 18px;
+  padding: 6px 8px;
+  font-size: 8px;
+  max-width: 60%;
+  border-radius: 14px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   margin: 0;
   text-transform: none;
