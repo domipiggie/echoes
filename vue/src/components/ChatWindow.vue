@@ -373,7 +373,7 @@
     </div>  <!-- Added closing div for chat-window -->
 </template>
       
-<style lang="scss">
+<style lang="scss" scoped>
 @import '../styles/ChatWindow.scss';
 
 </style>

@@ -85,4 +85,44 @@ export default {
 	height: 100%;
 	transition: all 0.6s ease-in-out;
 }
+
+/* Add responsive styles */
+@media (max-width: 768px) {
+	.container {
+		width: 100%;
+		min-height: 100vh;
+		margin: 0;
+		padding: 20px;
+		box-shadow: none;
+		border-radius: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		background: #F2F0FA;
+	}
+
+	.form-container {
+		position: static !important;
+		width: 100% !important;
+		height: auto !important;
+		transform: none !important;
+		opacity: 1 !important;
+	}
+
+	.overlay-container {
+		display: none;
+	}
+
+	.sign-in-container,
+	.sign-up-container {
+		display: block !important;
+		background: transparent;
+	}
+
+	form {
+		background: white;
+		border-radius: 15px;
+		box-shadow: 0 4px 15px rgba(112, 120, 230, 0.1);
+	}
+}
 </style>
