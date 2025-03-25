@@ -2,10 +2,10 @@
 import { ref } from 'vue'
 import { userdataStore } from '../store/UserdataStore';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
 import LoginForm from './LoginForm.vue'
 import RegisterForm from './RegisterForm.vue'
 import OverlayContainer from './OverlayContainer.vue'
+import { authService } from '../services/authService';
 
 const userdata = userdataStore();
 const isRightPanelActive = ref(false)
@@ -18,38 +18,30 @@ const deactivateRightPanel = () => {
 	isRightPanelActive.value = false
 }
 
-const sendRegisterRequest = (username, birthdate, email, password) => {
-	axios.post('http://localhost/auth/register', {
-		username: username,
-		email: email,
-		password: password
-	})
-		.then(response => {
-			alert(response.data['message']);
-			activateRightPanel();
-		})
-		.catch(exception => {
-			alert(exception);
-		})
+const sendRegisterRequest = async (username, birthdate, email, password) => {
+	try {
+		const response = await authService.register(username, email, password);
+		alert(response.message);
+		activateRightPanel();
+	} catch (error) {
+		alert(error.response?.data?.message || 'Registration failed');
+	}
 }
-const sendLoginRequest = (email, password) => {
-	axios.post('http://localhost/auth/login', {
-		email: email,
-		password: password
-	})
-		.then(response => {
-			if (!response.data['access_token']) {
-				alert('nuh uh');
-				return;
-			}
-			userdata.setAccessToken(response.data['access_token']);
-			userdata.setUserID(response.data.userID);
-			alert("Sikeres bejelentkezés!")
-			router.push("/chat")
-		})
-		.catch(exception => {
-			alert(exception);
-		})
+
+const sendLoginRequest = async (email, password) => {
+	try {
+		const response = await authService.login(email, password);
+		if (!response.access_token) {
+			alert('Authentication failed: No access token received');
+			return;
+		}
+		userdata.setAccessToken(response.access_token);
+		userdata.setUserID(response.userID);
+		alert("Sikeres bejelentkezés!")
+		router.push("/chat")
+	} catch (error) {
+		alert(error.response?.data?.message || 'Login failed');
+	}
 }
 </script>
 <script>
