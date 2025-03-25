@@ -112,6 +112,26 @@ h1{
 .alcim{
   font-weight: bold;
 }
+
+@media (max-width: 768px) {
+  .sign-in-container {
+    position: static;
+    width: 100%;
+    height: auto;
+    transform: none !important;
+  }
+
+  form {
+    padding: 30px;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-height: auto;
+    margin: 0;
+    background: #fff;
+    border-radius: 15px;
+  }
+}
 </style>
 
 

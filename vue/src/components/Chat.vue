@@ -139,6 +139,6 @@ const sendMessage = async (text) => {
   </div>
 </template>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 @import '../styles/Chat.scss';
 </style>
