@@ -15,11 +15,8 @@ const selectTheme = () => {
     <div class="appearance-modal">
       <h2>Válassz megjelenést</h2>
       <div class="theme-options">
-        <button 
-          class="theme-button" 
-          :class="{ active: selectedTheme === 'messenger' }"
-          @click="selectedTheme = 'messenger'"
-        >
+        <button class="theme-button" :class="{ active: selectedTheme === 'messenger' }"
+          @click="selectedTheme = 'messenger'">
           <div class="theme-preview messenger-preview">
             <div class="preview-header"></div>
             <div class="preview-chat messenger">
@@ -36,11 +33,8 @@ const selectTheme = () => {
           </div>
           <span>Messenger</span>
         </button>
-        <button 
-          class="theme-button" 
-          :class="{ active: selectedTheme === 'discord' }"
-          @click="selectedTheme = 'discord'"
-        >
+        <button class="theme-button" :class="{ active: selectedTheme === 'discord' }"
+          @click="selectedTheme = 'discord'">
           <div class="theme-preview discord-preview">
             <div class="preview-chat discord">
               <div class="message-group">
@@ -139,13 +133,15 @@ const selectTheme = () => {
   background: #7078e6;
   color: white;
   align-self: flex-end;
-  margin-left: auto; /* This pushes the message to the right */
+  margin-left: auto;
+  /* This pushes the message to the right */
   border-bottom-right-radius: 4px;
 }
 
 /* Discord styles */
 .preview-avatar {
-  width: 18px; /* Slightly larger avatar */
+  width: 18px;
+  /* Slightly larger avatar */
   height: 18px;
   border-radius: 50%;
   background: #7078e6;
@@ -153,7 +149,8 @@ const selectTheme = () => {
 }
 
 .message-author {
-  font-size: 7px; /* Slightly larger font */
+  font-size: 7px;
+  /* Slightly larger font */
   color: #2d3748;
   font-weight: 600;
   text-align: left;
@@ -161,9 +158,11 @@ const selectTheme = () => {
 }
 
 .discord-preview .preview-message {
-  font-size: 7px; /* Slightly larger font */
+  font-size: 7px;
+  /* Slightly larger font */
   color: #2d3748;
-  max-width: 75px; /* Adjusted width */
+  max-width: 75px;
+  /* Adjusted width */
   margin: 0;
   text-transform: none;
   font-weight: normal;
@@ -171,15 +170,18 @@ const selectTheme = () => {
 
 .discord-preview .preview-message.sent,
 .discord-preview .preview-message.received {
-  padding: 4px 6px; /* Slightly larger padding */
+  padding: 4px 6px;
+  /* Slightly larger padding */
 }
 
 .message-author {
-  font-size: 6px; /* Smaller font */
+  font-size: 6px;
+  /* Smaller font */
   color: #2d3748;
   font-weight: 600;
   text-align: left;
-  text-transform: none; /* Ensures text is not all uppercase */
+  text-transform: none;
+  /* Ensures text is not all uppercase */
 }
 
 .messenger-preview .preview-message.received {
@@ -193,7 +195,8 @@ const selectTheme = () => {
   background: #7078e6;
   color: white;
   align-self: flex-end;
-  margin-left: auto; /* This pushes the message to the right */
+  margin-left: auto;
+  /* This pushes the message to the right */
   border-bottom-right-radius: 4px;
 }
 
@@ -201,7 +204,8 @@ const selectTheme = () => {
 .preview-chat.discord {
   display: flex;
   flex-direction: column;
-  gap: 6px; /* Reduced gap */
+  gap: 6px;
+  /* Reduced gap */
   padding: 8px;
   height: 100%;
   background: #ffffff;
@@ -210,12 +214,14 @@ const selectTheme = () => {
 
 .message-group {
   display: flex;
-  gap: 4px; /* Smaller gap */
+  gap: 4px;
+  /* Smaller gap */
   margin-bottom: 0;
 }
 
 .preview-avatar {
-  width: 16px; /* Smaller avatar */
+  width: 16px;
+  /* Smaller avatar */
   height: 16px;
   border-radius: 50%;
   background: #7078e6;
@@ -225,27 +231,32 @@ const selectTheme = () => {
 .message-content {
   display: flex;
   flex-direction: column;
-  gap: 1px; /* Smaller gap */
+  gap: 1px;
+  /* Smaller gap */
   align-items: flex-start;
 }
 
 .message-author {
-  font-size: 6px; /* Smaller font */
+  font-size: 6px;
+  /* Smaller font */
   color: #2d3748;
   font-weight: 600;
   text-align: left;
 }
 
 .discord-preview .preview-message {
-  font-size: 6px; /* Smaller font */
+  font-size: 6px;
+  /* Smaller font */
   color: #2d3748;
-  max-width: 70px; /* Reduced width */
+  max-width: 70px;
+  /* Reduced width */
   margin: 0;
 }
 
 .discord-preview .preview-message.sent,
 .discord-preview .preview-message.received {
-  padding: 3px 5px; /* Smaller padding */
+  padding: 3px 5px;
+  /* Smaller padding */
 }
 
 .discord-preview .preview-message.sent {

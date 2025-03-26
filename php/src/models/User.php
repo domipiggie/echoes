@@ -184,4 +184,27 @@ class User
     {
         return $this->profilePicture;
     }
+    
+    public function findByUsername($username)
+    {
+        try {
+            $query = "SELECT userID, username, displayName, profilePicture 
+                    FROM " . $this->table_name . " 
+                    WHERE username = :username 
+                    LIMIT 0,1";
+    
+            $stmt = $this->dbConn->prepare($query);
+            $stmt->bindParam(':username', $username);
+            $stmt->execute();
+    
+            if ($stmt->rowCount() === 0) {
+                return false;
+            }
+    
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row;
+        } catch (Exception $e) {
+            throw new ApiException('Failed to search for user', 500);
+        }
+    }
 }

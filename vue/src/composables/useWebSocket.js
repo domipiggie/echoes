@@ -28,14 +28,14 @@ export function useWebSocket(onMessageReceived) {
         type: 'auth',
         userID: userStore.getAccessToken()
       }));
-      
+
       startPingInterval();
     };
 
     socket.value.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        
+
         if (data.type === 'ping') {
           handlePing(data);
           return;
@@ -60,7 +60,7 @@ export function useWebSocket(onMessageReceived) {
       console.log('[WebSocket] Connection closed:', event.reason || 'No reason provided');
       connected.value = false;
       stopPingInterval();
-      
+
       scheduleReconnect();
     };
 
@@ -102,10 +102,10 @@ export function useWebSocket(onMessageReceived) {
       console.error('[WebSocket] Maximum reconnection attempts reached');
       return;
     }
-    
+
     reconnectAttempts.value++;
     const delay = WS_CONFIG.RECONNECT_INTERVAL * Math.pow(1.5, reconnectAttempts.value - 1);
-    
+
     console.log(`[WebSocket] Scheduling reconnect attempt ${reconnectAttempts.value} in ${delay}ms`);
     setTimeout(() => connectWebSocket(), delay);
   };

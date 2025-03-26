@@ -95,11 +95,22 @@ class Message
                         'method' => 'POST',
                         'header' => 'Content-Type: application/json',
                         'content' => $data
+                    ],
+                    'ssl' => [
+                        'verify_peer' => false,
+                        'verify_peer_name' => false
                     ]
                 ];
 
                 $context = stream_context_create($options);
-                $result = @file_get_contents('http://localhost/notify', false, $context);
+                
+                $isLocalhost = in_array($_SERVER['SERVER_NAME'] ?? '', ['localhost', '127.0.0.1', '::1']);
+                
+                $notifyUrl = $isLocalhost 
+                    ? 'http://localhost/notify' 
+                    : 'https://localhost/notify';
+                    
+                $result = @file_get_contents($notifyUrl, false, $context);
 
                 error_log("Sent notification request for users " . implode(',', $accessibleUsers) . " about new message in channel $channelID");
                 if ($result === false) {

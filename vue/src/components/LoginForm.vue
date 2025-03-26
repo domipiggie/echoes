@@ -35,9 +35,11 @@ const login = () => {
     <form @submit.prevent="login">
       <h1>Üdv újra itt!</h1>
       <span class="alcim">Jelentkezz be gyorsan!</span>
-      <input type="text" v-model="email" placeholder="Felhasználónév vagy email" :class="{ 'error': errorMessage }" style="font-style: italic;"/>
+      <input type="text" v-model="email" placeholder="Felhasználónév vagy email" :class="{ 'error': errorMessage }"
+        style="font-style: italic;" />
       <span v-if="errorMessage" class="error-text">{{ errorMessageEmail }}</span>
-      <input type="password" v-model="password" placeholder="Jelszó" :class="{ 'error': errorMessage }" style="font-style: italic;"/>
+      <input type="password" v-model="password" placeholder="Jelszó" :class="{ 'error': errorMessage }"
+        style="font-style: italic;" />
       <span v-if="errorMessage" class="error-text">{{ errorMessagePassw }}</span>
       <button type="submit" class="registration">Bejelentkezés</button>
     </form>
@@ -60,11 +62,15 @@ const login = () => {
 }
 
 @keyframes show {
-  0%, 49.99% {
+
+  0%,
+  49.99% {
     opacity: 0;
     z-index: 1;
   }
-  50%, 100% {
+
+  50%,
+  100% {
     opacity: 1;
     z-index: 5;
   }
@@ -100,13 +106,16 @@ input.error {
   font-size: 14px;
   margin-bottom: 8px;
 }
-.registration{
+
+.registration {
   background-color: #7078e6;
 }
-h1{
+
+h1 {
   color: #7078e6;
 }
-.alcim{
+
+.alcim {
   font-weight: bold;
 }
 
@@ -132,4 +141,3 @@ h1{
   }
 }
 </style>
-

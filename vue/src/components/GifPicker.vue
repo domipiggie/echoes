@@ -21,7 +21,7 @@ const debouncedSearch = (query) => {
   if (debounceTimeout.value) {
     clearTimeout(debounceTimeout.value);
   }
-  
+
   debounceTimeout.value = setTimeout(() => {
     performSearch(query);
   }, 300);
@@ -33,7 +33,7 @@ const performSearch = async (query) => {
     gifs.value = cachedTrendingGifs.value;
     return;
   }
-  
+
   loading.value = true;
   try {
     const response = await fetch(
@@ -41,7 +41,7 @@ const performSearch = async (query) => {
     );
     const data = await response.json();
     gifs.value = data.data || [];
-    
+
     // Cache-eljük a trending GIF-eket
     if (!query) {
       cachedTrendingGifs.value = gifs.value;
@@ -95,23 +95,13 @@ const handleClickOutside = (event) => {
 <template>
   <div class="gif-picker">
     <div class="gif-search">
-      <input
-        type="text"
-        v-model="searchQuery"
-        @input="searchGifs"
-        placeholder="Keresés..."
-        class="gif-search-input"
-      />
+      <input type="text" v-model="searchQuery" @input="searchGifs" placeholder="Keresés..." class="gif-search-input" />
     </div>
     <div class="gif-grid">
       <div v-if="loading" class="loading">Betöltés...</div>
       <div v-else-if="optimizedGifs.length === 0" class="no-results">Nincs találat</div>
       <div v-else v-for="gif in optimizedGifs" :key="gif.id" class="gif-item" @click="selectGif(gif)">
-        <img 
-          :src="gif.images.fixed_height_small.url" 
-          :alt="gif.title"
-          loading="lazy"
-        />
+        <img :src="gif.images.fixed_height_small.url" :alt="gif.title" loading="lazy" />
       </div>
     </div>
   </div>
@@ -170,7 +160,8 @@ const handleClickOutside = (event) => {
   will-change: transform;
 }
 
-.loading, .no-results {
+.loading,
+.no-results {
   padding: 20px;
   text-align: center;
   color: #a0aec0;
@@ -182,7 +173,7 @@ const handleClickOutside = (event) => {
     width: 250px;
     max-width: 35vw;
   }
-  
+
   .gif-grid {
     max-height: 250px;
   }
@@ -193,11 +184,11 @@ const handleClickOutside = (event) => {
     width: 220px;
     max-width: 30vw;
   }
-  
+
   .gif-grid {
     max-height: 200px;
   }
-  
+
   .gif-search-input {
     padding: 4px 8px;
     font-size: 14px;

@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory} from 'vue-router';
+import { createRouter, createWebHistory } from 'vue-router';
 import AuthContainer from '../components/AuthContainer.vue';
 import Chat from '../components/Chat.vue';
 import { userdataStore } from '../store/UserdataStore';
@@ -24,7 +24,7 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
     const store = userdataStore();
-    
+
     if (to.matched.some(record => record.meta.requiresAuth)) {
         if (!store.getAccessToken()) {
             next({ name: 'Login' });

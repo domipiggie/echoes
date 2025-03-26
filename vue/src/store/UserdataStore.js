@@ -1,16 +1,16 @@
-import {defineStore} from 'pinia';
-import {ref} from 'vue';
+import { defineStore } from 'pinia';
+import { ref } from 'vue';
 
-export const userdataStore = defineStore("userdata", ()=>{
+export const userdataStore = defineStore("userdata", () => {
     const accessToken = ref($cookies.get('accessToken') || "");
     const userID = ref($cookies.get('userID') || "");
 
-    function setAccessToken(token){
+    function setAccessToken(token) {
         accessToken.value = token;
         $cookies.set('accessToken', token);
     }
-    
-    function getAccessToken(){
+
+    function getAccessToken() {
         return accessToken.value;
     }
 
@@ -18,7 +18,7 @@ export const userdataStore = defineStore("userdata", ()=>{
         userID.value = id;
         $cookies.set('userID', id);
     }
-    
+
     function getUserID() {
         return userID.value;
     }
@@ -30,5 +30,5 @@ export const userdataStore = defineStore("userdata", ()=>{
         $cookies.remove('userID');
     }
 
-    return {setAccessToken, getAccessToken, setUserID, getUserID, clearAuth};
+    return { setAccessToken, getAccessToken, setUserID, getUserID, clearAuth };
 });
