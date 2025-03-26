@@ -159,7 +159,9 @@
               </svg>
             </button>
             <div class="avatar">
-              <img src=".src/images/test.jpg" alt="Profilkép">
+              <div class="avatar-circle">
+                <span>{{ currentChat.name.charAt(0) }}</span>
+              </div>
             </div>
             <div class="user-details">
               <div class="user-name">{{ currentChat.name }}</div>
@@ -180,6 +182,7 @@
       
       <div class="messages-container" ref="messagesContainer">
         <!-- A template részben javítsuk a Discord-specifikus részt -->
+        <!-- Discord üzenetek esetén -->
         <template v-if="currentTheme === 'discord'">
           <div 
             v-for="(message, index) in messages" 
@@ -194,7 +197,9 @@
           >
             <div class="discord-message-container">
               <div v-if="index === 0 || messages[index - 1]?.sender !== message.sender" class="discord-avatar">
-                <img :src="message.sender === 'me' ? './src/assets/default-avatar.png' : './src/assets/other-avatar.png'" alt="Profile" />
+                <div class="avatar-circle">
+                  <span>{{ message.sender === 'me' ? 'Y' : currentChat.name.charAt(0) }}</span>
+                </div>
               </div>
               <div v-else class="discord-avatar-placeholder"></div>
               
@@ -203,46 +208,69 @@
                   {{ message.sender === 'me' ? 'You' : currentChat.name }}
                 </div>
                 
-                <!-- Javított üzenet buborék -->
-                <div class="message-bubble discord-bubble">
-                  <!-- Kép és GIF kezelés -->
-                  <img v-if="message.type === 'gif' || message.type === 'image'" 
-                       :src="message.text" 
-                       class="message-gif"
-                       @load="console.log('Image loaded successfully:', message.fileName)"
-                       @error="(e) => console.error('Image load error:', message.fileName, e)" />
-                  
-                  <!-- Javított videó kezelés -->
-                  <div v-else-if="message.type === 'video'" class="video-container">
-                    <video 
-                      :src="message.text" 
-                      class="message-video" 
-                      controls
-                      @click.stop
-                      ref="videoRef"
-                      preload="metadata"
-                    ></video>
-                    <div class="video-options">
-                      <button @click.stop="toggleVideoOptions(message.id)" class="video-options-button">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <circle cx="12" cy="12" r="1"></circle>
-                          <circle cx="12" cy="5" r="1"></circle>
-                          <circle cx="12" cy="19" r="1"></circle>
-                        </svg>
-                      </button>
-                      <div v-if="showVideoOptions[message.id]" class="video-options-menu">
-                        <div class="video-option-item" @click.stop="toggleFullscreen($event.target.closest('.video-container').querySelector('video'))">
-                          Teljes képernyő
+                <div class="discord-message-wrapper">
+                  <div class="message-bubble discord-bubble">
+                    <!-- Kép és GIF kezelés -->
+                    <img v-if="message.type === 'gif' || message.type === 'image'" 
+                         :src="message.text" 
+                         class="message-gif"
+                         @load="console.log('Image loaded successfully:', message.fileName)"
+                         @error="(e) => console.error('Image load error:', message.fileName, e)" />
+                    
+                    <!-- Javított videó kezelés -->
+                    <div v-else-if="message.type === 'video'" class="video-container">
+                      <video 
+                        :src="message.text" 
+                        class="message-video" 
+                        controls
+                        @click.stop
+                        ref="videoRef"
+                        preload="metadata"
+                      ></video>
+                      <div class="video-options">
+                        <button @click.stop="toggleVideoOptions(message.id)" class="video-options-button">
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                            <circle cx="12" cy="12" r="1"></circle>
+                            <circle cx="12" cy="5" r="1"></circle>
+                            <circle cx="12" cy="19" r="1"></circle>
                           </svg>
+                        </button>
+                        <div v-if="showVideoOptions[message.id]" class="video-options-menu">
+                          <div class="video-option-item" @click.stop="toggleFullscreen($event.target.closest('.video-container').querySelector('video'))">
+                            Teljes képernyő
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                            </svg>
+                          </div>
                         </div>
                       </div>
                     </div>
+                    
+                    <!-- Szöveges üzenetek -->
+                    <span v-else-if="message.type !== 'audio' && message.type !== 'file'">{{ message.text }}</span>
+                    
+                    <!-- Hover action tálca közvetlenül a buborékon belül -->
+                    <div class="discord-hover-actions">
+                      <button class="hover-action-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <circle cx="12" cy="12" r="1"></circle>
+                          <circle cx="19" cy="12" r="1"></circle>
+                          <circle cx="5" cy="12" r="1"></circle>
+                        </svg>
+                      </button>
+                      <button class="hover-action-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                        </svg>
+                      </button>
+                      <button class="hover-action-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                      </button>
+                    </div>
                   </div>
-                  
-                  <!-- Szöveges üzenetek -->
-                  <span v-else-if="message.type !== 'audio' && message.type !== 'file'">{{ message.text }}</span>
                 </div>
               </div>
             </div>
@@ -263,8 +291,32 @@
       }
     ]"
   >
+    <!-- Hover akciógombok hozzáadása -->
+    <div class="message-hover-actions">
+      <button class="hover-action-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="1"></circle>
+          <circle cx="19" cy="12" r="1"></circle>
+          <circle cx="5" cy="12" r="1"></circle>
+        </svg>
+      </button>
+      <button class="hover-action-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+        </svg>
+      </button>
+      <button class="hover-action-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+      </button>
+    </div>
+    
     <div v-if="index === 0 || messages[index - 1]?.sender !== message.sender" class="message-avatar">
-      <img :src="message.sender === 'me' ? './src/assets/default-avatar.png' : './src/assets/other-avatar.png'" alt="Profile" />
+      <div class="avatar-circle">
+        <span>{{ currentChat.name.charAt(0) }}</span>
+      </div>
     </div>
     <div class="message-bubble">
       <!-- Kép és GIF kezelés -->
