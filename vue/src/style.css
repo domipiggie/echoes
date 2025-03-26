@@ -63,10 +63,30 @@ button {
   padding: 12px 45px;
   letter-spacing: 1px;
   text-transform: uppercase;
-  transition: all 0.3s ease;
+  transition: transform 80ms ease-in;
   cursor: pointer;
   position: relative;
   overflow: hidden;
+}
+
+button.round {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button.round.accept {
+  background: #4CAF50;
+  border-color: #4CAF50;
+}
+
+button.round.reject {
+  background: #f44336;
+  border-color: #f44336;
 }
 
 button:hover {

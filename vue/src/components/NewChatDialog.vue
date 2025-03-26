@@ -105,9 +105,9 @@ h2 {
 .search-icon {
   position: absolute;
   left: 12px;
-  top: 50%;
+  top: 55%;
   transform: translateY(-50%);
-  color: #484a6a;
+  color: #4a50a1;
   transition: all 0.2s ease;
   background: #f8f9fc;
 }
@@ -150,8 +150,10 @@ input:focus + .search-icon {
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
+  position: relative;
+  overflow: hidden;
 }
 
 .cancel-button {
@@ -161,6 +163,8 @@ input:focus + .search-icon {
 
 .cancel-button:hover {
   background: #e4e6eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .create-button {
@@ -173,6 +177,42 @@ input:focus + .search-icon {
 
 .create-button:hover {
   background: #5a62d3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(112, 120, 230, 0.4);
+}
+
+.create-button:active, .cancel-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 0 0 3px rgba(112, 120, 230, 0.2);
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.create-button:active {
+  background: #4e55df;
+}
+
+.cancel-button:active {
+  background: #dcdfe6;
+}
+
+.cancel-button::before, .create-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.7s ease;
+}
+
+.cancel-button:hover::before, .create-button:hover::before {
+  left: 100%;
 }
 
 .create-button:disabled {
