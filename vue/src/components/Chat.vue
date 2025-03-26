@@ -20,18 +20,35 @@ const currentChat = ref({
 });
 const messages = ref([]);
 
+const processedFriendRequests = ref(new Set());
+
 const handleWebSocketMessage = (data) => {
-  console.log('[WebSocket] New message received in channel:', data.channelID);
+  console.log('[WebSocket] New message received:', data);
   
-  if (parseInt(data.message.userID) === parseInt(userStore.getUserID())) {
-    console.log('[WebSocket] Ignoring message from self');
-    return;
-  }
-  
-  if (currentChat.value && currentChat.value.channelID == data.channelID) {
-    const formattedMessage = messageFormatter.formatIncomingMessage(data.message);
-    console.log('[WebSocket] Adding formatted message to chat:', formattedMessage);
-    messages.value.push(formattedMessage);
+  if (data.type === 'new_message') {
+    if (parseInt(data.message.userID) === parseInt(userStore.getUserID())) {
+      console.log('[WebSocket] Ignoring message from self');
+      return;
+    }
+    
+    if (currentChat.value && currentChat.value.channelID == data.channelID) {
+      const formattedMessage = messageFormatter.formatIncomingMessage(data.message);
+      console.log('[WebSocket] Adding formatted message to chat:', formattedMessage);
+      messages.value.push(formattedMessage);
+    }
+  } else if (data.type === 'friend_request') {
+    const friendshipID = data.friendRequest?.friendshipID;
+    
+    if (friendshipID && !processedFriendRequests.value.has(friendshipID)) {
+      console.log('[WebSocket] Dispatching friend request event for ID:', friendshipID);
+      processedFriendRequests.value.add(friendshipID);
+      
+      window.dispatchEvent(new CustomEvent('new-friend-request', { 
+        detail: data 
+      }));
+    } else {
+      console.log('[WebSocket] Skipping duplicate friend request dispatch for ID:', friendshipID);
+    }
   }
 };
 

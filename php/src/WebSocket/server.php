@@ -126,9 +126,14 @@ class ServerManager {
                             throw new WebSocketException("Invalid JSON in notification file: " . basename($file), 5006, "json_error");
                         }
 
-                        if ($data && isset($data['type']) && $data['type'] === 'admin_notification') {
-                            $this->logger->info("Processing notification from file: " . basename($file));
-                            $this->messageNotifier->processAdminNotification($data);
+                        if ($data && isset($data['type'])) {
+                            $this->logger->info("Processing notification from file: " . basename($file) . " of type: " . $data['type']);
+                            
+                            if ($data['type'] === 'admin_notification') {
+                                $this->messageNotifier->processAdminNotification($data);
+                            } else if ($data['type'] === 'friend_request') {
+                                $this->messageNotifier->processNotification($data);
+                            }
                         }
 
                         unlink($file);
@@ -163,7 +168,6 @@ class ServerManager {
     }
 }
 
-// Main execution
 try {
     $options = getopt('sp:', ['secure', 'port:']);
     $secure = isset($options['s']) || isset($options['secure']);

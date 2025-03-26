@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, defineEmits, ref, onMounted } from 'vue';
+import { defineProps, defineEmits, ref, onMounted, onUnmounted } from 'vue';
 import { userdataStore } from '../store/UserdataStore';
 import NewChatDialog from './NewChatDialog.vue';
 import friendService from '../services/friendService';
@@ -29,11 +29,9 @@ const handleNewChat = () => {
 };
 
 const handleChatCreated = (newChat) => {
-  // You might want to refresh the chat list or add the new chat directly
   console.log('New chat created:', newChat);
 };
 
-// Sample friend requests data
 const friendRequests = ref([
   {
     id: 1,
@@ -84,8 +82,45 @@ const rejectFriendRequest = async (request) => {
   }
 };
 
+const handleNewFriendRequest = (event) => {
+  const data = event.detail;
+  console.log('New friend request received via WebSocket:', data);
+  
+  if (!data) {
+    console.error('Invalid friend request data received');
+    return;
+  }
+  
+  const requestData = data.friendRequest || data;
+  const initiator = requestData.initiator || {};
+  
+  const formattedRequest = {
+    id: requestData.friendshipID,
+    friendID: initiator.userID,
+    username: initiator.username || 'Unknown User',
+    displayName: initiator.displayName || initiator.username || 'Unknown User',
+    profilePicture: initiator.profilePicture,
+    timestamp: new Date()
+  };
+  
+  console.log('Formatted friend request:', formattedRequest);
+  
+  if (formattedRequest.id && formattedRequest.friendID && !friendRequests.value.some(r => r.id === formattedRequest.id)) {
+    friendRequests.value.push(formattedRequest);
+    
+    if (activeView.value !== 'requests') {
+      console.log('New friend request received while on another tab');
+    }
+  }
+};
+
 onMounted(() => {
   loadFriendRequests();
+  window.addEventListener('new-friend-request', handleNewFriendRequest);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('new-friend-request', handleNewFriendRequest);
 });
 </script>
 

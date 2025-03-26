@@ -24,9 +24,28 @@ export function useWebSocket(onMessageReceived) {
       connected.value = true;
       reconnectAttempts.value = 0;
 
+      const token = userStore.getAccessToken();
+      if (!token) {
+        console.error('[WebSocket] No authentication token available');
+        return;
+      }
+
+      // Log the user ID from the token for debugging
+      try {
+        const tokenParts = token.split('.');
+        if (tokenParts.length === 3) {
+          const payload = JSON.parse(atob(tokenParts[1]));
+          console.log('[WebSocket] Token contains user ID:', payload.id || payload.sub || payload.userID);
+        }
+      } catch (e) {
+        console.error('[WebSocket] Error parsing token:', e);
+      }
+
+      console.log('[WebSocket] Sending authentication with token:', token.substring(0, 10) + '...');
+      
       socket.value.send(JSON.stringify({
         type: 'auth',
-        userID: userStore.getAccessToken()
+        token: token
       }));
 
       startPingInterval();
@@ -49,6 +68,9 @@ export function useWebSocket(onMessageReceived) {
         } else if (data.type === 'error') {
           console.error('[WebSocket] Server error:', data.message);
         } else if (data.type === 'new_message') {
+          onMessageReceived(data);
+        } else if (data.type === 'friend_request') {
+          console.log('[WebSocket] Friend request received:', data);
           onMessageReceived(data);
         }
       } catch (e) {

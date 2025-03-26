@@ -83,6 +83,9 @@ class Friendship
             if ($stmt->execute()) {
                 $id = $this->dbConn->lastInsertId();
                 $this->dbConn->commit();
+                
+                $this->notifyFriendRequest($id);
+                
                 return array("message" => "Successfully added friend!", "friendshipID" => $id);
             } else {
                 throw new ApiException('Couldn\'t send friend request', 500);
@@ -94,6 +97,62 @@ class Friendship
             throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
             throw new ApiException('Couldn\'t send friend request', 500);
+        }
+    }
+
+    private function notifyFriendRequest($friendshipID)
+    {
+        try {
+            $query = "SELECT 
+                f.friendshipID, 
+                f.statusID,
+                fs.status,
+                f.user1ID as initiator,
+                u1.username as initiatorUsername,
+                u1.displayName as initiatorDisplayName,
+                u1.profilePicture as initiatorProfilePicture,
+                f.user2ID as recipient
+            FROM friendship f
+            INNER JOIN friendshipStatus fs ON f.statusID = fs.statusID
+            INNER JOIN user u1 ON f.user1ID = u1.userID
+            WHERE f.friendshipID = :friendshipID";
+
+            $stmt = $this->dbConn->prepare($query);
+            $stmt->bindParam(':friendshipID', $friendshipID);
+            $stmt->execute();
+            
+            if ($stmt->rowCount() === 0) {
+                return;
+            }
+            
+            $friendshipData = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            $notificationData = [
+                'type' => 'friend_request',
+                'friendshipID' => $friendshipData['friendshipID'],
+                'initiator' => [
+                    'userID' => $friendshipData['initiator'],
+                    'username' => $friendshipData['initiatorUsername'],
+                    'displayName' => $friendshipData['initiatorDisplayName'],
+                    'profilePicture' => $friendshipData['initiatorProfilePicture']
+                ],
+                'timestamp' => date('Y-m-d H:i:s')
+            ];
+            
+            $notificationDir = __DIR__ . '/../WebSocket/notifications';
+            if (!is_dir($notificationDir)) {
+                mkdir($notificationDir, 0755, true);
+            }
+            
+            $notificationFile = $notificationDir . '/' . uniqid() . '.json';
+            file_put_contents($notificationFile, json_encode([
+                'type' => 'friend_request',
+                'data' => $notificationData,
+                'recipients' => [$friendshipData['recipient']]
+            ]));
+            
+        } catch (Exception $e) {
+            error_log('Failed to send friend request notification: ' . $e->getMessage()); 
         }
     }
 
