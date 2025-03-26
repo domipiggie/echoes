@@ -1,6 +1,7 @@
 <script setup>
   import { defineProps, defineEmits, ref } from 'vue';
   import { userdataStore } from '../store/UserdataStore';
+  import NewChatDialog from './NewChatDialog.vue';
   
   const userStore = userdataStore();
   const props = defineProps({
@@ -18,6 +19,18 @@
   
   // Aktív nézet kezelése
   const activeView = ref('chats'); // 'chats' vagy 'requests'
+  
+  // New chat dialog visibility
+  const showNewChatDialog = ref(false);
+  
+  const handleNewChat = () => {
+    showNewChatDialog.value = true;
+  };
+  
+  const handleChatCreated = (newChat) => {
+    // You might want to refresh the chat list or add the new chat directly
+    console.log('New chat created:', newChat);
+  };
 </script>
 
 <template>
@@ -26,7 +39,7 @@
       <div class="title-section">
         <h1>Üzenetek</h1>
         <div class="header-buttons">
-          <button class="action-btn">
+          <button class="action-btn" @click="handleNewChat">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
               <path fill="currentColor" d="M19,3H5C3.89,3,3,3.89,3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M17,13H13V17H11V13H7V11H11V7H13V11H17V13Z"/>
             </svg>
@@ -107,6 +120,12 @@
         <p>Nincsenek függőben lévő barátkérelmek</p>
       </div>
     </div>
+    <!-- New Chat Dialog -->
+    <NewChatDialog 
+      v-if="showNewChatDialog" 
+      @close="showNewChatDialog = false"
+      @chat-created="handleChatCreated"
+    />
   </div>
 </template>
   
