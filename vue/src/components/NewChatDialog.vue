@@ -1,7 +1,7 @@
 <script setup>
 import { ref, defineEmits } from 'vue';
 import { userdataStore } from '../store/UserdataStore';
-import { chatService } from '../services/chatService';
+import friendService from '../services/friendService';
 
 const emit = defineEmits(['close', 'chat-created']);
 const userStore = userdataStore();
@@ -14,18 +14,22 @@ const createChat = async () => {
     errorMessage.value = 'Kérlek adj meg egy felhasználónevet!';
     return;
   }
-  
+
   isLoading.value = true;
   errorMessage.value = '';
-  
+
   try {
-    const response = await chatService.createFriendship(username.value);
-    console.log('Friendship created:', response);
+    const response = await friendService.sendFriendRequest(username.value);
+    console.log('Friend request sent:', response);
     emit('chat-created', response);
     emit('close');
   } catch (error) {
-    console.error('Error creating friendship:', error);
-    errorMessage.value = error.response?.data?.message || 'Hiba történt a barátkérelem küldése közben.';
+    console.error('Error sending friend request:', error);
+    if (error.response?.status === 400 && error.response?.data?.message) {
+      errorMessage.value = error.response.data.message;
+    } else {
+      errorMessage.value = 'Hiba történt a barátkérelem küldése közben.';
+    }
   } finally {
     isLoading.value = false;
   }
@@ -36,29 +40,26 @@ const createChat = async () => {
   <div class="new-chat-overlay" @click.self="emit('close')">
     <div class="new-chat-dialog">
       <h2>Új beszélgetés</h2>
-      
+
       <div class="input-container">
         <div class="search-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
         </div>
-        <input 
-          type="text" 
-          v-model="username" 
-          placeholder="Add meg a felhasználónevet" 
-          @keyup.enter="createChat"
-        />
+        <input type="text" v-model="username" placeholder="Add meg a felhasználónevet" @keyup.enter="createChat" />
       </div>
-      
+
       <div class="error-message" v-if="errorMessage">{{ errorMessage }}</div>
-      
+
       <div class="button-container">
         <button class="cancel-button" @click="emit('close')">Mégse</button>
         <button class="create-button" @click="createChat" :disabled="isLoading">
           <span>Barátkérelem küldése</span>
-          <svg v-if="!isLoading" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg v-if="!isLoading" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2">
             <path d="M5 12h14M12 5l7 7-7 7"></path>
           </svg>
           <div v-else class="loading-spinner"></div>
@@ -86,7 +87,8 @@ const createChat = async () => {
   background: white;
   border-radius: 12px;
   padding: 24px;
-  width: 450px; /* Increased from 400px to 450px */
+  width: 450px;
+  /* Increased from 400px to 450px */
   max-width: 90%;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
@@ -128,7 +130,7 @@ input:focus {
   box-shadow: 0 0 0 3px rgba(112, 120, 230, 0.2);
 }
 
-input:focus + .search-icon {
+input:focus+.search-icon {
   color: #7078e6;
 }
 
@@ -144,7 +146,8 @@ input:focus + .search-icon {
   gap: 12px;
 }
 
-.cancel-button, .create-button {
+.cancel-button,
+.create-button {
   padding: 10px 16px;
   border-radius: 8px;
   font-size: 14px;
@@ -181,7 +184,8 @@ input:focus + .search-icon {
   box-shadow: 0 4px 12px rgba(112, 120, 230, 0.4);
 }
 
-.create-button:active, .cancel-button:active {
+.create-button:active,
+.cancel-button:active {
   transform: scale(0.95);
   box-shadow: 0 0 0 3px rgba(112, 120, 230, 0.2);
   transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
@@ -195,23 +199,23 @@ input:focus + .search-icon {
   background: #dcdfe6;
 }
 
-.cancel-button::before, .create-button::before {
+.cancel-button::before,
+.create-button::before {
   content: '';
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent);
   transition: left 0.7s ease;
 }
 
-.cancel-button:hover::before, .create-button:hover::before {
+.cancel-button:hover::before,
+.create-button:hover::before {
   left: 100%;
 }
 

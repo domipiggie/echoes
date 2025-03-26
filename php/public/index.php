@@ -109,11 +109,12 @@ try {
             }
             break;
 
+        
         case "usrinfo":
             if (!isset($uri[2])) {
                 throw new ApiException('Invalid route', 404);
             }
-
+        
             switch ($uri[2]) {
                 case "friendlist":
                     UserinfoController::handleGetFriendList($db);
@@ -123,6 +124,9 @@ try {
                     break;
                 case "channellist":
                     $channel->handleGetChannelList();
+                    break;
+                case "search":
+                    UserinfoController::handleSearchUser($db);
                     break;
                 default:
                     throw new ApiException('Invalid route', 404);

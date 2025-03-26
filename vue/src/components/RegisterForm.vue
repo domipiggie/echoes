@@ -23,7 +23,7 @@ const validate = () => {
   errors.value.email = !email.value.includes("@");
   errors.value.password1 = password1.value.length < 6;
   errors.value.password2 = password2.value !== password1.value;
-  
+
   return !Object.values(errors.value).includes(true);
 };
 
@@ -39,20 +39,25 @@ const register = () => {
     <form @submit.prevent="register">
       <h1>Mielőtt chatelnél...</h1>
       <span class="alcim">Regisztrálj egy fiókot pár kattintással!</span>
-      
-      <input type="text" v-model="username" placeholder="Felhasználónév" :class="{ 'error': errors.username }" style="font-style: italic;"/>
+
+      <input type="text" v-model="username" placeholder="Felhasználónév" :class="{ 'error': errors.username }"
+        style="font-style: italic;" />
       <span v-if="errors.username" class="error-text">Hibás!</span>
 
-      <input type="date" v-model="birthdate" placeholder="Születési dátum" :class="{ 'error': errors.birthdate }" style="font-style: italic;"/>
+      <input type="date" v-model="birthdate" placeholder="Születési dátum" :class="{ 'error': errors.birthdate }"
+        style="font-style: italic;" />
       <span v-if="errors.birthdate" class="error-text">Érvénytelen dátum!</span>
 
-      <input type="email" v-model="email" placeholder="Email cím" :class="{ 'error': errors.email }" style="font-style: italic;"/>
+      <input type="email" v-model="email" placeholder="Email cím" :class="{ 'error': errors.email }"
+        style="font-style: italic;" />
       <span v-if="errors.email" class="error-text">Érvénytelen email!</span>
 
-      <input type="password" v-model="password1" placeholder="Jelszó" :class="{ 'error': errors.password1 }" style="font-style: italic;"/>
+      <input type="password" v-model="password1" placeholder="Jelszó" :class="{ 'error': errors.password1 }"
+        style="font-style: italic;" />
       <span v-if="errors.password1" class="error-text">Hiba! (Minimum 6 karakter szükséges)</span>
 
-      <input type="password" v-model="password2" placeholder="Jelszó újra" :class="{ 'error': errors.password2 }" style="font-style: italic;"/>
+      <input type="password" v-model="password2" placeholder="Jelszó újra" :class="{ 'error': errors.password2 }"
+        style="font-style: italic;" />
       <span v-if="errors.password2" class="error-text">Hiba! (Nem egyezik az első jelszóval)</span>
 
       <a href="#">Elfelejtetted a jelszavad?</a>
@@ -103,13 +108,15 @@ input.error {
   margin-bottom: 8px;
 }
 
-.registration{
+.registration {
   background-color: #7078e6;
 }
-h1{
+
+h1 {
   color: #7078e6;
 }
-.alcim{
+
+.alcim {
   font-weight: bold;
 }
 
@@ -133,5 +140,3 @@ h1{
   }
 }
 </style>
-
-

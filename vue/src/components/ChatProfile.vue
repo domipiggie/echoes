@@ -61,12 +61,12 @@ const mediaMessages = computed(() => {
   if (!props.messages || !Array.isArray(props.messages)) {
     return [];
   }
-  
+
   return props.messages
     .filter(msg => {
       return msg && msg.type && (
-        msg.type === 'image' || 
-        msg.type === 'video' || 
+        msg.type === 'image' ||
+        msg.type === 'video' ||
         msg.type === 'gif'
       ) && msg.text;
     })
@@ -84,7 +84,8 @@ const mediaMessagesData = computed(() => {
   <div class="profile-overlay">
     <div class="profile-sidebar">
       <button class="close-button" @click="closeProfile">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M15 18l-6-6 6-6"></path>
         </svg>
       </button>
@@ -118,7 +119,8 @@ const mediaMessagesData = computed(() => {
         <h3>Nézet</h3>
         <button class="profile-button" @click="showAppearanceSelector = true">
           <span class="button-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
               <circle cx="12" cy="12" r="3"></circle>
             </svg>
@@ -130,34 +132,20 @@ const mediaMessagesData = computed(() => {
       <div class="profile-section">
         <h3>Médiatartalom és fájlok</h3>
         <div class="media-grid">
-          <div 
-            v-for="media in mediaMessagesData" 
-            :key="media.id || Math.random()" 
-            class="media-item"
-          >
-            <img 
-              v-if="media.type === 'image' || media.type === 'gif'"
-              :src="media.text"
-              :alt="media.fileName || 'Media content'"
-              @error="$event.target.src = 'fallback-image-url'"
-            />
-            <div 
-              v-else-if="media.type === 'video'"
-              class="video-preview"
-              :style="{ backgroundImage: `url(${media.thumbnail || media.text})` }"
-            >
+          <div v-for="media in mediaMessagesData" :key="media.id || Math.random()" class="media-item">
+            <img v-if="media.type === 'image' || media.type === 'gif'" :src="media.text"
+              :alt="media.fileName || 'Media content'" @error="$event.target.src = 'fallback-image-url'" />
+            <div v-else-if="media.type === 'video'" class="video-preview"
+              :style="{ backgroundImage: `url(${media.thumbnail || media.text})` }">
               <div class="video-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
-                  <path d="M8 5v14l11-7z"/>
+                  <path d="M8 5v14l11-7z" />
                 </svg>
               </div>
             </div>
           </div>
-          <div 
-            v-for="n in Math.max(0, 9 - (mediaMessages?.length || 0))" 
-            :key="'placeholder-' + n" 
-            class="media-placeholder"
-          ></div>
+          <div v-for="n in Math.max(0, 9 - (mediaMessages?.length || 0))" :key="'placeholder-' + n"
+            class="media-placeholder"></div>
         </div>
       </div>
 
@@ -165,12 +153,9 @@ const mediaMessagesData = computed(() => {
         <h3>Személyes adatok védelme és támogatás</h3>
       </div>
     </div>
-    
-    <AppearanceSelector 
-      v-if="showAppearanceSelector" 
-      @close="showAppearanceSelector = false"
-      @select="handleThemeSelect"
-    />
+
+    <AppearanceSelector v-if="showAppearanceSelector" @close="showAppearanceSelector = false"
+      @select="handleThemeSelect" />
   </div>
 </template>
 
