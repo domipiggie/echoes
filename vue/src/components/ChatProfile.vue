@@ -91,9 +91,7 @@ const mediaMessagesData = computed(() => {
       </button>
       <div class="profile-header">
         <div class="profile-image">
-          <div class="avatar-circle">
-            <span>{{ currentChat.name.charAt(0) }}</span>
-          </div>
+          <img src="" alt="" />
         </div>
         <h2>{{ currentChat.name }}</h2>
         <div class="last-seen">Elérhető volt: {{ currentChat.lastSeen }}</div>
@@ -161,25 +159,4 @@ const mediaMessagesData = computed(() => {
 
 <style lang="scss">
 @import '../styles/ChatProfile.scss';
-
-.profile-image {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  overflow: hidden;
-  margin: 0 auto 10px;
-  
-  .avatar-circle {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background-color: #7078e6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 600;
-    font-size: 32px;
-  }
-}
 </style>
