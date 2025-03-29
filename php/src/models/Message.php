@@ -176,4 +176,99 @@ class Message
             throw new ApiException('Couldn\'t get channel messages', 500);
         }
     }
+
+    public function deleteMessage($messageId, $userId)
+    {
+        try {
+            $query = "SELECT * FROM " . $this->table_name . " 
+                     WHERE id = :messageId AND sender_id = :userId";
+            
+            $stmt = $this->dbConn->prepare($query);
+            $stmt->bindParam(":messageId", $messageId);
+            $stmt->bindParam(":userId", $userId);
+            $stmt->execute();
+            
+            if ($stmt->rowCount() === 0) {
+                throw new ApiException("Message not found or you don't have permission to delete it", 403);
+            }
+            
+            $query = "DELETE FROM " . $this->table_name . " 
+                     WHERE id = :messageId AND sender_id = :userId";
+            
+            $stmt = $this->dbConn->prepare($query);
+            $stmt->bindParam(":messageId", $messageId);
+            $stmt->bindParam(":userId", $userId);
+            
+            if ($stmt->execute()) {
+                return true;
+            }
+            
+            throw new ApiException("Failed to delete message", 500);
+        } catch (Exception $e) {
+            if ($e instanceof ApiException) {
+                throw $e;
+            }
+            throw new ApiException($e->getMessage(), 500);
+        }
+    }
+
+    public function editMessage($messageId, $userId, $newContent)
+    {
+        try {
+            $query = "SELECT * FROM " . $this->table_name . " 
+                     WHERE id = :messageId AND userID = :userId";
+            
+            $stmt = $this->dbConn->prepare($query);
+            $stmt->bindParam(":messageId", $messageId);
+            $stmt->bindParam(":userId", $userId);
+            $stmt->execute();
+            
+            if ($stmt->rowCount() === 0) {
+                throw new ApiException("Message not found or you don't have permission to edit it", 403);
+            }
+            
+            $query = "UPDATE " . $this->table_name . " 
+                     SET content = :content, edited_at = NOW()
+                     WHERE id = :messageId AND userID = :userId";
+            
+            $stmt = $this->dbConn->prepare($query);
+            $stmt->bindParam(":content", $newContent);
+            $stmt->bindParam(":messageId", $messageId);
+            $stmt->bindParam(":userId", $userId);
+            
+            if ($stmt->execute()) {
+                $query = "SELECT channelID FROM " . $this->table_name . " WHERE id = :messageId";
+                $stmt = $this->dbConn->prepare($query);
+                $stmt->bindParam(":messageId", $messageId);
+                $stmt->execute();
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if ($result) {
+                    $channelID = $result['channelID'];
+                    $accessibleUsers = $this->getUsersWithChannelAccess($channelID);
+                    
+                    global $messageNotifier;
+                    if (isset($messageNotifier)) {
+                        $messageData = [
+                            'messageID' => $messageId,
+                            'channelID' => $channelID,
+                            'userID' => $userId,
+                            'content' => $newContent,
+                            'edited_at' => date('Y-m-d H:i:s')
+                        ];
+                        $messageNotifier->notifyMessageEdited($messageData, $channelID, $accessibleUsers);
+                    }
+                }
+                
+                return true;
+            }
+            
+            throw new ApiException("Failed to update message", 500);
+        } catch (Exception $e) {
+            if ($e instanceof ApiException) {
+                throw $e;
+            }
+            throw new ApiException($e->getMessage(), 500);
+        }
+    }
 }

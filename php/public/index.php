@@ -146,6 +146,12 @@ try {
                 case "get":
                     $message->handleGetMessages($_GET);
                     break;
+                case "delete":
+                    $message->handleDeleteMessage($data);
+                    break;
+                case "edit":
+                    $message->handleEditMessage($data);
+                    break;
                 default:
                     throw new ApiException('Invalid route', 404);
                     break;
