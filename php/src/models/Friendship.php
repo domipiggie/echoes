@@ -49,7 +49,7 @@ class Friendship
     public function sendFriendRequest()
     {
         try {
-            if ($this->doesFriendshipExist()) {
+            if ($this->doesFriendshipExist() && $this->friendshipStatus->getStatus() != -1) {
                 throw new ApiException('Friendship already exists!', 400);
             }
 

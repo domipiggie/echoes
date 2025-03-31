@@ -125,6 +125,7 @@ class Message
     public function hasChannelAccess($userID, $channelID)
     {
         try {
+            // First check direct channel access
             $query = "SELECT 1 FROM channel_access 
             WHERE userID = :userID 
             AND channelID = :channelID 
@@ -139,10 +140,32 @@ class Message
                 return true;
             }
 
+            $query = "SELECT friendshipID FROM channel_list 
+            WHERE channelID = :channelID";
+            
+            $stmt = $this->dbConn->prepare($query);
+            $stmt->bindParam(":channelID", $channelID);
+            $stmt->execute();
+            
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$result || !$result['friendshipID']) {
+                $query = "SELECT 1 FROM channel_list 
+                WHERE channelID = :channelID";
+                
+                $stmt = $this->dbConn->prepare($query);
+                $stmt->bindParam(":channelID", $channelID);
+                $stmt->execute();
+                
+                return $stmt->rowCount() > 0;
+            }
+            
             $query = "SELECT 1 FROM channel_list cl
             INNER JOIN friendship f ON cl.friendshipID = f.friendshipID
+            INNER JOIN friendshipStatus fs ON f.statusID = fs.statusID
             WHERE cl.channelID = :channelID
             AND (f.user1ID = :userID OR f.user2ID = :userID)
+            AND fs.status = 1
             LIMIT 1";
 
             $stmt = $this->dbConn->prepare($query);

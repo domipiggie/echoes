@@ -70,8 +70,8 @@ class ServerManager {
             $httpServer = new HttpServer($wsServer);
             
             if ($secure) {
-                $certPath = __DIR__ . '/ssl/echoes.pem';
-                $keyPath = __DIR__ . '/ssl/echoes.pem';
+                $certPath = '/etc/letsencrypt/live/ws.griddy.hu/fullchain.pem';
+                $keyPath = '/etc/letsencrypt/live/ws.griddy.hu/privkey.pem';
                 
                 if (!file_exists($certPath) || !file_exists($keyPath)) {
                     throw new WebSocketException(
