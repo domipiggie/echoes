@@ -31,10 +31,13 @@ class MessageController
                 throw new ApiException('No access to this channel', 403);
             }
 
+            $type = isset($data['type']) ? $data['type'] : 'text';
+
             $messageID = $this->message->createMessage(
                 $data['channelID'],
                 $user->id,
-                $data['content']
+                $data['content'],
+                $type
             );
 
             if ($messageID) {
@@ -44,7 +47,8 @@ class MessageController
                     'messageID' => $messageID,
                     'channelID' => $data['channelID'],
                     'userID' => $user->id,
-                    'content' => $data['content']
+                    'content' => $data['content'],
+                    'type' => $type
                 ]);
             } else {
                 throw new ApiException('Failed to send message', 500);
