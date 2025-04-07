@@ -9,18 +9,19 @@ class Message
         $this->dbConn = $dbConn;
     }
 
-    public function createMessage($channelID, $userID, $content)
+    public function createMessage($channelID, $userID, $content, $type = 'text')
     {
         try {
             $query = "INSERT INTO " . $this->table_name . "
-            (channelID, userID, content, sent_at)
-            VALUES (:channelID, :userID, :content, NOW())";
+            (channelID, userID, content, type, sent_at)
+            VALUES (:channelID, :userID, :content, :type, NOW())";
 
             $stmt = $this->dbConn->prepare($query);
 
             $stmt->bindParam(":channelID", $channelID);
             $stmt->bindParam(":userID", $userID);
             $stmt->bindParam(":content", $content);
+            $stmt->bindParam(":type", $type);
 
             if ($stmt->execute()) {
                 $messageID = $this->dbConn->lastInsertId();
@@ -30,6 +31,7 @@ class Message
                     'channelID' => $channelID,
                     'userID' => $userID,
                     'content' => $content,
+                    'type' => $type,
                     'sent_at' => date('Y-m-d H:i:s')
                 ];
 
@@ -182,7 +184,7 @@ class Message
     public function getChannelMessages($channelID, $offset = 0, $limit = 20)
     {
         try {
-            $query = "SELECT m.messageID, m.channelID, m.userID, m.content, m.sent_at
+            $query = "SELECT m.messageID, m.channelID, m.userID, m.content, m.type, m.sent_at
             FROM " . $this->table_name . " m
             WHERE m.channelID = :channelID
             ORDER BY m.sent_at DESC
