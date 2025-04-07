@@ -137,6 +137,37 @@ const sendMessage = async (text) => {
     console.error('Error sending message:', error);
   }
 };
+
+// Üzenet frissítés metódus hozzáadása
+const updateMessage = async (updatedMessage) => {
+  console.log('Üzenet frissítés fogadva:', updatedMessage);
+  
+  // Megkeressük az üzenetet az ID alapján
+  const messageIndex = messages.value.findIndex(msg => msg.id === updatedMessage.id);
+  
+  if (messageIndex !== -1) {
+    // Frissítjük az üzenetet a tömbben
+    messages.value[messageIndex] = updatedMessage;
+    
+    // Frissítjük az üzenetet a szerveren is
+    try {
+      if (updatedMessage.isRevoked) {
+        // Ha visszavont üzenet, akkor törlési kérést küldünk
+        await chatService.deleteMessage(currentChat.value.channelID, updatedMessage.id);
+      } else {
+        // Egyébként frissítjük az üzenetet
+        await chatService.updateMessage(
+          currentChat.value.channelID,
+          updatedMessage.id,
+          updatedMessage.text
+        );
+      }
+      console.log('Message updated successfully on server');
+    } catch (error) {
+      console.error('Error updating message on server:', error);
+    }
+  }
+};
 </script>
 
 <template>
@@ -152,6 +183,7 @@ const sendMessage = async (text) => {
       :messages="messages"
       @send-message="sendMessage"
       @go-back="goBackToList"
+      @update-message="updateMessage"
     />
   </div>
 </template>

@@ -27,6 +27,8 @@
   
   // Add reply functionality
   const replyingTo = ref(null);
+  // Add editing functionality ref
+  const editingMessage = ref(null);
   
   const startReply = (message) => {
     replyingTo.value = {
@@ -596,22 +598,6 @@
       @update:showProfile="showProfile = $event"
     />
   </div>
-  <!-- A template részére adjuk hozzá a szerkesztési felületet -->
-<div class="edit-message-overlay" v-if="editingMessage">
-  <div class="edit-message-container">
-    <div class="edit-message-header">
-      <h4>Üzenet szerkesztése</h4>
-      <button class="close-button" @click="cancelEditing">×</button>
-    </div>
-    <div class="edit-message-body">
-      <textarea v-model="editedText" class="edit-message-textarea"></textarea>
-    </div>
-    <div class="edit-message-footer">
-      <button class="cancel-button" @click="cancelEditing">Mégse</button>
-      <button class="save-button" @click="saveEdit">Mentés</button>
-    </div>
-  </div>
-</div>
 </template>
 
 <style lang="scss" scoped>
@@ -642,7 +628,21 @@
   border-left: 3px solid #ff6b6b;
 }
 
-// Szerkesztési mód stílusai
+// Szerkesztési box stílusa
+.edit-box {
+  background-color: rgba(0, 123, 255, 0.1);
+  border-left: 3px solid #007bff;
+  
+  .edit-icon {
+    color: #007bff;
+  }
+  
+  .reply-box-title {
+    color: #007bff;
+  }
+}
+
+
 .edit-message-overlay {
   position: fixed;
   top: 0;
@@ -745,5 +745,5 @@
     }
   }
 }
-</style>
 
+</style>
