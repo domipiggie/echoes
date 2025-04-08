@@ -17,6 +17,8 @@ require_once $rootDir . '/src/controllers/FriendshipController.php';
 require_once $rootDir . '/src/controllers/ChannelController.php';
 require_once $rootDir . '/src/controllers/UserinfoController.php';
 require_once $rootDir . '/src/controllers/MessageController.php';
+require_once $rootDir . '/src/controllers/FileController.php';
+require_once $rootDir . '/src/models/File.php';
 //Models
 require_once $rootDir . '/src/models/User.php';
 require_once $rootDir . '/src/models/RefreshToken.php';
@@ -46,6 +48,7 @@ try {
     $friendship = new FriendshipController($db);
     $channel = new ChannelController($db);
     $message = new MessageController($db);
+    $fileController = new FileController($db);
 
     $request_method = $_SERVER["REQUEST_METHOD"];
     $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -160,6 +163,27 @@ try {
 
         case "notify":
             include './notify.php';
+            break;
+
+        case "file":
+            if (!isset($uri[2])) {
+                throw new ApiException('Invalid route', 404);
+            }
+
+            switch ($uri[2]) {
+                case "upload":
+                    $fileController->handleFileUpload($_FILES);
+                    break;
+                case "get":
+                    if (!isset($uri[3])) {
+                        throw new ApiException('File ID not provided', 400);
+                    }
+                    $fileController->getFileById($uri[3]);
+                    break;
+                default:
+                    throw new ApiException('Invalid route', 404);
+                    break;
+            }
             break;
 
         default:
