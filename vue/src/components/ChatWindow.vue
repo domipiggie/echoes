@@ -1,10 +1,9 @@
 <script setup>
   import { defineProps, defineEmits, ref, watch, nextTick, onMounted } from 'vue';
   import ChatProfile from './ChatProfile.vue';
-  import GifPicker from './GifPicker.vue'; // Győződj meg róla, hogy ez az import létezik
+  import GifPicker from './GifPicker.vue';
   
-  // Add currentTheme ref to track the selected theme
-  const currentTheme = ref('messenger'); // Default theme
+  const currentTheme = ref('messenger');
   
   const props = defineProps({
     currentChat: {
@@ -17,7 +16,8 @@
     }
   });
   
-  const emit = defineEmits(['send-message', 'go-back', 'update-message']);
+  const emit = defineEmits(['send-message', 'go-back', 'update-message', 'send-file']);
+  
   const newMessage = ref('');
   const messagesContainer = ref(null);
   const isMobile = ref(false);
@@ -25,9 +25,7 @@
   const showGifPicker = ref(false);
   const gifButtonRef = ref(null);
   
-  // Add reply functionality
   const replyingTo = ref(null);
-  // Add editing functionality ref
   const editingMessage = ref(null);
   
   const startReply = (message) => {
@@ -35,9 +33,9 @@
       id: message.id,
       text: message.text,
       sender: message.sender,
-      type: message.type // Adjuk hozzá a típust is
+      type: message.type
     };
-    // Fókuszáljuk az input mezőt
+    
     nextTick(() => {
       document.querySelector('.modern-message-box input').focus();
     });
@@ -49,12 +47,10 @@
   
   const startEditing = (message) => {
     console.log('Szerkesztés indítása:', message);
-    // Csak a saját üzeneteinket szerkeszthetjük
     if (message.sender === 'me' && !message.isRevoked) {
       editingMessage.value = message;
-      newMessage.value = message.text; // Az input mezőbe betöltjük a szerkesztendő üzenetet
+      newMessage.value = message.text;
       
-      // Fókuszáljuk az input mezőt
       nextTick(() => {
         document.querySelector('.modern-message-box input').focus();
       });
@@ -63,55 +59,45 @@
   
   const cancelEditing = () => {
     editingMessage.value = null;
-    newMessage.value = ''; // Töröljük az input mezőt
+    newMessage.value = '';
   };
   
   const saveEdit = () => {
     if (editingMessage.value && newMessage.value.trim()) {
-      // Megkeressük az üzenetet az ID alapján
       const messageIndex = props.messages.findIndex(msg => msg.id === editingMessage.value.id);
       if (messageIndex !== -1) {
-        // Közvetlenül módosítjuk az üzenetet a props-ban
         props.messages[messageIndex].text = newMessage.value;
         
-        // Emitálunk egy eseményt a szülő komponensnek a frissítéshez
         emit('update-message', props.messages[messageIndex]);
         
-        // Debug log hozzáadása
         console.log('Üzenet szerkesztve:', props.messages[messageIndex]);
       }
       
-      // Kilépünk a szerkesztési módból
       cancelEditing();
     }
   };
   
-  // Módosítjuk a submitMessage függvényt, hogy kezelje a szerkesztést is
   const submitMessage = () => {
     if (newMessage.value.trim()) {
-      // Ha szerkesztési módban vagyunk, akkor mentjük a szerkesztést
       if (editingMessage.value) {
         saveEdit();
         return;
       }
       
-      // Egyébként új üzenetet küldünk
       const messageToSend = {
-        id: Date.now(), // Egyedi azonosító hozzáadása
+        id: Date.now(),
         text: newMessage.value,
         type: 'text',
         sender: 'me',
         timestamp: new Date().toISOString()
       };
       
-      // Ha válaszolunk egy üzenetre, adjuk hozzá a válasz információkat
       if (replyingTo.value) {
         messageToSend.replyTo = replyingTo.value.id;
         messageToSend.replyToText = replyingTo.value.text;
         messageToSend.replyToSender = replyingTo.value.sender;
         messageToSend.replyToType = replyingTo.value.type || 'text';
         
-        // Válasz elküldése után töröljük a válasz állapotot
         replyingTo.value = null;
       }
       
@@ -120,15 +106,12 @@
     }
   };
   
-  // Add handler for theme changes
   const handleThemeChange = (theme) => {
     console.log('Theme changed to:', theme);
     currentTheme.value = theme;
-    // Optionally save to localStorage
     localStorage.setItem('chatTheme', theme);
   };
   
-  // Load saved theme on mount
   onMounted(() => {
     const savedTheme = localStorage.getItem('chatTheme');
     if (savedTheme) {
@@ -154,7 +137,7 @@
   watch(() => props.messages.length, scrollToBottom);
   
   const toggleGifPicker = (event) => {
-    event.stopPropagation(); // Megakadályozza a kattintás továbbterjedését
+    event.stopPropagation();
     showGifPicker.value = !showGifPicker.value;
     console.log('GIF picker toggled:', showGifPicker.value);
   };
@@ -172,11 +155,18 @@
   
     console.log('Selected file:', file);
     console.log('File type:', file.type);
-  
+    
+    if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+      emit('send-file', {
+        file: file,
+        channelID: props.currentChat.channelID
+      });
+    }
+    
     const reader = new FileReader();
     reader.onload = (e) => {
       const message = {
-        id: Date.now(), // Add unique ID
+        id: Date.now(),
         text: e.target.result,
         type: file.type.startsWith('image/') ? 'image' : 'video',
         fileName: file.name,
@@ -230,20 +220,15 @@
     };
   };
 
-  // Üzenet törlés funkció módosítása
   const deleteMessage = (messageId) => {
     if (confirm("Biztos vissza akarja vonni ezt az üzenetet?")) {
-      // Megkeressük az üzenetet az ID alapján
       const messageIndex = props.messages.findIndex(msg => msg.id === messageId);
       if (messageIndex !== -1) {
-        // Közvetlenül módosítjuk az üzenetet a props-ban (nem ajánlott, de működhet)
         props.messages[messageIndex].text = "visszavont üzenet";
         props.messages[messageIndex].isRevoked = true;
         
-        // Emitálunk egy eseményt a szülő komponensnek a frissítéshez
         emit('update-message', props.messages[messageIndex]);
         
-        // Debug log hozzáadása
         console.log('Üzenet visszavonva:', props.messages[messageIndex]);
       }
     }

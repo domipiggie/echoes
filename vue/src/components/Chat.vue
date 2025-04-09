@@ -5,6 +5,7 @@ import ChatWindow from './ChatWindow.vue';
 import { userdataStore } from '../store/UserdataStore';
 import { useWebSocket } from '../composables/useWebSocket';
 import { chatService } from '../services/chatService';
+import { fileService } from '../services/fileService';
 import { messageFormatter } from '../utils/messageFormatter';
 import { WS_CONFIG } from '../config/ws';
 
@@ -138,24 +139,18 @@ const sendMessage = async (text) => {
   }
 };
 
-// Üzenet frissítés metódus hozzáadása
 const updateMessage = async (updatedMessage) => {
   console.log('Üzenet frissítés fogadva:', updatedMessage);
   
-  // Megkeressük az üzenetet az ID alapján
   const messageIndex = messages.value.findIndex(msg => msg.id === updatedMessage.id);
   
   if (messageIndex !== -1) {
-    // Frissítjük az üzenetet a tömbben
     messages.value[messageIndex] = updatedMessage;
     
-    // Frissítjük az üzenetet a szerveren is
     try {
       if (updatedMessage.isRevoked) {
-        // Ha visszavont üzenet, akkor törlési kérést küldünk
         await chatService.deleteMessage(currentChat.value.channelID, updatedMessage.id);
       } else {
-        // Egyébként frissítjük az üzenetet
         await chatService.updateMessage(
           currentChat.value.channelID,
           updatedMessage.id,
@@ -166,6 +161,27 @@ const updateMessage = async (updatedMessage) => {
     } catch (error) {
       console.error('Error updating message on server:', error);
     }
+  }
+};
+
+const handleFileUpload = async (fileData) => {
+  try {
+    console.log('Uploading file:', fileData.file.name);
+    const response = await fileService.uploadFile(fileData.file, fileData.channelID);
+    console.log('File uploaded successfully:', response);
+    
+    if (response && response.messageID) {
+      const tempMessageIndex = messages.value.findIndex(
+        msg => msg.fileName === fileData.file.name && msg.sender === 'me'
+      );
+      
+      if (tempMessageIndex !== -1) {
+        messages.value[tempMessageIndex].id = response.messageID;
+        console.log('Updated message with server ID:', response.messageID);
+      }
+    }
+  } catch (error) {
+    console.error('Error uploading file:', error);
   }
 };
 </script>
@@ -182,6 +198,7 @@ const updateMessage = async (updatedMessage) => {
       :currentChat="currentChat"
       :messages="messages"
       @send-message="sendMessage"
+      @send-file="handleFileUpload"
       @go-back="goBackToList"
       @update-message="updateMessage"
     />

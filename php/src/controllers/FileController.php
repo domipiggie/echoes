@@ -4,7 +4,7 @@ class FileController
 {
     private $db;
     private $fileModel;
-    private $uploadDir = __DIR__ . '../../../uploads/';
+    private $uploadDir = __DIR__ . '../../../public/uploads/';
 
     public function __construct($db)
     {
