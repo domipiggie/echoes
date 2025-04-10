@@ -2,69 +2,34 @@
 import { defineEmits, ref } from 'vue';
 
 const emit = defineEmits(['close', 'select']);
-const selectedTheme = ref('messenger');
+const isDarkMode = ref(document.body.classList.contains('dark-mode'));
 
-const selectTheme = () => {
-  emit('select', selectedTheme.value);
-  emit('close');
+const toggleDarkMode = () => {
+  isDarkMode.value = !isDarkMode.value;
+  document.body.classList.toggle('dark-mode');
+  emit('select', isDarkMode.value ? 'dark' : 'light');
 };
 </script>
 
 <template>
   <div class="appearance-overlay">
     <div class="appearance-modal">
-      <h2>Válassz megjelenést</h2>
+      <h2>Téma beállítása</h2>
       <div class="theme-options">
-        <button class="theme-button" :class="{ active: selectedTheme === 'messenger' }"
-          @click="selectedTheme = 'messenger'">
-          <div class="theme-preview messenger-preview">
-            <div class="preview-header"></div>
-            <div class="preview-chat messenger">
-              <div class="messenger-message-group">
-                <div class="messenger-avatar"></div>
-                <div class="preview-message received">Keresett a Feri.</div>
-              </div>
-              <div class="preview-message sent">Hali! Milyen Feri?</div>
-              <div class="messenger-message-group">
-                <div class="messenger-avatar"></div>
-                <div class="preview-message received">...</div>
-              </div>
+        <button 
+          class="theme-button" 
+          :class="{ active: isDarkMode }"
+          @click="toggleDarkMode"
+        >
+          <div class="theme-preview">
+            <div class="mode-preview" :class="{ 'dark': isDarkMode }">
+              <span class="mode-icon">{{ isDarkMode ? '🌙' : '☀️' }}</span>
             </div>
           </div>
-          <span>Messenger</span>
-        </button>
-        <button class="theme-button" :class="{ active: selectedTheme === 'discord' }"
-          @click="selectedTheme = 'discord'">
-          <div class="theme-preview discord-preview">
-            <div class="preview-chat discord">
-              <div class="message-group">
-                <div class="preview-avatar"></div>
-                <div class="message-content">
-                  <div class="message-author">User1</div>
-                  <div class="preview-message received">Keresett a Feri.</div>
-                </div>
-              </div>
-              <div class="message-group">
-                <div class="preview-avatar"></div>
-                <div class="message-content">
-                  <div class="message-author">User2</div>
-                  <div class="preview-message sent">Szia! Milyen Feri?</div>
-                </div>
-              </div>
-              <div class="message-group">
-                <div class="preview-avatar"></div>
-                <div class="message-content">
-                  <div class="message-author">User1</div>
-                  <div class="preview-message received">...</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <span>Discord</span>
+          <span>{{ isDarkMode ? 'Sötét mód' : 'Világos mód' }}</span>
         </button>
       </div>
       <div class="modal-actions">
-        <button class="action-button select" @click="selectTheme">Kiválasztás</button>
         <button class="action-button cancel" @click="$emit('close')">Bezárás</button>
       </div>
     </div>
@@ -72,7 +37,6 @@ const selectTheme = () => {
 </template>
 
 <style scoped>
-/* General styles */
 .theme-preview {
   width: 100%;
   height: 120px;
@@ -81,8 +45,6 @@ const selectTheme = () => {
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
-
-/* Messenger styles */
 .messenger-preview {
   background: #f0f2f5;
   padding: 0;
@@ -284,57 +246,79 @@ const selectTheme = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10000;
+  z-index: 9999;
 }
 
 .appearance-modal {
   background: white;
-  border-radius: 16px;
+  border-radius: 15px;
   padding: 24px;
-  width: 400px;
+  width: 90%;
+  max-width: 400px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
-h2 {
-  color: #484a6a;
-  margin: 0 0 20px 0;
-  text-align: center;
+.theme-preview {
+  width: 100px;
+  height: 60px;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.mode-preview {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.mode-preview.dark {
+  background: #1a1a1a;
+}
+
+.mode-icon {
+  font-size: 24px;
 }
 
 .theme-options {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 16px;
   margin-bottom: 24px;
 }
 
 .theme-button {
-  border: 2px solid #e6e8f0;
-  border-radius: 12px;
-  padding: 12px;
-  background: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  padding: 12px;
+  border: 2px solid #e6e8f0;
+  border-radius: 12px;
+  background: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.theme-button.active {
+.theme-button:hover {
   border-color: #7078e6;
   background: rgba(112, 120, 230, 0.05);
 }
 
-.theme-button span {
-  color: #000000;
-  font-weight: 500;
+.theme-button.active {
+  border-color: #7078e6;
+  background: rgba(112, 120, 230, 0.1);
 }
 
 .modal-actions {
   display: flex;
-  gap: 12px;
   justify-content: flex-end;
+  gap: 12px;
 }
 
 .action-button {
@@ -346,21 +330,12 @@ h2 {
   transition: all 0.2s ease;
 }
 
-.action-button.select {
-  background: #7078e6;
-  color: white;
-}
-
-.action-button.select:hover {
-  background: #5a61d2;
-}
-
 .action-button.cancel {
   background: #e6e8f0;
   color: #484a6a;
 }
 
 .action-button.cancel:hover {
-  background: #d8dae5;
+  background: #d8dae6;
 }
 </style>

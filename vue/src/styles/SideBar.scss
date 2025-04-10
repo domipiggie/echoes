@@ -228,10 +228,11 @@
   margin-bottom: 8px;
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
-}
-
-.chats-list::-webkit-scrollbar {
-  display: none;
+  
+  &::-webkit-scrollbar {
+    display: none;
+    width: 0;
+  }
 }
 
 .chat-item {

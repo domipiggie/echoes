@@ -3,8 +3,6 @@
   import ChatProfile from './ChatProfile.vue';
   import GifPicker from './GifPicker.vue';
   
-  const currentTheme = ref('messenger');
-  
   const props = defineProps({
     currentChat: {
       type: Object,
