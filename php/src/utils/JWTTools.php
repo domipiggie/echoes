@@ -1,5 +1,7 @@
 <?php
-require_once '../vendor/autoload.php';
+$rootDir = dirname(dirname(dirname(__FILE__)));
+require_once $rootDir . '/vendor/autoload.php';
+
 use \Firebase\JWT\JWT;
 use \Firebase\JWT\Key;
 use \Firebase\JWT\ExpiredException;

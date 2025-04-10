@@ -30,7 +30,7 @@ class AuthMiddleware
         } catch (ApiException $apie) {
             throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Login failed', 500);
+            throw new ApiException('Login failed ' . $e->getMessage(), 500);
         }
     }
 
@@ -53,7 +53,7 @@ class AuthMiddleware
         } catch (ApiException $apie) {
             throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to create user'.$e->__toString(), 500);
+            throw new ApiException('Failed to create user' . $e->getMessage(), 500);
         }
     }
 
@@ -85,7 +85,7 @@ class AuthMiddleware
         } catch (ApiException $apie) {
             throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to refresh token', 500);
+            throw new ApiException('Failed to refresh token ' . $e->getMessage(), 500);
         }
     }
 
@@ -100,7 +100,7 @@ class AuthMiddleware
                 "message" => "Successfully logged out"
             );
         } catch (Exception $e) {
-            throw new ApiException('Failed to logout', 500);
+            throw new ApiException('Failed to logout ' . $e->getMessage(), 500);
         }
     }
 }

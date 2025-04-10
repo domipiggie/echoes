@@ -25,7 +25,7 @@ class AuthController
         } catch (ApiException $apie) {
             throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to register', 500);
+            throw new ApiException('Failed to register ' . $e->getMessage(), 500);
         }
     }
 
@@ -45,7 +45,7 @@ class AuthController
         } catch (ApiException $apie) {
             throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to log in', 500);
+            throw new ApiException('Failed to log in ' . $e->getMessage(), 500);
         }
     }
 
@@ -63,7 +63,7 @@ class AuthController
         } catch (ApiException $apie) {
             throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Faild to generate refresh token', 500);
+            throw new ApiException('Faild to generate refresh token ' . $e->getMessage(), 500);
         }
     }
 
@@ -81,8 +81,7 @@ class AuthController
         } catch (ApiException $apie) {
             throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to log out', 500);
+            throw new ApiException('Failed to log out ' . $e->getMessage(), 500);
         }
     }
 }
-?>

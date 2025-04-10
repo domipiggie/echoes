@@ -93,7 +93,7 @@ class RefreshToken
 
             $results = DatabaseOperations::updateDB($this->dbConn, $query, $args);
 
-            return count($results) > 0;
+            return $results === true || (is_numeric($results) && $results > 0);
         } catch (Exception $e) {
             throw new ApiException($e->getMessage(), 500);
         }
