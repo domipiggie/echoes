@@ -1,132 +1,106 @@
 <?php
-require_once __DIR__ . '/../../vendor/autoload.php';
-
-use \Firebase\JWT\JWT;
-use \Firebase\JWT\Key;
-use \Firebase\JWT\ExpiredException;
 
 class AuthMiddleware
 {
-    private static function getAuthorizationHeader()
+    public static function login($db, $data)
     {
+        $user = new User($db);
+        $refreshToken = new RefreshToken($db);
+
         try {
-            $headers = null;
+            if (
+                $user->loadFromEmail($data['email']) &&
+                hash_equals(hash('sha256', $data['password']), $user->getPasswordHash())
+            ) {
+                $accessToken = JWTTools::generateAccessToken($user->getUserID(), $user->getUsername(), $user->getEmail());
+                $refreshToken = $refreshToken->create($user->getUserID());
 
-            if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
-                $headers = trim($_SERVER["HTTP_AUTHORIZATION"]);
-            } elseif (isset($_SERVER['Authorization'])) {
-                $headers = trim($_SERVER["Authorization"]);
-            } elseif (function_exists('apache_request_headers')) {
-                $requestHeaders = apache_request_headers();
-                if (isset($requestHeaders['Authorization'])) {
-                    $headers = trim($requestHeaders['Authorization']);
-                }
-            }
-
-            return $headers;
-        } catch (Exception $e) {
-            throw new ApiException('Failed to get authorization header', 500);
-        }
-    }
-
-    private static function validateTokenFormat($token)
-    {
-        try {
-            // JWT format check (3 parts separated by dots)
-            if (!preg_match('/^[a-zA-Z0-9\-\_\=]+\.[a-zA-Z0-9\-\_\=]+\.[a-zA-Z0-9\-\_\=]+$/', $token)) {
-                throw new ApiException('Invalid token format', 401);
+                return array(
+                    "status" => "success",
+                    "message" => "Login successful",
+                    "userID" => $user->getUserID(), // Added user ID to the response
+                    "access_token" => $accessToken['token'],
+                    "token_type" => "Bearer",
+                    "expires_in" => $accessToken['expires_in'],
+                    "refresh_token" => $refreshToken['token']
+                );
+            } else {
+                throw new ApiException('Invalid password', 401);
             }
         } catch (ApiException $apie) {
             throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to validate token format', 500);
+            throw new ApiException('Login failed', 500);
         }
     }
 
-    private static function validateTokenClaims($decoded)
+    public static function register($db, $data)
     {
+        $user = new User($db);
+
         try {
-            // Verify issuer
-            if (!isset($decoded->iss) || $decoded->iss !== JWT_ISSUER) {
-                throw new ApiException('Invalid token issuer', 401);
+            if ($user->emailExists($data['email'])) {
+                throw new ApiException('Email already in use', 400);
             }
 
-            // Verify audience
-            if (!isset($decoded->aud) || $decoded->aud !== JWT_AUDIENCE) {
-                throw new ApiException('Invalid token audience', 401);
+            if ($user->usernameExists($data['username'])) {
+                throw new ApiException('Username already in use', 400);
             }
 
-            // Check if token was issued in the future
-            if (!isset($decoded->iat) || $decoded->iat > time()) {
-                throw new ApiException('Invalid token issue time', 401);
-            }
+            $user->createUser($data['username'], $data['email'], $data['password']);
 
-            // Check if token is expired
-            if (!isset($decoded->exp) || $decoded->exp < time()) {
-                throw new ApiException('Token has expired', 401);
-            }
-
-            // Verify token hasn't been used before its nbf time
-            if (isset($decoded->nbf) && $decoded->nbf > time()) {
-                throw new ApiException('Token not yet valid', 401);
-            }
+            return array("message" => "User was created.");
         } catch (ApiException $apie) {
             throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to validate token claims', 500);
+            throw new ApiException('Failed to create user'.$e->__toString(), 500);
         }
     }
 
-    public static function validateToken($token = null)
+    public static function refresh($db, $refreshToken)
     {
+        $user = new User($db);
+        $refreshToken = new RefreshToken($db);
+
         try {
-            if (is_null($token)) {
-                $headers = self::getAuthorizationHeader();
+            $userID = $refreshToken->validate($refreshToken);
 
-                if (!$headers) {
-                    throw new ApiException('Authorization header not found', 401);
-                }
-
-                if (!preg_match('/Bearer\s(\S+)/', $headers, $matches)) {
-                    throw new ApiException('Token not found in Bearer header', 401);
-                }
-
-                $token = $matches[1];
+            if (!$user->loadFromID($userID)) {
+                throw new ApiException("User not found", 401);
             }
 
-            // Validate token format
-            self::validateTokenFormat($token);
+            $accessToken = JWTTools::generateAccessToken($userID, $user->getUsername(), $user->getEmail());
 
-            // Decode token
-            $decoded = JWT::decode($token, new Key(JWT_SECRET_KEY, JWT_ALGORITHM));
+            $refreshToken->revoke($refreshToken);
+            $newRefreshToken = $refreshToken->create($userID);
 
-            // Validate token claims
-            self::validateTokenClaims($decoded);
-
-            return $decoded->data;
-        } catch (ApiException $e) {
-            throw new ApiException($e->getMessage(), $e->getStatusCode());
-        } catch (ExpiredException $expe) {
-            throw new ApiException('Token has expired', 401);
+            return array(
+                "status" => "success",
+                "userID" => $userID, // Added user ID to the response
+                "access_token" => $accessToken['token'],
+                "token_type" => "Bearer",
+                "expires_in" => $accessToken['expires_in'],
+                "refresh_token" => $newRefreshToken['token']
+            );
+        } catch (ApiException $apie) {
+            throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to validate token', 500);
+            throw new ApiException('Failed to refresh token', 500);
         }
     }
 
-    public static function validateAuthData($data)
+    public static function logout($db, $refreshToken)
     {
-        try {
-            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                throw new ApiException('Invalid e-mail format', 400);
-            }
+        $refreshToken = new RefreshToken($db);
 
-            if (strlen($data['password']) < 6) {
-                throw new ApiException('Password too short', 400);
-            }
-        } catch (ApiException $e) {
-            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        try {
+            $refreshToken->revoke($refreshToken);
+            return array(
+                "status" => "success",
+                "message" => "Successfully logged out"
+            );
         } catch (Exception $e) {
-            throw new ApiException('Failed to validate authentication data', 500);
+            throw new ApiException('Failed to logout', 500);
         }
     }
 }
