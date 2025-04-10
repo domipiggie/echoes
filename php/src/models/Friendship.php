@@ -71,7 +71,8 @@ class Friendship
             ];
             
             $result = DatabaseOperations::insertIntoDB($this->dbConn, $sql, $args);
-            return $result[0];
+
+            return $result[1];
         } catch (ApiException $e) {
             throw $e;
         } catch (Exception $e) {

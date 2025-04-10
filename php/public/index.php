@@ -13,11 +13,14 @@ $rootDir = dirname(__DIR__);
 
 //Controllers
 require_once $rootDir. '/src/controllers/AuthController.php';
+require_once $rootDir . '/src/controllers/UserinfoController.php';
 //Models
 require_once $rootDir. '/src/models/User.php';
 require_once $rootDir . '/src/models/RefreshToken.php';
+require_once $rootDir . '/src/models/Userinfo.php';
 //Middleware
 require_once $rootDir. '/src/middleware/AuthMiddleware.php';
+require_once $rootDir . '/src/middleware/UserinfoMiddleware.php';
 //Config
 require_once $rootDir . '/src/config/database.php';
 require_once $rootDir . '/src/config/core.php';
@@ -39,14 +42,14 @@ try {
     $uri = explode('/', $uri);
     $data = json_decode(file_get_contents("php://input"), true);
 
-    $auth = new AuthController($db);
-
     // Routes
     switch ($uri[1]) {
         case "auth":
             if (!isset($uri[2])) {
                 throw new ApiException('Invalid route', 404);
             }
+            
+            $auth = new AuthController($db);
 
             switch ($uri[2]) {
                 case "login":
@@ -67,6 +70,56 @@ try {
             }
             break;
         
+        case "userInfo":
+            if (!isset($uri[2])) {
+                throw new ApiException('Invalid route', 404);
+            }
+
+            $userInfo = new UserinfoController($db);
+            
+            switch ($uri[2]) {
+                case "id":
+                    if (!isset($uri[3])) {
+                        throw new ApiException('Provide a userid', 400);
+                    }
+
+                    $userInfo->handleGetUserInfo($uri[3]);
+                    break;
+                case "username":
+                    if (!isset($uri[3])) {
+                        throw new ApiException('Provide a username', 400);
+                    }
+
+                    $userInfo->handleSearchUser($uri[3]);
+                    break;
+                default:
+                    throw new ApiException('Invalid route', 404);
+                    break;
+            }
+            break;
+        
+        case "userData":
+            if (!isset($uri[2])) {
+                throw new ApiException('Invalid route', 404);
+            }
+
+            $userInfo = new UserinfoController($db);
+
+            switch ($uri[2]) {
+                case "friendList":
+                    $userInfo->handleGetFriendList();
+                    break;
+                case "friendChannels":
+                    $userInfo->handleGetFriendChannelList();
+                    break;
+                case "groupChannels":
+                    $userInfo->handleGetGroupChannelList();
+                    break;
+                default:
+                throw new ApiException('Invalid route', 404);
+                break;
+            }
+
         default:
             throw new ApiException('Invalid route', 404);
             break;

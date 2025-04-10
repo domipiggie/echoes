@@ -40,6 +40,9 @@ class FriendshipHandler
             $result = $friendship->sendFriendRequest();
 
             if ($result) {
+                $channel = new \Channel($this->dbConn);
+                $channel->createFriendshipChannel($result);
+                
                 $from->send(json_encode([
                     'type' => 'friend_request_sent',
                     'recipient_id' => $recipientId,
