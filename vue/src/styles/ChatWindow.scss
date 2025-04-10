@@ -544,22 +544,8 @@ body.dark-mode .gif-button {
 .message-actions {
 	display: flex;
 	align-items: center;
-	gap: 12px;
+	gap: 8px;  // Reduced from 12px to 8px for better spacing
 	margin-right: 4px;
-}
-
-input {
-	flex: 1;
-	border: none;
-	outline: none;
-	padding: 12px 16px;
-	font-size: 15px;
-	color: #ffffff;
-	background: transparent;
-	
-	&::placeholder {
-		color: #a0aec0;
-	}
 }
 
 .action-button {
@@ -579,6 +565,28 @@ input {
 	&:hover {
 		background-color: #5a61d2;
 		transform: translateY(-1px);
+	}
+
+	&.emoji-button {
+		background-color: #7078e6;
+		
+		&:hover {
+			background-color: #5a61d2;
+		}
+	}
+}
+
+input {
+	flex: 1;
+	border: none;
+	outline: none;
+	padding: 12px 16px;
+	font-size: 15px;
+	color: #ffffff;
+	background: transparent;
+	
+	&::placeholder {
+		color: #a0aec0;
 	}
 }
 
