@@ -3,8 +3,9 @@ class UserinfoController
 {
     private $dbConn;
 
-    public function __construct($dbConn) {
-        $this->dbConn = $dbConn; 
+    public function __construct($dbConn)
+    {
+        $this->dbConn = $dbConn;
     }
 
     public function handleGetUserInfo($userId)
@@ -34,17 +35,17 @@ class UserinfoController
             if ($_SERVER['REQUEST_METHOD'] != 'GET') {
                 throw new ApiException('Invalid method', 405);
             }
-    
+
             if (!isset($username) || empty($username)) {
                 throw new ApiException('Username parameter is required', 400);
             }
-            
+
             $result = UserinfoMiddleware::searchUser($username, $this->dbConn);
-            
+
             if (!$result) {
                 throw new ApiException('User not found', 404);
             }
-            
+
             echo $result;
         } catch (ApiException $e) {
             throw new ApiException($e->getMessage(), $e->getStatusCode());
@@ -52,15 +53,16 @@ class UserinfoController
             throw new ApiException('Failed to search for user', 500);
         }
     }
-    
-    public function handleGetFriendList(){
+
+    public function handleGetFriendList()
+    {
         try {
             if ($_SERVER['REQUEST_METHOD'] != 'GET') {
                 throw new ApiException('Invalid method!', 405);
             }
 
             $user = JWTTools::validateToken();
-            
+
             $result = UserinfoMiddleware::getFriendList($user->id, $this->dbConn);
 
             echo json_encode($result);
@@ -74,7 +76,7 @@ class UserinfoController
     public function handleGetFriendChannelList()
     {
         try {
-            if ($_SERVER['REQUEST_METHOD']!= 'GET') {
+            if ($_SERVER['REQUEST_METHOD'] != 'GET') {
                 throw new ApiException('Invalid method', 405);
             }
 
@@ -82,18 +84,18 @@ class UserinfoController
 
             $result = UserinfoMiddleware::getFriendChannelList($user->id, $this->dbConn);
 
-            echo json_encode($result); 
+            echo json_encode($result);
         } catch (ApiException $e) {
-            throw new ApiException($e->getMessage(), $e->getStatusCode()); 
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to get friend channel list ' . $e->getMessage(), 500); 
+            throw new ApiException('Failed to get friend channel list ' . $e->getMessage(), 500);
         }
     }
 
     public function handleGetGroupChannelList()
     {
         try {
-            if ($_SERVER['REQUEST_METHOD']!= 'GET') {
+            if ($_SERVER['REQUEST_METHOD'] != 'GET') {
                 throw new ApiException('Invalid method', 405);
             }
 
@@ -101,11 +103,11 @@ class UserinfoController
 
             $result = UserinfoMiddleware::getGroupChannelList($user->id, $this->dbConn);
 
-            echo json_encode($result); 
+            echo json_encode($result);
         } catch (ApiException $e) {
-            throw new ApiException($e->getMessage(), $e->getStatusCode()); 
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to get group channel list '. $e->getMessage(), 500);
+            throw new ApiException('Failed to get group channel list ' . $e->getMessage(), 500);
         }
     }
 }

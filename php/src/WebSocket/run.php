@@ -10,6 +10,7 @@ require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../utils/DatabaseOperations.php';
 require_once __DIR__ . '/../models/Friendship.php';
 require_once __DIR__ . '/../models/FriendshipStatus.php';
+require_once __DIR__ . '/../models/Message.php';
 
 use Ratchet\Server\IoServer;
 use Ratchet\Http\HttpServer;
@@ -41,7 +42,7 @@ if ($useSSL) {
         $logger->error("SSL certificate or key path not configured. Check WebSocketConfig.php");
         exit(1);
     }
-    
+
     $context = [
         'tls' => [
             'local_cert' => \Config\WebSocketConfig::SSL_CERT_PATH,
@@ -49,13 +50,13 @@ if ($useSSL) {
             'verify_peer' => false
         ]
     ];
-    
+
     $socketServer = new SocketServer(
         'tls://' . \Config\WebSocketConfig::HOST . ':' . \Config\WebSocketConfig::SECURE_PORT,
         ['tls' => $context],
         $loop
     );
-    
+
     $logger->info("SSL WebSocket server running on wss://" . \Config\WebSocketConfig::HOST . ":" . \Config\WebSocketConfig::SECURE_PORT);
 } else {
     $socketServer = new SocketServer(
@@ -63,7 +64,7 @@ if ($useSSL) {
         [],
         $loop
     );
-    
+
     $logger->info("WebSocket server running on ws://" . \Config\WebSocketConfig::HOST . ":" . \Config\WebSocketConfig::PORT);
 }
 

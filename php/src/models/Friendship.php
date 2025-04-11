@@ -59,17 +59,17 @@ class Friendship
 
             $this->friendshipStatus = new FriendshipStatus($this->dbConn);
             $statusID = $this->friendshipStatus->createNewEntry($this->user1ID);
-            
+
             $sql = "INSERT INTO " . $this->friendship_table . " (user1ID, user2ID, statusID) 
                     VALUES
                         (:user1ID, :user2ID, :statusID)";
-            
+
             $args = [
                 [':user1ID', $this->user1ID],
                 [':user2ID', $this->user2ID],
                 [':statusID', $statusID]
             ];
-            
+
             $result = DatabaseOperations::insertIntoDB($this->dbConn, $sql, $args);
 
             return $result[1];

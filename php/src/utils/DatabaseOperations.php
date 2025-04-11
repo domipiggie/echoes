@@ -2,13 +2,6 @@
 
 class DatabaseOperations
 {
-    private $dbConn;
-
-    public function __construct($dbConn)
-    {
-        $this->dbConn = $dbConn;
-    }
-
     public static function fetchFromDB($dbConn, $query, $args)
     {
         $stmt = $dbConn->prepare($query);

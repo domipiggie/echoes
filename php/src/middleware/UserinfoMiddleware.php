@@ -19,7 +19,7 @@ class UserinfoMiddleware
     public static function searchUser($name, $dbConn)
     {
         $user = new User($dbConn);
-        
+
         if (!$user->loadFromUsername($name)) {
             throw new ApiException("User not found", 404);
         }
@@ -34,10 +34,10 @@ class UserinfoMiddleware
 
     public static function getFriendList($userId, $dbConn)
     {
-       $userInfo = new Userinfo($dbConn);
-       $friendList = $userInfo->getFriendList($userId);
+        $userInfo = new Userinfo($dbConn);
+        $friendList = $userInfo->getFriendList($userId);
 
-       return $friendList;
+        return $friendList;
     }
 
     public static function getFriendChannelList($userId, $dbConn)

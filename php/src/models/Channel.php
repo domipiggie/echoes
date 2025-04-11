@@ -26,7 +26,7 @@ class Channel
             $results = DatabaseOperations::insertIntoDB($this->db, $sql, $args);
 
             if ($results) {
-               return $results[1]; 
+                return $results[1];
             }
             throw new ApiException('Failed to create channel for friendship', 500);
         } catch (ApiException $apie) {
@@ -39,7 +39,7 @@ class Channel
     public function createGroupChannel($useIds)
     {
         try {
-           $sql = "INSERT INTO channel_list
+            $sql = "INSERT INTO channel_list
                     SET
                         friendshipID = :friendshipID";
 
@@ -57,9 +57,9 @@ class Channel
 
             throw new ApiException('Failed to create channel for group', 500);
         } catch (ApiException $apie) {
-            throw new ApiException($apie->getMessage(), $apie->getStatusCode()); 
+            throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to create channel for group '. $e->getMessage(), 500); 
+            throw new ApiException('Failed to create channel for group ' . $e->getMessage(), 500);
         }
     }
 
@@ -85,9 +85,9 @@ class Channel
             }
             return true;
         } catch (ApiException $apie) {
-            throw new ApiException($apie->getMessage(), $apie->getStatusCode()); 
+            throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to add users to channel '. $e->getMessage(), 500); 
+            throw new ApiException('Failed to add users to channel ' . $e->getMessage(), 500);
         }
     }
 

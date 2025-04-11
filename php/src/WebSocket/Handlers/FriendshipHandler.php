@@ -18,7 +18,7 @@ class FriendshipHandler
         $this->clients = $clients;
         $this->logger = $logger;
         $this->dbConn = $dbConn;
-        $this->notificationService = new NotificationService($clients, $logger);
+        $this->notificationService = new NotificationService($clients, $logger, $dbConn);
     }
 
     public function handleFriendRequest(ConnectionInterface $from, $data)
@@ -42,7 +42,7 @@ class FriendshipHandler
             if ($result) {
                 $channel = new \Channel($this->dbConn);
                 $channel->createFriendshipChannel($result);
-                
+
                 $from->send(json_encode([
                     'type' => 'friend_request_sent',
                     'recipient_id' => $recipientId,

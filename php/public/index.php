@@ -12,15 +12,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $rootDir = dirname(__DIR__);
 
 //Controllers
-require_once $rootDir. '/src/controllers/AuthController.php';
+require_once $rootDir . '/src/controllers/AuthController.php';
 require_once $rootDir . '/src/controllers/UserinfoController.php';
+require_once $rootDir . '/src/controllers/MessageController.php';
 //Models
-require_once $rootDir. '/src/models/User.php';
+require_once $rootDir . '/src/models/User.php';
 require_once $rootDir . '/src/models/RefreshToken.php';
 require_once $rootDir . '/src/models/Userinfo.php';
+require_once $rootDir . '/src/models/Message.php';
 //Middleware
-require_once $rootDir. '/src/middleware/AuthMiddleware.php';
+require_once $rootDir . '/src/middleware/AuthMiddleware.php';
 require_once $rootDir . '/src/middleware/UserinfoMiddleware.php';
+require_once $rootDir . '/src/middleware/MessageMiddleware.php';
 //Config
 require_once $rootDir . '/src/config/database.php';
 require_once $rootDir . '/src/config/core.php';
@@ -48,7 +51,7 @@ try {
             if (!isset($uri[2])) {
                 throw new ApiException('Invalid route', 404);
             }
-            
+
             $auth = new AuthController($db);
 
             switch ($uri[2]) {
@@ -69,14 +72,14 @@ try {
                     break;
             }
             break;
-        
+
         case "userInfo":
             if (!isset($uri[2])) {
                 throw new ApiException('Invalid route', 404);
             }
 
             $userInfo = new UserinfoController($db);
-            
+
             switch ($uri[2]) {
                 case "id":
                     if (!isset($uri[3])) {
@@ -97,7 +100,7 @@ try {
                     break;
             }
             break;
-        
+
         case "userData":
             if (!isset($uri[2])) {
                 throw new ApiException('Invalid route', 404);
@@ -116,9 +119,20 @@ try {
                     $userInfo->handleGetGroupChannelList();
                     break;
                 default:
-                throw new ApiException('Invalid route', 404);
-                break;
+                    throw new ApiException('Invalid route', 404);
+                    break;
             }
+            break;
+
+        case "messages":
+            if (!isset($uri[2])) {
+                throw new ApiException('Provide a channel ID', 400);
+            }
+
+            $messageController = new MessageController($db);
+
+            $messageController->handleGetChannelMessages($uri[2]);
+            break;
 
         default:
             throw new ApiException('Invalid route', 404);
