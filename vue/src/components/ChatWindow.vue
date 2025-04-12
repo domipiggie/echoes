@@ -605,6 +605,8 @@
       :currentTheme="currentTheme"
       @change-theme="handleThemeChange"
       @change-emoji="handleEmojiChange"
+      @change-nickname="handleNicknameChange"
+      @update:currentChat="currentChat = $event"
       class="chat-profile-sidebar"
       @update:showProfile="showProfile = $event"
     />

@@ -1,5 +1,12 @@
 <script setup>
-import { defineEmits, ref } from 'vue';
+import { defineEmits, ref, defineProps } from 'vue';
+
+const props = defineProps({
+  currentTheme: {
+    type: String,
+    default: 'messenger'
+  }
+});
 
 const emit = defineEmits(['close', 'select']);
 const isDarkMode = ref(document.body.classList.contains('dark-mode'));
@@ -7,27 +14,57 @@ const isDarkMode = ref(document.body.classList.contains('dark-mode'));
 const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value;
   document.body.classList.toggle('dark-mode');
-  emit('select', isDarkMode.value ? 'dark' : 'light');
+};
+
+const selectTheme = (theme) => {
+  emit('select', theme);
 };
 </script>
 
 <template>
-  <div class="appearance-overlay">
+  <div class="appearance-overlay" @click.self="$emit('close')">
     <div class="appearance-modal">
-      <h2>Téma beállítása</h2>
+      <h2>Megjelenés</h2>
       <div class="theme-options">
         <button 
           class="theme-button" 
-          :class="{ active: isDarkMode }"
-          @click="toggleDarkMode"
+          :class="{ active: props.currentTheme === 'messenger' }"
+          @click="selectTheme('messenger')"
         >
+          <div class="theme-preview messenger-preview">
+            <div class="preview-chat messenger">
+              <div class="preview-message received">Szia!</div>
+              <div class="preview-message sent">Hello!</div>
+            </div>
+          </div>
+          <span>Messenger</span>
+        </button>
+
+        <button 
+          class="theme-button" 
+          :class="{ active: props.currentTheme === 'discord' }"
+          @click="selectTheme('discord')"
+        >
+          <div class="theme-preview discord-preview">
+            <div class="preview-chat discord">
+              <div class="message-group">
+                <div class="preview-avatar"></div>
+                <div class="message-content">
+                  <div class="message-author">User</div>
+                  <div class="preview-message received">Hey!</div>
+                </div>
+              </div>
+              <div class="preview-message sent">Hi there!</div>
+            </div>
+          </div>
+          <span>Discord</span>
+        </button>
+
+        <button class="theme-button" @click="toggleDarkMode">
           <div class="theme-preview">
-            <div class="mode-preview" :class="{ 'dark': isDarkMode }">
+            <div class="mode-preview" :class="{ dark: isDarkMode }">
               <span class="mode-icon">
-                <svg v-if="isDarkMode" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7078e6">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                </svg>
-                <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7078e6">
+                <svg v-if="!isDarkMode" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="5"/>
                   <line x1="12" y1="1" x2="12" y2="3"/>
                   <line x1="12" y1="21" x2="12" y2="23"/>
@@ -38,10 +75,13 @@ const toggleDarkMode = () => {
                   <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
                   <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
                 </svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
               </span>
             </div>
           </div>
-          <span>{{ isDarkMode ? 'Sötét mód' : 'Világos mód' }}</span>
+          <span>{{ isDarkMode ? 'Világos mód' : 'Sötét mód' }}</span>
         </button>
       </div>
       <div class="modal-actions">
@@ -250,6 +290,11 @@ const toggleDarkMode = () => {
   border-radius: 4px;
 }
 
+.appearance-modal h2 {
+  color: #7078e6;  /* Changed to the app's primary blue color */
+  margin-bottom: 20px;
+}
+
 /* Other styles remain unchanged */
 .appearance-overlay {
   position: fixed;
@@ -318,6 +363,11 @@ const toggleDarkMode = () => {
   background: none;
   cursor: pointer;
   transition: all 0.2s ease;
+  color: #7078e6; /* Add this line to make the text blue */
+}
+
+.theme-button span {
+  color: #7078e6; /* Add this to ensure the text stays blue */
 }
 
 .theme-button:hover {

@@ -44,7 +44,7 @@ const selectEmoji = (emoji) => {
 }
 
 .emoji-picker {
-  background: #232020;;
+  background: #ffffff;
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);

@@ -2,6 +2,7 @@
 import { ref, defineProps, defineEmits } from 'vue';
 import AppearanceSelector from './AppearanceSelector.vue';
 import EmojiPicker from './EmojiPicker.vue';
+import NicknameEditor from './NicknameEditor.vue';
 
 const props = defineProps({
   currentChat: {
@@ -22,9 +23,10 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['change-theme', 'update:showProfile', 'change-emoji']);
+const emit = defineEmits(['change-theme', 'update:showProfile', 'change-emoji', 'change-nickname', 'update:currentChat']);
 const showAppearanceSelector = ref(false);
 const showEmojiPicker = ref(false);
+const showNicknameEditor = ref(false);
 
 const closeProfile = () => {
   emit('update:showProfile', false);
@@ -37,6 +39,12 @@ const handleThemeSelect = (theme) => {
 const handleEmojiSelect = (emoji) => {
   emit('change-emoji', emoji);
   showEmojiPicker.value = false;
+};
+
+const handleNicknameChange = (newNickname) => {
+  emit('change-nickname', newNickname);
+  // Add this line to update the currentChat object
+  emit('update:currentChat', { ...props.currentChat, name: newNickname });
 };
 </script>
 
@@ -78,7 +86,7 @@ const handleEmojiSelect = (emoji) => {
           </span>
           Hangulatjel megváltoztatása
         </button>
-        <button class="profile-button">
+        <button class="profile-button" @click="showNicknameEditor = true">
           <span class="button-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -150,6 +158,13 @@ const handleEmojiSelect = (emoji) => {
       v-if="showEmojiPicker"
       @select="handleEmojiSelect"
       @close="showEmojiPicker = false"
+    />
+    
+    <NicknameEditor 
+      v-if="showNicknameEditor"
+      :currentName="currentChat.name"
+      @close="showNicknameEditor = false"
+      @save="handleNicknameChange"
     />
   </div>
 </template>
