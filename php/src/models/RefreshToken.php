@@ -16,16 +16,19 @@ class RefreshToken
             $expires_at = date('Y-m-d H:i:s', strtotime('+30 days'));
 
             $query = "INSERT INTO " . $this->table_name . "
-                    (userID, token, expires_at)
-                    VALUES (:userID, :token, :expires_at)";
+                        (userID, token, expires_at)
+                    VALUES
+                        (:userID, :token, :expires_at)";
 
-            $stmt = $this->dbConn->prepare($query);
+            $args = [
+                [':userID', $userID],
+                [':token', $token],
+                [':expires_at', $expires_at]
+            ];
 
-            $stmt->bindParam(":userID", $userID);
-            $stmt->bindParam(":token", $token);
-            $stmt->bindParam(":expires_at", $expires_at);
+            $results = DatabaseOperations::insertIntoDB($this->dbConn, $query, $args);
 
-            if ($stmt->execute()) {
+            if (count($results) > 0 && $results[0] > 0) {
                 return [
                     'token' => $token,
                     'expires_at' => $expires_at
@@ -43,17 +46,19 @@ class RefreshToken
     public function validate($token)
     {
         try {
-            $query = "SELECT userID, expires_at, revoked 
-                     FROM " . $this->table_name . "
-                     WHERE token = :token
-                     LIMIT 1";
+            $query = "SELECT userID, expires_at, revoked FROM " . $this->table_name . "
+                     WHERE
+                        token = :token
+                        LIMIT 1";
 
-            $stmt = $this->dbConn->prepare($query);
-            $stmt->bindParam(":token", $token);
-            $stmt->execute();
+            $args = [
+                [':token', $token]
+            ];
 
-            if ($stmt->rowCount() > 0) {
-                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $results = DatabaseOperations::fetchFromDB($this->dbConn, $query, $args);
+
+            if (count($results) > 0) {
+                $row = $results[0];
 
                 if ($row['revoked']) {
                     throw new ApiException("Refresh token has been revoked", 401);
@@ -77,12 +82,18 @@ class RefreshToken
     {
         try {
             $query = "UPDATE " . $this->table_name . "
-            SET revoked = true
-            WHERE token = :token";
+            SET
+                revoked = true
+            WHERE
+                token = :token";
 
-            $stmt = $this->dbConn->prepare($query);
-            $stmt->bindParam(":token", $token);
-            return $stmt->execute();
+            $args = [
+                [':token', $token]
+            ];
+
+            $results = DatabaseOperations::updateDB($this->dbConn, $query, $args);
+
+            return $results === true || (is_numeric($results) && $results > 0);
         } catch (Exception $e) {
             throw new ApiException($e->getMessage(), 500);
         }
