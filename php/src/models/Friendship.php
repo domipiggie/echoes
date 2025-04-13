@@ -18,23 +18,24 @@ class Friendship
     public function doesFriendshipExist()
     {
         try {
-            $query = "SELECT * FROM " . $this->friendship_table . "
-                WHERE
-                    user1ID = :user1ID AND user2ID = :user2ID
-                    OR
-                    user1ID = :user2ID AND user2ID = :user1ID";
+            $sql = "SELECT * FROM " . $this->friendship_table . "
+                    WHERE
+                        user1ID = :user1ID AND user2ID = :user2ID
+                        OR
+                        user1ID = :user2ID AND user2ID = :user1ID";
 
-            $stmt = $this->dbConn->prepare($query);
+            $args = [
+                [':user1ID', $this->user1ID],
+                [':user2ID', $this->user2ID]
+            ];
 
-            $stmt->bindParam(':user1ID', $this->user1ID);
-            $stmt->bindParam(':user2ID', $this->user2ID);
+            $result = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
 
-            $stmt->execute();
-            if ($stmt->rowCount() > 0) {
+
+            if (count($result) > 0) {
                 if (!isset($this->friendshipStatus)) {
                     $this->friendshipStatus = new FriendshipStatus($this->dbConn);
-                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                    $this->friendshipStatus->loadFromDB($row['statusID']);
+                    $this->friendshipStatus->loadFromDB($result[0]['statusID']);
                 }
                 return true;
             }
@@ -49,110 +50,33 @@ class Friendship
     public function sendFriendRequest()
     {
         try {
-            if ($this->doesFriendshipExist() && $this->friendshipStatus->getStatus() != -1) {
-                throw new ApiException('Friendship already exists!', 400);
+            if ($this->doesFriendshipExist()) {
+                if ($this->friendshipStatus->getStatus() == -1) {
+                    return $this->friendshipStatus->updateStatus(0);
+                }
+                throw new ApiException('Friendship already exists with status: ' . $this->friendshipStatus->getStatus(), 400);
             }
 
             $this->friendshipStatus = new FriendshipStatus($this->dbConn);
-            $this->friendshipStatus->createNewEntry($this->user1ID);
+            $statusID = $this->friendshipStatus->createNewEntry($this->user1ID);
 
-            $query = "INSERT INTO " . $this->friendship_table . "
-                SET
-                    user1ID = :user1ID,
-                    user2ID = :user2ID,
-                    statusID = :statusID";
+            $sql = "INSERT INTO " . $this->friendship_table . " (user1ID, user2ID, statusID) 
+                    VALUES
+                        (:user1ID, :user2ID, :statusID)";
 
-            $stmt = $this->dbConn->prepare($query);
-
-            $this->user1ID = htmlspecialchars(strip_tags($this->user1ID));
-            $this->user2ID = htmlspecialchars(strip_tags($this->user2ID));
-
-            $stmt->bindParam(':user1ID', $this->user1ID);
-            $stmt->bindParam(':user2ID', $this->user2ID);
-            $statusid = $this->friendshipStatus->getStatusID();
-            $stmt->bindParam(':statusID', $statusid);
-        } catch (ApiException $e) {
-            throw new ApiException($e->getMessage(), $e->getStatusCode());
-        } catch (Exception $e) {
-            throw new ApiException('Couldn\'t prepare friend request', 500);
-        }
-
-        try {
-            $this->dbConn->beginTransaction();
-
-            if ($stmt->execute()) {
-                $id = $this->dbConn->lastInsertId();
-                $this->dbConn->commit();
-                
-                $this->notifyFriendRequest($id);
-                
-                return array("message" => "Successfully added friend!", "friendshipID" => $id);
-            } else {
-                throw new ApiException('Couldn\'t send friend request', 500);
-            }
-        } catch (PDOException $e) {
-            $this->dbConn->rollBack();
-            throw new ApiException('Couldn\'t send friend request', 500);
-        } catch (ApiException $apie) {
-            throw new ApiException($apie->getMessage(), $apie->getStatusCode());
-        } catch (Exception $e) {
-            throw new ApiException('Couldn\'t send friend request', 500);
-        }
-    }
-
-    private function notifyFriendRequest($friendshipID)
-    {
-        try {
-            $query = "SELECT 
-                f.friendshipID, 
-                f.statusID,
-                fs.status,
-                f.user1ID as initiator,
-                u1.username as initiatorUsername,
-                u1.displayName as initiatorDisplayName,
-                u1.profilePicture as initiatorProfilePicture,
-                f.user2ID as recipient
-            FROM friendship f
-            INNER JOIN friendshipStatus fs ON f.statusID = fs.statusID
-            INNER JOIN user u1 ON f.user1ID = u1.userID
-            WHERE f.friendshipID = :friendshipID";
-
-            $stmt = $this->dbConn->prepare($query);
-            $stmt->bindParam(':friendshipID', $friendshipID);
-            $stmt->execute();
-            
-            if ($stmt->rowCount() === 0) {
-                return;
-            }
-            
-            $friendshipData = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            $notificationData = [
-                'type' => 'friend_request',
-                'friendshipID' => $friendshipData['friendshipID'],
-                'initiator' => [
-                    'userID' => $friendshipData['initiator'],
-                    'username' => $friendshipData['initiatorUsername'],
-                    'displayName' => $friendshipData['initiatorDisplayName'],
-                    'profilePicture' => $friendshipData['initiatorProfilePicture']
-                ],
-                'timestamp' => date('Y-m-d H:i:s')
+            $args = [
+                [':user1ID', $this->user1ID],
+                [':user2ID', $this->user2ID],
+                [':statusID', $statusID]
             ];
-            
-            $notificationDir = __DIR__ . '/../WebSocket/notifications';
-            if (!is_dir($notificationDir)) {
-                mkdir($notificationDir, 0755, true);
-            }
-            
-            $notificationFile = $notificationDir . '/' . uniqid() . '.json';
-            file_put_contents($notificationFile, json_encode([
-                'type' => 'friend_request',
-                'data' => $notificationData,
-                'recipients' => [$friendshipData['recipient']]
-            ]));
-            
+
+            $result = DatabaseOperations::insertIntoDB($this->dbConn, $sql, $args);
+
+            return $result[1];
+        } catch (ApiException $e) {
+            throw $e;
         } catch (Exception $e) {
-            error_log('Failed to send friend request notification: ' . $e->getMessage()); 
+            throw new ApiException('Couldn\'t send friend request: ' . $e->getMessage(), 500);
         }
     }
 
@@ -166,7 +90,7 @@ class Friendship
             if ($this->friendshipStatus->getStatus() != 0) {
                 throw new ApiException('Friendship isn\'t peinding!', 400);
             }
-            
+
             $this->friendshipStatus->updateStatus(-1);
             return true;
         } catch (ApiException $e) {
@@ -193,8 +117,6 @@ class Friendship
 
             if ($this->friendshipStatus->updateStatus(1)) {
                 return true;
-            } else {
-                throw new ApiException('Friendship not accepted!', 500);
             }
         } catch (ApiException $e) {
             throw new ApiException($e->getMessage(), $e->getStatusCode());

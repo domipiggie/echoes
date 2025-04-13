@@ -1,162 +1,36 @@
 <?php
 class MessageController
 {
-    private $db;
-    private $message;
+    private $dbConn;
 
     public function __construct($dbConn)
     {
-        $this->db = $dbConn;
-        $this->message = new Message($dbConn);
+        $this->dbConn = $dbConn;
     }
 
-    public function handleSendMessage($data)
-    {
-        try {
-            if ($_SERVER['REQUEST_METHOD'] != 'POST') {
-                throw new ApiException('Invalid method', 405);
-            }
-
-            if (!isset($data['channelID']) || !isset($data['content'])) {
-                throw new ApiException('Missing required fields', 400);
-            }
-
-            if (empty(trim($data['content']))) {
-                throw new ApiException('Message content cannot be empty', 400);
-            }
-
-            $user = AuthMiddleware::validateToken();
-
-            if (!$this->message->hasChannelAccess($user->id, $data['channelID'])) {
-                throw new ApiException('No access to this channel', 403);
-            }
-
-            $type = isset($data['type']) ? $data['type'] : 'text';
-
-            $messageID = $this->message->createMessage(
-                $data['channelID'],
-                $user->id,
-                $data['content'],
-                $type
-            );
-
-            if ($messageID) {
-                http_response_code(201);
-                echo json_encode([
-                    'status' => 'success',
-                    'messageID' => $messageID,
-                    'channelID' => $data['channelID'],
-                    'userID' => $user->id,
-                    'content' => $data['content'],
-                    'type' => $type
-                ]);
-            } else {
-                throw new ApiException('Failed to send message', 500);
-            }
-        } catch (ApiException $e) {
-            throw new ApiException($e->getMessage(), $e->getStatusCode());
-        } catch (Exception $e) {
-            throw new ApiException('Failed to send message', 500);
-        }
-    }
-
-    public function handleGetMessages($data)
+    public function handleGetChannelMessages($channelId)
     {
         try {
             if ($_SERVER['REQUEST_METHOD'] != 'GET') {
                 throw new ApiException('Invalid method', 405);
             }
 
-            if (!isset($data['channelID'])) {
-                throw new ApiException('Channel ID is required', 400);
+            $user = JWTTools::validateToken();
+
+            $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+            $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 20;
+
+            if ($limit > 100) {
+                $limit = 100;
             }
 
-            $user = AuthMiddleware::validateToken();
+            $response = MessageMiddleware::getChannelMessages($channelId, $user->id, $this->dbConn, $offset, $limit);
 
-            if (!$this->message->hasChannelAccess($user->id, $data['channelID'])) {
-                throw new ApiException('No access to this channel', 403);
-            }
-
-            $offset = isset($data['offset']) ? intval($data['offset']) : 0;
-
-            $messages = $this->message->getChannelMessages($data['channelID'], $offset);
-
-            if ($messages !== false) {
-                http_response_code(200);
-                echo json_encode([
-                    'status' => 'success',
-                    'messages' => $messages,
-                    'offset' => $offset,
-                    'limit' => 20
-                ]);
-            } else {
-                throw new ApiException('Failed to fetch messages', 500);
-            }
+            echo $response;
         } catch (ApiException $e) {
             throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to fetch messages', 500);
-        }
-    }
-
-    public function handleEditMessage($data)
-    {
-        try {
-            if ($_SERVER['REQUEST_METHOD'] != 'POST') {
-                throw new ApiException('Invalid method', 405);
-            }
-
-            if (!isset($data['messageId']) || empty($data['messageId'])) {
-                throw new ApiException("Message ID is required", 400);
-            }
-            
-            if (!isset($data['content']) || empty(trim($data['content']))) {
-                throw new ApiException("Message content cannot be empty", 400);
-            }
-            
-            $user = AuthMiddleware::validateToken();
-            
-            $result = $this->message->editMessage($data['messageId'], $user->id, $data['content']);
-            
-            http_response_code(200);
-            echo json_encode([
-                "status" => "success",
-                "message" => "Message updated successfully",
-                "messageId" => $data['messageId'],
-                "content" => $data['content']
-            ]);
-            
-        } catch (Exception $e) {
-            if ($e instanceof ApiException) {
-                throw $e;
-            }
-            throw new ApiException($e->getMessage(), 500);
-        }
-    }
-    public function handleDeleteMessage($data)
-    {
-        try {
-            if (!isset($data['messageId']) || empty($data['messageId'])) {
-                throw new ApiException("Message ID is required", 400);
-            }
-            
-            $userId = AuthMiddleware::validateToken()->id;
-            
-            $messageModel = new Message($this->db);
-            
-            $result = $messageModel->deleteMessage($data['messageId'], $userId);
-            
-            http_response_code(200);
-            echo json_encode([
-                "status" => "success",
-                "message" => "Message deleted successfully"
-            ]);
-            
-        } catch (Exception $e) {
-            if ($e instanceof ApiException) {
-                throw $e;
-            }
-            throw new ApiException($e->getMessage(), 500);
+            throw new ApiException('Failed to get channel messages: ' . $e->getMessage(), 500);
         }
     }
 }
