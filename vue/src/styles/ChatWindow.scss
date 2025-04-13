@@ -231,29 +231,6 @@
 	border-bottom-left-radius: 4px;
 }
 
-// Fix GIF button in dark mode
-body.dark-mode .gif-button {
-	background-color: #7078e6;
-	color: #ffffff;
-	
-	&:hover {
-		background-color: #5961c9;
-		transform: translateY(-1px);
-	}
-}
-
-.message-sent .message-bubble {
-	background-color: #7078e6;
-	color: #fff;
-	border-bottom-right-radius: 4px;
-}
-
-.message-received .message-bubble {
-	background-color: #f0f2ff;
-	color: #484a6a;
-	border-bottom-left-radius: 4px;
-}
-
 // Hover akciók
 .message-hover-actions {
 	position: absolute;
@@ -267,59 +244,15 @@ body.dark-mode .gif-button {
 }
 
 .message-sent .message-hover-actions {
-	right: calc(100% + 4px);  // Adjusted from 8px to 4px
+	right: calc(100% + 8px);
 }
 
 .message-received .message-hover-actions {
-	left: calc(100% + 4px);  // Adjusted from 8px to 4px
+	left: calc(100% + 8px);
 }
 
-.discord-hover-actions {
-	position: absolute;
-	display: flex;
-	gap: 4px;
-	opacity: 0;
-	transition: opacity 0.2s ease;
-	top: 50%;
-	transform: translateY(-50%);
-}
-
-.message-sent .discord-hover-actions {
-	right: 4px;  // Added specific positioning for sent messages
-}
-
-.message-received .discord-hover-actions {
-	left: 4px;  // Added specific positioning for received messages
-}
-
-.message:hover .message-hover-actions,
-.message:hover .discord-hover-actions {
+.message:hover .message-hover-actions {
 	opacity: 1;
-}
-
-.hover-action-btn {
-	width: 24px;
-	height: 24px;
-	border-radius: 50%;
-	border: none;
-	background: rgba(112, 120, 230, 0.9);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	padding: 4px;
-	transition: all 0.2s ease;
-	
-	&:hover {
-		background: rgba(112, 120, 230, 1);
-		transform: scale(1.1);
-	}
-	
-	svg {
-		width: 14px;
-		height: 14px;
-		color: white;
-	}
 }
 
 // Discord stílusú hover akciók elrejtése
@@ -516,8 +449,8 @@ body.dark-mode .gif-button {
 // Input terület
 .input-area {
 	padding: 8px 0;
-	background-color: rgba(112, 120, 230, 0.1);
-	border-top: 1px solid rgb(0, 0, 0);
+	background-color: #fff;
+	border-top: 1px solid rgba(112, 120, 230, 0.1);
 }
 
 .modern-message-box {
@@ -544,8 +477,22 @@ body.dark-mode .gif-button {
 .message-actions {
 	display: flex;
 	align-items: center;
-	gap: 8px;  // Reduced from 12px to 8px for better spacing
+	gap: 12px;
 	margin-right: 4px;
+}
+
+input {
+	flex: 1;
+	border: none;
+	outline: none;
+	padding: 12px 16px;
+	font-size: 15px;
+	color: #2d3748;
+	background: transparent;
+	
+	&::placeholder {
+		color: #a0aec0;
+	}
 }
 
 .action-button {
@@ -565,28 +512,6 @@ body.dark-mode .gif-button {
 	&:hover {
 		background-color: #5a61d2;
 		transform: translateY(-1px);
-	}
-
-	&.emoji-button {
-		background-color: #7078e6;
-		
-		&:hover {
-			background-color: #5a61d2;
-		}
-	}
-}
-
-input {
-	flex: 1;
-	border: none;
-	outline: none;
-	padding: 12px 16px;
-	font-size: 15px;
-	color: #ffffff;
-	background: transparent;
-	
-	&::placeholder {
-		color: #a0aec0;
 	}
 }
 
@@ -671,7 +596,297 @@ input {
 	position: relative;
 }
 
-body.dark-mode .discord-bubble {
+.message-sent.discord-style .discord-bubble {
 	background-color: #7078e6 !important;
-	color: #ffffff !important;
+	color: #fff !important;
+}
+
+.discord-message-container {
+	display: flex;
+	width: 100%;
+	margin-bottom: 0.5px;
+	padding: 0.5px 0;
+}
+
+.discord-avatar {
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	margin-right: 16px;
+	flex-shrink: 0;
+	overflow: hidden;
+	border: none;
+	box-shadow: 0 2px 8px rgba(112, 120, 230, 0.3);
+}
+
+.discord-avatar-placeholder {
+	width: 40px;
+	margin-right: 16px;
+	flex-shrink: 0;
+}
+
+.discord-message-content {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+}
+
+.discord-username {
+	font-size: 14px;
+	font-weight: 500;
+	color: #484a6a;
+	margin-bottom: 2px;
+}
+
+.discord-message-wrapper {
+	position: relative;
+	display: inline-block;
+	width: 100%;
+}
+
+// Discord hover akciók
+.discord-hover-actions {
+	position: absolute;
+	display: flex;
+	gap: 4px;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+	z-index: 100;
+	right: 10px;
+	top: 50%;
+	transform: translateY(-50%);
+	background-color: rgba(255, 255, 255, 0.9);
+	border-radius: 4px;
+	padding: 4px;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+	
+	.hover-action-btn {
+		width: 24px;
+		height: 24px;
+		border-radius: 4px;
+		background: rgba(112, 120, 230, 0.8);
+		color: #7078e6;
+		
+		&:hover {
+			background: #5a61d2;
+			transform: scale(1.05);
+		}
+		
+		svg {
+			width: 16px;
+			height: 16px;
+			stroke: #ffffff;
+			stroke-width: 2;
+		}
+	}
+}
+
+.message-sent .discord-hover-actions,
+.message-received .discord-hover-actions {
+	background-color: rgba(255, 255, 255, 0.9);
+}
+
+.message-sent .discord-hover-actions .hover-action-btn {
+	background: rgba(112, 120, 230, 0.8);
+	color: #ffffff;
+	
+	&:hover {
+		background: #5a61d2;
+	}
+	
+	svg {
+		stroke: #ffffff;
+	}
+}
+
+.discord-message-wrapper:hover .discord-hover-actions {
+	opacity: 1;
+}
+
+// Válasz doboz
+.reply-box {
+	display: flex;
+	align-items: center;
+	background-color: #f5f7ff;
+	border-radius: 16px;
+	padding: 10px 14px;
+	margin: 0 16px 8px 16px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	position: relative;
+	border-left: 4px solid #7078e6;
+	
+	&-content {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+	}
+	
+	&-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 4px;
+	}
+	
+	&-title {
+		font-size: 13px;
+		font-weight: 600;
+		color: #7078e6;
+		display: flex;
+		align-items: center;
+		
+		svg {
+			margin-right: 6px;
+			width: 12px;
+			height: 12px;
+		}
+	}
+	
+	&-close {
+		background: none;
+		border: none;
+		cursor: pointer;
+		color: #a0aec0;
+		padding: 2px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: all 0.2s ease;
+		position: absolute;
+		right: 8px;
+		top: 8px;
+		
+		&:hover {
+			background-color: rgba(112, 120, 230, 0.1);
+			color: #7078e6;
+		}
+		
+		svg {
+			width: 16px;
+			height: 16px;
+		}
+	}
+	
+	&-text {
+		font-size: 13px;
+		color: #484a6a;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 90%;
+		padding: 4px 0;
+	}
+}
+
+// Válasz stílusok - Messenger specifikus
+.messenger-reply {
+  background-color: rgba(112, 120, 230, 0.08);
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  width: calc(100% - 16px);
+  position: relative;
+  display: flex;
+  border-left: 4px solid #7078e6;
+  margin-left: 4px;
+  margin-top: 4px;
+  
+  .reply-indicator-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .reply-indicator-name {
+    color: #7078e6;
+    font-weight: 600;
+    font-size: 12px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    
+    .reply-icon {
+      margin-right: 6px;
+      stroke: #7078e6;
+    }
+  }
+  
+  .reply-indicator-text {
+    color: #333;
+    opacity: 0.9;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 95%;
+    padding: 2px 0;
+  }
+  
+  .message-sent & {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-left: 4px solid rgba(255, 255, 255, 0.8);
+    
+    .reply-indicator-name {
+      color: rgba(255, 255, 255, 1);
+      
+      .reply-icon {
+        stroke: rgba(255, 255, 255, 1);
+      }
+    }
+    
+    .reply-indicator-text {
+      color: rgba(255, 255, 255, 0.95);
+    }
+  }
+}
+
+// Message bubble with reply styling
+.message-bubble.has-reply {
+  position: relative;
+  padding-top: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-text {
+  padding: 4px 0;
+}
+
+// Sötét háttéren lévő válasz buborék stílusa
+.message-sent .messenger-reply {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-left: 4px solid rgba(255, 255, 255, 0.8);
+}
+
+@media (min-resolution: 192dpi) {
+	.message-hover-actions {
+		flex-direction: column;
+	}
+
+	.message-sent .message-hover-actions {
+		right: calc(100% + 8px);
+	}
+
+	.message-received .message-hover-actions {
+		left: calc(100% + 8px);
+	}
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }

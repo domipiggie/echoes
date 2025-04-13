@@ -2,7 +2,8 @@
   import { defineProps, defineEmits, ref, watch, nextTick, onMounted } from 'vue';
   import ChatProfile from './ChatProfile.vue';
   import GifPicker from './GifPicker.vue';
-  import EmojiPicker from './EmojiPicker.vue';
+  
+  const currentTheme = ref('messenger');
   
   const props = defineProps({
     currentChat: {
@@ -230,24 +231,6 @@
         
         console.log('Üzenet visszavonva:', props.messages[messageIndex]);
       }
-    }
-  };
-
-  const currentEmoji = ref('😀');
-  
-  const showEmojiPicker = ref(false);
-  
-  const handleEmojiChange = (emoji) => {
-    currentEmoji.value = emoji;
-    showEmojiPicker.value = false;
-  };
-  
-  const sendEmoji = () => {
-    if (currentEmoji.value) {
-      emit('send-message', {
-        text: currentEmoji.value,
-        type: 'text'
-      });
     }
   };
 </script>
@@ -580,14 +563,6 @@
           @keyup.enter="submitMessage"
         />
         <div class="message-actions">
-          <button class="action-button emoji-button" @click="toggleEmojiPicker">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
-              <line x1="9" y1="9" x2="9.01" y2="9"/>
-              <line x1="15" y1="9" x2="15.01" y2="9"/>
-            </svg>
-          </button>
           <button class="action-button send-button" @click="submitMessage">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -604,9 +579,6 @@
       :messages="messages"  
       :currentTheme="currentTheme"
       @change-theme="handleThemeChange"
-      @change-emoji="handleEmojiChange"
-      @change-nickname="handleNicknameChange"
-      @update:currentChat="currentChat = $event"
       class="chat-profile-sidebar"
       @update:showProfile="showProfile = $event"
     />

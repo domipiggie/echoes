@@ -1,90 +1,70 @@
 <script setup>
-import { defineEmits, ref, defineProps } from 'vue';
-
-const props = defineProps({
-  currentTheme: {
-    type: String,
-    default: 'messenger'
-  }
-});
+import { defineEmits, ref } from 'vue';
 
 const emit = defineEmits(['close', 'select']);
-const isDarkMode = ref(document.body.classList.contains('dark-mode'));
+const selectedTheme = ref('messenger');
 
-const toggleDarkMode = () => {
-  isDarkMode.value = !isDarkMode.value;
-  document.body.classList.toggle('dark-mode');
-};
-
-const selectTheme = (theme) => {
-  emit('select', theme);
+const selectTheme = () => {
+  emit('select', selectedTheme.value);
+  emit('close');
 };
 </script>
 
 <template>
-  <div class="appearance-overlay" @click.self="$emit('close')">
+  <div class="appearance-overlay">
     <div class="appearance-modal">
-      <h2>Megjelenés</h2>
+      <h2>Válassz megjelenést</h2>
       <div class="theme-options">
-        <button 
-          class="theme-button" 
-          :class="{ active: props.currentTheme === 'messenger' }"
-          @click="selectTheme('messenger')"
-        >
+        <button class="theme-button" :class="{ active: selectedTheme === 'messenger' }"
+          @click="selectedTheme = 'messenger'">
           <div class="theme-preview messenger-preview">
+            <div class="preview-header"></div>
             <div class="preview-chat messenger">
-              <div class="preview-message received">Szia!</div>
-              <div class="preview-message sent">Hello!</div>
+              <div class="messenger-message-group">
+                <div class="messenger-avatar"></div>
+                <div class="preview-message received">Keresett a Feri.</div>
+              </div>
+              <div class="preview-message sent">Hali! Milyen Feri?</div>
+              <div class="messenger-message-group">
+                <div class="messenger-avatar"></div>
+                <div class="preview-message received">...</div>
+              </div>
             </div>
           </div>
           <span>Messenger</span>
         </button>
-
-        <button 
-          class="theme-button" 
-          :class="{ active: props.currentTheme === 'discord' }"
-          @click="selectTheme('discord')"
-        >
+        <button class="theme-button" :class="{ active: selectedTheme === 'discord' }"
+          @click="selectedTheme = 'discord'">
           <div class="theme-preview discord-preview">
             <div class="preview-chat discord">
               <div class="message-group">
                 <div class="preview-avatar"></div>
                 <div class="message-content">
-                  <div class="message-author">User</div>
-                  <div class="preview-message received">Hey!</div>
+                  <div class="message-author">User1</div>
+                  <div class="preview-message received">Keresett a Feri.</div>
                 </div>
               </div>
-              <div class="preview-message sent">Hi there!</div>
+              <div class="message-group">
+                <div class="preview-avatar"></div>
+                <div class="message-content">
+                  <div class="message-author">User2</div>
+                  <div class="preview-message sent">Szia! Milyen Feri?</div>
+                </div>
+              </div>
+              <div class="message-group">
+                <div class="preview-avatar"></div>
+                <div class="message-content">
+                  <div class="message-author">User1</div>
+                  <div class="preview-message received">...</div>
+                </div>
+              </div>
             </div>
           </div>
           <span>Discord</span>
         </button>
-
-        <button class="theme-button" @click="toggleDarkMode">
-          <div class="theme-preview">
-            <div class="mode-preview" :class="{ dark: isDarkMode }">
-              <span class="mode-icon">
-                <svg v-if="!isDarkMode" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="5"/>
-                  <line x1="12" y1="1" x2="12" y2="3"/>
-                  <line x1="12" y1="21" x2="12" y2="23"/>
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                  <line x1="1" y1="12" x2="3" y2="12"/>
-                  <line x1="21" y1="12" x2="23" y2="12"/>
-                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                </svg>
-                <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                </svg>
-              </span>
-            </div>
-          </div>
-          <span>{{ isDarkMode ? 'Világos mód' : 'Sötét mód' }}</span>
-        </button>
       </div>
       <div class="modal-actions">
+        <button class="action-button select" @click="selectTheme">Kiválasztás</button>
         <button class="action-button cancel" @click="$emit('close')">Bezárás</button>
       </div>
     </div>
@@ -92,6 +72,7 @@ const selectTheme = (theme) => {
 </template>
 
 <style scoped>
+/* General styles */
 .theme-preview {
   width: 100%;
   height: 120px;
@@ -100,6 +81,8 @@ const selectTheme = (theme) => {
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
+
+/* Messenger styles */
 .messenger-preview {
   background: #f0f2f5;
   padding: 0;
@@ -290,11 +273,6 @@ const selectTheme = (theme) => {
   border-radius: 4px;
 }
 
-.appearance-modal h2 {
-  color: #7078e6;  /* Changed to the app's primary blue color */
-  margin-bottom: 20px;
-}
-
 /* Other styles remain unchanged */
 .appearance-overlay {
   position: fixed;
@@ -306,84 +284,57 @@ const selectTheme = (theme) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 10000;
 }
 
 .appearance-modal {
   background: white;
-  border-radius: 15px;
+  border-radius: 16px;
   padding: 24px;
-  width: 90%;
-  max-width: 400px;
+  width: 400px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
-.theme-preview {
-  width: 100px;
-  height: 60px;
-  border-radius: 8px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.mode-preview {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #ffffff;
-  transition: all 0.3s ease;
-}
-
-.mode-preview.dark {
-  background: #1a1a1a;
-}
-
-.mode-icon {
-  font-size: 24px;
+h2 {
+  color: #484a6a;
+  margin: 0 0 20px 0;
+  text-align: center;
 }
 
 .theme-options {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
   margin-bottom: 24px;
 }
 
 .theme-button {
+  border: 2px solid #e6e8f0;
+  border-radius: 12px;
+  padding: 12px;
+  background: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: 12px;
-  border: 2px solid #e6e8f0;
-  border-radius: 12px;
-  background: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: #7078e6; /* Add this line to make the text blue */
-}
-
-.theme-button span {
-  color: #7078e6; /* Add this to ensure the text stays blue */
-}
-
-.theme-button:hover {
-  border-color: #7078e6;
-  background: rgba(112, 120, 230, 0.05);
 }
 
 .theme-button.active {
   border-color: #7078e6;
-  background: rgba(112, 120, 230, 0.1);
+  background: rgba(112, 120, 230, 0.05);
+}
+
+.theme-button span {
+  color: #000000;
+  font-weight: 500;
 }
 
 .modal-actions {
   display: flex;
-  justify-content: flex-end;
   gap: 12px;
+  justify-content: flex-end;
 }
 
 .action-button {
@@ -395,12 +346,21 @@ const selectTheme = (theme) => {
   transition: all 0.2s ease;
 }
 
+.action-button.select {
+  background: #7078e6;
+  color: white;
+}
+
+.action-button.select:hover {
+  background: #5a61d2;
+}
+
 .action-button.cancel {
   background: #e6e8f0;
   color: #484a6a;
 }
 
 .action-button.cancel:hover {
-  background: #d8dae6;
+  background: #d8dae5;
 }
 </style>
