@@ -74,7 +74,7 @@ class ChatMessageHandler
 
     public function handleDeleteMessage(ConnectionInterface $from, $data)
     {
-        if (!isset($data['messageId']) || !isset($data['channelId'])) {
+        if (!isset($data['messageId'])) {
             $from->send(json_encode([
                 'type' => 'error',
                 'message' => 'Missing messageId or channelId for message deletion',
@@ -85,10 +85,10 @@ class ChatMessageHandler
 
         $sender = $from->userData;
         $messageId = $data['messageId'];
-        $channelId = $data['channelId'];
 
         try {
             $message = new \Message($this->dbConn);
+            $channelId = $message->getChannelIdFromMessageId($messageId);
 
             if (!$message->hasChannelAccess($sender->id, $channelId)) {
                 $from->send(json_encode([
@@ -151,11 +151,11 @@ class ChatMessageHandler
 
         $sender = $from->userData;
         $messageId = $data['messageId'];
-        $channelId = $data['channelId'];
         $newContent = $data['content'];
 
         try {
             $message = new \Message($this->dbConn);
+            $channelId = $message->getChannelIdFromMessageId($messageId);
 
             if (!$message->hasChannelAccess($sender->id, $channelId)) {
                 $from->send(json_encode([

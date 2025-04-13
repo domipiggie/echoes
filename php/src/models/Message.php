@@ -246,4 +246,28 @@ class Message
             throw new ApiException('Failed to edit message: ' . $e->getMessage(), 500);
         }
     }
+
+    public function getChannelIdFromMessageId($messageId)
+    {
+        try {
+            $sql = "SELECT channelID FROM ". $this->table_name. "
+                    WHERE messageID = :messageId";
+                    
+            $args = [
+                [':messageId', $messageId]
+            ];
+
+            $result = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
+
+            if (count($result) > 0) {
+                return $result[0]['channelID'];
+            }
+
+            return null;
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode()); 
+        } catch (Exception $e) {
+            throw new ApiException('Failed to get channel ID from message ID: '. $e->getMessage(), 500); 
+        }
+    }
 }
