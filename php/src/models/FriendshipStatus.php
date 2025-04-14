@@ -15,25 +15,28 @@ class FriendshipStatus
     public function loadFromDB($statusID)
     {
         try {
-            $query = "SELECT * FROM " . $this->status_table . "
-            WHERE 
-                statusID = :statusID";
+            $sql = "SELECT * FROM " . $this->status_table . "
+                    WHERE 
+                        statusID = :statusID";
 
-            $dbStmt = $this->dbConn->prepare($query);
-            $dbStmt->bindParam(':statusID', $statusID);
-            $dbStmt->execute();
-            if ($dbStmt->rowCount() > 0) {
-                $row = $dbStmt->fetch(PDO::FETCH_ASSOC);
+            $args = [
+                [':statusID', $statusID]
+            ];
+
+            $result = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
+
+            if (count($result) > 0) {
+                $row = $result[0];
                 $this->statusID = $row['statusID'];
                 $this->initiator = $row['initiator'];
                 $this->status = $row['status'];
                 return true;
             }
-            throw new ApiException('Failed to load friendship status', 500);
+            throw new ApiException('Loading friendship status yielded no result', 500);
         } catch (ApiException $e) {
             throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to load friendship status', 500);
+            throw new ApiException('Failed to load friendship status ' . $e->getMessage(), 500);
         }
     }
 
@@ -42,44 +45,54 @@ class FriendshipStatus
         try {
             $this->initiator = $initiator;
             $sql = "INSERT INTO " . $this->status_table . "
-            SET
-                initiator = :initiator,
-                status = 0;";
+                    SET
+                        initiator = :initiator,
+                        status = 0;";
 
-            $dbStmt = $this->dbConn->prepare($sql);
+            $args = [
+                [':initiator', $this->initiator]
+            ];
 
-            $dbStmt->bindParam(':initiator', $this->initiator);
+            $result = DatabaseOperations::insertIntoDB($this->dbConn, $sql, $args);
 
-            $dbStmt->execute();
-
-            $this->statusID = $this->dbConn->lastInsertId();
-            $this->status = 0;
+            if ($result) {
+                $this->statusID = $result[1];
+                $this->status = 0;
+                return $this->statusID;
+            }
+            throw new ApiException('Creating new friendship status yielded no result', 500);
+        } catch (ApiException $e) {
+            throw $e;
         } catch (Exception $e) {
-            throw new ApiException('Failed to create new friendship status', 500);
+            throw new ApiException('Failed to create new friendship status ' . $e->getMessage(), 500);
         }
     }
 
     public function updateStatus($status)
     {
         try {
-            $query = "UPDATE " . $this->status_table . "
-            SET
-                status = :newStatus
-            WHERE
-                statusID = :statusID";
+            $sql = "UPDATE " . $this->status_table . "
+                    SET
+                        status = :newStatus
+                    WHERE
+                        statusID = :statusID";
 
-            $dbStmt = $this->dbConn->prepare($query);
-            $dbStmt->bindParam(':newStatus', $status);
-            $dbStmt->bindParam(':statusID', $this->statusID);
-            $dbStmt->execute();
-            if ($dbStmt->rowCount() > 0) {
+            $args = [
+                [':newStatus', $status],
+                [':statusID', $this->statusID]
+            ];
+
+            $result = DatabaseOperations::updateDB($this->dbConn, $sql, $args);
+
+            if ($result === true || (is_numeric($result) && $result > 0)) {
+                $this->status = $status;
                 return true;
             }
-            throw new ApiException('Failed to update friendship status', 500);
+            throw new ApiException('Updating friendship status yielded no result', 500);
         } catch (ApiException $e) {
             throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to update friendship status', 500);
+            throw new ApiException('Failed to update friendship status ' . $e->getMessage(), 500);
         }
     }
 

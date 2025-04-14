@@ -31,12 +31,16 @@ const sendRegisterRequest = async (username, birthdate, email, password) => {
 const sendLoginRequest = async (email, password) => {
 	try {
 		const response = await authService.login(email, password);
-		if (!response.access_token) {
+
+		if (!response.success) {
 			alert('Authentication failed: No access token received');
 			return;
 		}
-		userdata.setAccessToken(response.access_token);
-		userdata.setUserID(response.userID);
+
+		userdata.setAccessToken(response.data.access_token);
+		userdata.setUserID(response.data.userID);
+		userdata.setRefreshToken(response.data.refresh_token);
+		
 		alert("Sikeres bejelentkezés!")
 		router.push("/chat")
 	} catch (error) {

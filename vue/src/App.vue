@@ -1,14 +1,14 @@
 <script setup>
-import AuthContainer from './components/AuthContainer.vue';
-import Chat from './components/Chat.vue';
+import AuthContainer from './components/AuthContainer.vue'
+import Chat from './components/Chat.vue'
 </script>
 
 <template>
- <div class="app-container">
+ <!--<div class="app-container">
     <div class="floating-container">
       <Chat />
     </div>
-  </div>
+  </div>-->
 
   <!--<div class="auth-wrapper">
     <AuthContainer />

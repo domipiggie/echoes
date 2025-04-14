@@ -18,6 +18,7 @@ class User
         $this->dbConn = $dbConn;
     }
 
+    // CREATE
     public function createUser($username, $email, $password)
     {
         $hashedPassword = hash('sha256', $password);
@@ -28,81 +29,128 @@ class User
                     displayName = :displayName,
                     password = :password";
 
-        $dbStmt = $this->dbConn->prepare($query);
-        $dbStmt->bindParam(':email', $email);
-        $dbStmt->bindParam(':username', $username);
-        $dbStmt->bindParam(':displayName', $username);
-        $dbStmt->bindParam(':password', $hashedPassword);
+        $args = [
+            [':email', $email],
+            [':username', $username],
+            [':displayName', $username],
+            [':password', $hashedPassword]
+        ];
 
         try {
-            $this->dbConn->beginTransaction();
-
-            if ($dbStmt->execute()) {
-                $this->userID = $this->dbConn->lastInsertId();
+            $results = DatabaseOperations::insertIntoDB($this->dbConn, $query, $args);
+            if (count($results) > 0 && $results[0] > 0) {
+                $this->userID = $results[1];
                 $this->username = $username;
                 $this->email = $email;
                 $this->passwordHash = $hashedPassword;
-                $this->dbConn->commit();
                 return true;
             }
-        } catch (PDOException $e) {
-            $this->dbConn->rollBack();
-            throw new ApiException('Failed to create user', 500);
+            throw new ApiException('Failed to insert user into database', 500);
+        } catch (ApiException $apie) {
+            throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to create user', 500);
+            throw new ApiException('Failed to create user' . $e->getMessage(), 500);
         }
     }
 
+    // READ
     public function loadFromID($id)
     {
         try {
-            $query = "SELECT * FROM user WHERE userID = ?";
-            $stmt = $this->dbConn->prepare($query);
-            $stmt->execute([$id]);
+            $query = "SELECT * FROM " . $this->table_name . "
+                WHERE
+                    userID = :userID";
 
-            if ($stmt->rowCount() === 0) {
+            $args = [
+                [':userID', $id]
+            ];
+
+            $results = DatabaseOperations::fetchFromDB($this->dbConn, $query, $args);
+
+            if (count($results) === 0) {
                 throw new ApiException('User not found', 404);
             }
 
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $row = $results[0];
+
             $this->userID = $row['userID'];
-            $this->email = $row['email'];
             $this->username = $row['username'];
+            $this->displayName = $row['displayName'];
+            $this->email = $row['email'];
             $this->passwordHash = $row['password'];
+            $this->profilePicture = $row['profilePicture'];
+
             return true;
         } catch (ApiException $e) {
             throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to load user', 500);
+            throw new ApiException('Failed to load user ' . $e->getMessage(), 500);
         }
     }
-
     public function loadFromEmail($email)
     {
         try {
-            $query = "SELECT userID, username, email, password
-                FROM " . $this->table_name . "
-                WHERE email = :email
-                LIMIT 0,1";
+            $query = "SELECT * FROM " . $this->table_name . "
+                WHERE
+                    email = :email
+                    LIMIT 0,1";
 
-            $stmt = $this->dbConn->prepare($query);
-            $stmt->bindParam(':email', $email);
-            $stmt->execute();
+            $args = [
+                [':email', $email]
+            ];
 
-            if ($stmt->rowCount() === 0) {
+            $results = DatabaseOperations::fetchFromDB($this->dbConn, $query, $args);
+
+            if (count($results) === 0) {
                 throw new ApiException('User not found', 404);
             }
 
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $row = $results[0];
+
             $this->userID = $row['userID'];
-            $this->email = $row['email'];
             $this->username = $row['username'];
+            $this->displayName = $row['displayName'];
+            $this->email = $row['email'];
             $this->passwordHash = $row['password'];
+            $this->profilePicture = $row['profilePicture'];
+
             return true;
         } catch (ApiException $e) {
             throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to load user', 500);
+            throw new ApiException('Failed to load user ' . $e->getMessage(), 500);
+        }
+    }
+    public function loadFromUsername($username)
+    {
+        try {
+            $query = "SELECT * FROM " . $this->table_name . " 
+                    WHERE
+                        username = :username 
+                        LIMIT 0,1";
+
+            $args = [
+                [':username', $username]
+            ];
+
+            $results = DatabaseOperations::fetchFromDB($this->dbConn, $query, $args);
+
+            if (count($results) === 0) {
+                throw new ApiException('User not found', 404);
+            }
+
+            $row = $results[0];
+
+            $this->userID = $row['userID'];
+            $this->username = $row['username'];
+            $this->displayName = $row['displayName'];
+            $this->email = $row['email'];
+            $this->passwordHash = $row['password'];
+            $this->profilePicture = $row['profilePicture'];
+
+            return true;
+        } catch (Exception $e) {
+            throw new ApiException('Failed to search for user ' . $e->getMessage(), 500);
         }
     }
 
@@ -117,18 +165,18 @@ class User
     public function emailExists($email)
     {
         try {
-            $query = "SELECT email
-                    FROM " . $this->table_name . "
-                    WHERE email = ?
-                    LIMIT 0,1";
+            $query = "SELECT email FROM " . $this->table_name . "
+                    WHERE
+                        email = :email
+                        LIMIT 0,1";
 
-            $stmt = $this->dbConn->prepare($query);
-            $stmt->bindParam(1, $email);
-            $stmt->execute();
+            $args = [
+                [':email', $email]
+            ];
 
-            $num = $stmt->rowCount();
+            $results = DatabaseOperations::fetchFromDB($this->dbConn, $query, $args);
 
-            return $num > 0;
+            return count($results) > 0;
         } catch (Exception $e) {
             throw new ApiException('Failed to check if email exists', 500);
         }
@@ -137,18 +185,18 @@ class User
     public function usernameExists($username)
     {
         try {
-            $query = "SELECT username
-                    FROM " . $this->table_name . "
-                    WHERE username = ?
-                    LIMIT 0,1";
+            $query = "SELECT username FROM " . $this->table_name . "
+                    WHERE
+                        username = :username
+                        LIMIT 0,1";
 
-            $stmt = $this->dbConn->prepare($query);
-            $stmt->bindParam(1, $username);
-            $stmt->execute();
+            $args = [
+                [':username', $username]
+            ];
 
-            $num = $stmt->rowCount();
+            $results = DatabaseOperations::fetchFromDB($this->dbConn, $query, $args);
 
-            return $num > 0;
+            return count($results) > 0;
         } catch (Exception $e) {
             throw new ApiException('Failed to check if username exists', 500);
         }
@@ -183,28 +231,5 @@ class User
     public function getProfilePicture()
     {
         return $this->profilePicture;
-    }
-    
-    public function findByUsername($username)
-    {
-        try {
-            $query = "SELECT userID, username, displayName, profilePicture 
-                    FROM " . $this->table_name . " 
-                    WHERE username = :username 
-                    LIMIT 0,1";
-    
-            $stmt = $this->dbConn->prepare($query);
-            $stmt->bindParam(':username', $username);
-            $stmt->execute();
-    
-            if ($stmt->rowCount() === 0) {
-                return false;
-            }
-    
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $row;
-        } catch (Exception $e) {
-            throw new ApiException('Failed to search for user', 500);
-        }
     }
 }
