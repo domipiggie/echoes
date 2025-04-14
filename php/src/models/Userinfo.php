@@ -65,7 +65,7 @@ class Userinfo
                         f.`user1ID` = :userID OR f.`user2ID` = :userID";
 
             $args = [
-                [':userID', $user->id]
+                [':userID', $user]
             ];
 
             $friendshipResults = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
@@ -99,6 +99,7 @@ class Userinfo
     {
         try {
             $channels = [];
+            $channelsMap = [];
 
             $sql = "SELECT ca.channelID, ca.userID, u.username, u.displayName, u.profilePicture FROM channel_access ca
                     INNER JOIN
@@ -116,12 +117,11 @@ class Userinfo
                         )";
 
             $args = [
-                [':userID', $user->id]
+                [':userID', $user]
             ];
 
             $groupResults = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
 
-            $prevId = null;
             foreach ($groupResults as $row) {
                 $userData = array(
                     "id" => $row['userID'],
@@ -130,21 +130,24 @@ class Userinfo
                     "profilePicture" => $row['profilePicture']
                 );
 
-                if ($row["channelID"] !== $prevId) {
-                    $prevId = $row['channelID'];
-                    $channels["groupChannels"][] = array(
-                        "channelID" => $row['channelID'],
-                        "users" => array($userData)
-                    );
-                } else {
-                    $channels[count($channels["groupChannels"]) - 1]["users"][] = $userData;
+                $channelID = $row['channelID'];
+                
+                if (!isset($channelsMap[$channelID])) {
+                    $channelsMap[$channelID] = [
+                        "channelID" => $channelID,
+                        "users" => []
+                    ];
+                    $channels[] = &$channelsMap[$channelID];
                 }
+                
+                $channelsMap[$channelID]["users"][] = $userData;
             }
+            
             return $channels;
         } catch (ApiException $e) {
             throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
-            throw new ApiException('Failed to get group channel list: ' . $e->getMessage(), 500);
+            throw new ApiException('Couldn\'t get group channels: ' . $e->getMessage(), 500);
         }
     }
 }

@@ -167,16 +167,17 @@ class Message
     public function getChannelMessages($channelID, $offset = 0, $limit = 20)
     {
         try {
+            $offset = (int)$offset;
+            $limit = (int)$limit;
+            
             $sql = "SELECT m.messageID, m.channelID, m.userID, m.content, m.type, m.sent_at
                     FROM " . $this->table_name . " m
                     WHERE m.channelID = :channelID
                     ORDER BY m.sent_at DESC
-                    LIMIT :offset, :limit";
+                    LIMIT $offset, $limit";
 
             $args = [
-                [':channelID', $channelID],
-                [':offset', $offset],
-                [':limit', $limit]
+                [':channelID', $channelID]
             ];
 
             $results = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);

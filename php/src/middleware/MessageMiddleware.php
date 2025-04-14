@@ -21,7 +21,6 @@ class MessageMiddleware
             }
 
             return [
-                'success' => true,
                 'messages' => $messagesWithUserInfo,
                 'pagination' => [
                     'offset' => (int)$offset,

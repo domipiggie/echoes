@@ -57,7 +57,7 @@ class User
     public function loadFromID($id)
     {
         try {
-            $query = "SELECT * FROM" . $this->table_name . "
+            $query = "SELECT * FROM " . $this->table_name . "
                 WHERE
                     userID = :userID";
 

@@ -46,7 +46,7 @@ class UserinfoController
                 throw new ApiException('User not found', 404);
             }
 
-            echo $result;
+            ResponseHandler::success($result);
         } catch (ApiException $e) {
             throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
