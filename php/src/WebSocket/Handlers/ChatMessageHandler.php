@@ -5,6 +5,8 @@ namespace WebSocket\Handlers;
 use Ratchet\ConnectionInterface;
 use Utils\Logger;
 use WebSocket\Services\NotificationService;
+use WebSocket\Services\ErrorHandlerService;
+use WebSocket\Services\ResponseHandlerService;
 
 class ChatMessageHandler
 {
@@ -12,6 +14,7 @@ class ChatMessageHandler
     protected $logger;
     protected $dbConn;
     protected $notificationService;
+    protected $errorHandler;
 
     public function __construct(\SplObjectStorage $clients, Logger $logger, $dbConn)
     {
@@ -19,16 +22,12 @@ class ChatMessageHandler
         $this->logger = $logger;
         $this->dbConn = $dbConn;
         $this->notificationService = new NotificationService($clients, $logger, $dbConn);
+        $this->errorHandler = new ErrorHandlerService($logger);
     }
 
     public function handleChatMessage(ConnectionInterface $from, $data)
     {
-        if (!isset($data['channelId']) || !isset($data['content']) || !isset($data['messageType'])) {
-            $from->send(json_encode([
-                'type' => 'error',
-                'message' => 'Missing channelId, content or messageType for chat message',
-                'code' => 'INVALID_REQUEST'
-            ]));
+        if (!$this->errorHandler->validateRequest($from, $data, ['channelId', 'content', 'messageType'])) {
             return;
         }
 
@@ -40,46 +39,50 @@ class ChatMessageHandler
         try {
             $message = new \Message($this->dbConn);
             if (!$message->hasChannelAccess($sender->id, $channelId)) {
-                $from->send(json_encode([
-                    'type' => 'error',
-                    'message' => 'You do not have access to this channel',
-                    'code' => 'ACCESS_DENIED'
-                ]));
-                return;
+                throw new \WebSocketException(
+                    'You do not have access to this channel',
+                    'ACCESS_DENIED',
+                    403
+                );
             }
             $message->createMessage($channelId, $sender->id, $content, $messageType);
 
+            ResponseHandlerService::sendSuccess($from, 'chatmessage_sent');
+
             $this->logger->info("Chat message sent by user {$sender->id} in channel {$channelId}");
 
-            $this->notificationService->notifyChatMessage($sender, $channelId, $content, $messageType);
+            $notifyData = [
+                'message' => [
+                    'channelId' => $channelId,
+                    'content' => $content,
+                    'messageType' => $messageType,
+                    'sender' => [
+                        'id' => $sender->id,
+                        'username' => $sender->username
+                    ],
+                    'timestamp' => time()
+                ]
+            ];
+            $userIds = $message->getUsersWithChannelAccess($channelId);
+            $this->notificationService->notifyMultipleClients($userIds, $sender->id, 'new_message', $notifyData);
+        } catch (\WebSocketException $e) {
+            $this->errorHandler->handleException($from, $e, 'chatmessage_send');
         } catch (\ApiException $e) {
-            $from->send(json_encode([
-                'type' => 'error',
-                'message' => $e->getMessage(),
-                'code' => 'FRIEND_REQUEST_FAILED',
-                'status_code' => $e->getStatusCode()
-            ]));
-
-            $this->logger->error("Friend request failed: {$e->getMessage()}");
+            $this->errorHandler->sendError(
+                $from,
+                $e->getMessage(),
+                'CHAT_MESSAGE_FAILED',
+                $e->getStatusCode()
+            );
+            $this->logger->error("Chat message failed: {$e->getMessage()}");
         } catch (\Exception $e) {
-            $from->send(json_encode([
-                'type' => 'error',
-                'message' => 'Failed to send chat message',
-                'code' => 'INTERNAL_ERROR'
-            ]));
-
-            $this->logger->error("Chat message exception: {$e->getMessage()}");
+            $this->errorHandler->handleException($from, $e, 'chatmessage_send');
         }
     }
 
     public function handleDeleteMessage(ConnectionInterface $from, $data)
     {
-        if (!isset($data['messageId'])) {
-            $from->send(json_encode([
-                'type' => 'error',
-                'message' => 'Missing messageId or channelId for message deletion',
-                'code' => 'INVALID_REQUEST'
-            ]));
+        if (!$this->errorHandler->validateRequest($from, $data, ['messageId'])) {
             return;
         }
 
@@ -91,12 +94,11 @@ class ChatMessageHandler
             $channelId = $message->getChannelIdFromMessageId($messageId);
 
             if (!$message->hasChannelAccess($sender->id, $channelId)) {
-                $from->send(json_encode([
-                    'type' => 'error',
-                    'message' => 'You do not have access to this channel',
-                    'code' => 'ACCESS_DENIED'
-                ]));
-                return;
+                throw new \WebSocketException(
+                    'You do not have access to this channel',
+                    'ACCESS_DENIED',
+                    403
+                );
             }
 
             $result = $message->deleteMessage($messageId, $sender->id);
@@ -104,48 +106,51 @@ class ChatMessageHandler
             if ($result) {
                 $this->logger->info("Message {$messageId} deleted by user {$sender->id} in channel {$channelId}");
 
-                $from->send(json_encode([
-                    'type' => 'message_deleted',
+                $responseData = [
                     'messageId' => $messageId,
-                    'channelId' => $channelId
-                ]));
+                    'channelId' => $channelId,
+                ];
 
-                $this->notificationService->notifyMessageDeleted($sender, $channelId, $messageId);
+                ResponseHandlerService::sendSuccess($from, 'chatmessage_deleted', $responseData);
+
+                $notifyData = [
+                    'message' => [
+                        'channelId' => $channelId,
+                        'messageId' => $messageId,
+                        'deletedBy' => [
+                            'id' => $sender->id,
+                            'username' => $sender->username
+                        ],
+                        'timestamp' => time()
+                    ]
+                ];
+                $userIds = $message->getUsersWithChannelAccess($channelId);
+                $this->notificationService->notifyMultipleClients($userIds, $sender->id, 'message_deleted', $notifyData);
             } else {
-                $from->send(json_encode([
-                    'type' => 'error',
-                    'message' => 'Failed to delete message',
-                    'code' => 'DELETE_FAILED'
-                ]));
+                throw new \WebSocketException(
+                    'Failed to delete message',
+                    'DELETE_FAILED',
+                    500
+                );
             }
+        } catch (\WebSocketException $e) {
+            $this->errorHandler->handleException($from, $e, 'chatmessage_delete');
         } catch (\ApiException $e) {
-            $from->send(json_encode([
-                'type' => 'error',
-                'message' => $e->getMessage(),
-                'code' => 'DELETE_FAILED',
-                'status_code' => $e->getStatusCode()
-            ]));
-
+            $this->errorHandler->sendError(
+                $from,
+                $e->getMessage(),
+                'DELETE_FAILED',
+                $e->getStatusCode()
+            );
             $this->logger->error("Message deletion failed: {$e->getMessage()}");
         } catch (\Exception $e) {
-            $from->send(json_encode([
-                'type' => 'error',
-                'message' => 'Failed to delete message',
-                'code' => 'INTERNAL_ERROR'
-            ]));
-
-            $this->logger->error("Message deletion exception: {$e->getMessage()}");
+            $this->errorHandler->handleException($from, $e, 'chatmessage_delete');
         }
     }
 
     public function handleEditMessage(ConnectionInterface $from, $data)
     {
-        if (!isset($data['messageId']) || !isset($data['channelId']) || !isset($data['content'])) {
-            $from->send(json_encode([
-                'type' => 'error',
-                'message' => 'Missing messageId, channelId or content for message editing',
-                'code' => 'INVALID_REQUEST'
-            ]));
+        if (!$this->errorHandler->validateRequest($from, $data, ['messageId', 'content'])) {
             return;
         }
 
@@ -158,12 +163,11 @@ class ChatMessageHandler
             $channelId = $message->getChannelIdFromMessageId($messageId);
 
             if (!$message->hasChannelAccess($sender->id, $channelId)) {
-                $from->send(json_encode([
-                    'type' => 'error',
-                    'message' => 'You do not have access to this channel',
-                    'code' => 'ACCESS_DENIED'
-                ]));
-                return;
+                throw new \WebSocketException(
+                    'You do not have access to this channel',
+                    'ACCESS_DENIED',
+                    403
+                );
             }
 
             $result = $message->editMessage($messageId, $sender->id, $newContent);
@@ -171,38 +175,47 @@ class ChatMessageHandler
             if ($result) {
                 $this->logger->info("Message {$messageId} edited by user {$sender->id} in channel {$channelId}");
 
-                $from->send(json_encode([
-                    'type' => 'message_edited',
+                $responseData = [
                     'messageId' => $messageId,
                     'channelId' => $channelId,
                     'content' => $newContent
-                ]));
+                ];
 
-                $this->notificationService->notifyMessageEdited($sender, $channelId, $messageId, $newContent);
+                ResponseHandlerService::sendSuccess($from, 'chatmessage_edited', $responseData);
+
+                $notifyData = [
+                    'message' => [
+                        'channelId' => $channelId,
+                        'messageId' => $messageId,
+                        'content' => $newContent,
+                        'editedBy' => [
+                            'id' => $sender->id,
+                            'username' => $sender->username
+                        ],
+                        'timestamp' => time()
+                    ]
+                ];
+                $userIds = $message->getUsersWithChannelAccess($channelId);
+                $this->notificationService->notifyMultipleClients($userIds, $sender->id, 'message_edited', $notifyData);
             } else {
-                $from->send(json_encode([
-                    'type' => 'error',
-                    'message' => 'Failed to edit message',
-                    'code' => 'EDIT_FAILED'
-                ]));
+                throw new \WebSocketException(
+                    'Failed to edit message',
+                    'EDIT_FAILED',
+                    500
+                );
             }
+        } catch (\WebSocketException $e) {
+            $this->errorHandler->handleException($from, $e, 'chatmessage_edit');
         } catch (\ApiException $e) {
-            $from->send(json_encode([
-                'type' => 'error',
-                'message' => $e->getMessage(),
-                'code' => 'EDIT_FAILED',
-                'status_code' => $e->getStatusCode()
-            ]));
-
+            $this->errorHandler->sendError(
+                $from,
+                $e->getMessage(),
+                'EDIT_FAILED',
+                $e->getStatusCode()
+            );
             $this->logger->error("Message editing failed: {$e->getMessage()}");
         } catch (\Exception $e) {
-            $from->send(json_encode([
-                'type' => 'error',
-                'message' => 'Failed to edit message',
-                'code' => 'INTERNAL_ERROR'
-            ]));
-
-            $this->logger->error("Message editing exception: {$e->getMessage()}");
+            $this->errorHandler->handleException($from, $e, 'chatmessage_edit');
         }
     }
 }

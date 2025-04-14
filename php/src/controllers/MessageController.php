@@ -26,7 +26,7 @@ class MessageController
 
             $response = MessageMiddleware::getChannelMessages($channelId, $user->id, $this->dbConn, $offset, $limit);
 
-            echo $response;
+            ResponseHandler::success($response);
         } catch (ApiException $e) {
             throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {

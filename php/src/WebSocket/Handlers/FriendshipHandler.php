@@ -5,6 +5,8 @@ namespace WebSocket\Handlers;
 use Ratchet\ConnectionInterface;
 use Utils\Logger;
 use WebSocket\Services\NotificationService;
+use WebSocket\Services\ErrorHandlerService;
+use WebSocket\Services\ResponseHandlerService;
 
 class FriendshipHandler
 {
@@ -12,6 +14,7 @@ class FriendshipHandler
     protected $logger;
     protected $dbConn;
     protected $notificationService;
+    protected $errorHandler;
 
     public function __construct(\SplObjectStorage $clients, Logger $logger, $dbConn)
     {
@@ -19,16 +22,12 @@ class FriendshipHandler
         $this->logger = $logger;
         $this->dbConn = $dbConn;
         $this->notificationService = new NotificationService($clients, $logger, $dbConn);
+        $this->errorHandler = new ErrorHandlerService($logger);
     }
 
     public function handleFriendRequest(ConnectionInterface $from, $data)
     {
-        if (!isset($data['recipient_id'])) {
-            $from->send(json_encode([
-                'type' => 'error',
-                'message' => 'Missing recipient ID for friend request',
-                'code' => 'INVALID_REQUEST'
-            ]));
+        if (!$this->errorHandler->validateRequest($from, $data, ['recipient_id'])) {
             return;
         }
 
@@ -43,45 +42,34 @@ class FriendshipHandler
                 $channel = new \Channel($this->dbConn);
                 $channel->createFriendshipChannel($result);
 
-                $from->send(json_encode([
-                    'type' => 'friend_request_sent',
-                    'recipient_id' => $recipientId,
-                    'status' => 'success',
-                    'timestamp' => time()
-                ]));
+                ResponseHandlerService::sendSuccess($from, 'friend_add');
 
-                $this->notificationService->notifyFriendRequest($sender, $recipientId);
+                $notifyData = ['sender' => [
+                    'id' => $sender->id,
+                    'username' => $sender->username
+                ]];
+                $this->notificationService->notifyClient($recipientId, 'friend_request_received', $notifyData);
 
                 $this->logger->info("Friend request sent from user {$sender->id} to user {$recipientId}");
             }
+        } catch (\WebSocketException $e) {
+            $this->errorHandler->handleException($from, $e, 'friend_add');
         } catch (\ApiException $e) {
-            $from->send(json_encode([
-                'type' => 'error',
-                'message' => $e->getMessage(),
-                'code' => 'FRIEND_REQUEST_FAILED',
-                'status_code' => $e->getStatusCode()
-            ]));
-
+            $this->errorHandler->sendError(
+                $from,
+                $e->getMessage(),
+                'FRIEND_REQUEST_FAILED',
+                $e->getStatusCode()
+            );
             $this->logger->error("Friend request failed: {$e->getMessage()}");
         } catch (\Exception $e) {
-            $from->send(json_encode([
-                'type' => 'error',
-                'message' => 'Failed to send friend request',
-                'code' => 'INTERNAL_ERROR'
-            ]));
-
-            $this->logger->error("Friend request exception: {$e->getMessage()}");
+            $this->errorHandler->handleException($from, $e, 'friend_add');
         }
     }
 
     public function handleFriendRequestDeny(ConnectionInterface $from, $data)
     {
-        if (!isset($data['recipient_id'])) {
-            $from->send(json_encode([
-                'type' => 'error',
-                'message' => 'Missing recipient ID for friend request deny',
-                'code' => 'INVALID_REQUEST'
-            ]));
+        if (!$this->errorHandler->validateRequest($from, $data, ['recipient_id'])) {
             return;
         }
 
@@ -93,41 +81,34 @@ class FriendshipHandler
             $result = $friendship->declineFriendRequest();
 
             if ($result) {
-                $from->send(json_encode([
-                    'type' => 'friend_request_denied',
-                    'recipient_id' => $recipientId,
-                    'status' => 'success',
-                    'timestamp' => time()
-                ]));
+                ResponseHandlerService::sendSuccess($from, 'friend_deny');
 
-                $this->notificationService->notifyFriendRequestDeny($sender, $recipientId);
+                $notifyData = ['sender' => [
+                    'id' => $sender->id,
+                    'username' => $sender->username
+                ]];
+                $this->notificationService->notifyClient($sender, 'friend_request_denied', $notifyData);
 
                 $this->logger->info("Friend request denied from user {$sender->id} to user {$recipientId}");
             }
+        } catch (\WebSocketException $e) {
+            $this->errorHandler->handleException($from, $e, 'friend_request_deny');
         } catch (\ApiException $e) {
-            $from->send(json_encode([
-                'type' => 'error',
-                'message' => $e->getMessage(),
-                'code' => 'FRIEND_REQUEST_DENY_FAILED',
-                'status_code' => $e->getStatusCode()
-            ]));
+            $this->errorHandler->sendError(
+                $from,
+                $e->getMessage(),
+                'FRIEND_REQUEST_DENY_FAILED',
+                $e->getStatusCode()
+            );
+            $this->logger->error("Friend request deny failed: {$e->getMessage()}");
         } catch (\Exception $e) {
-            $from->send(json_encode([
-                'type' => 'error',
-                'message' => 'Failed to deny friend request',
-                'code' => 'INTERNAL_ERROR'
-            ]));
+            $this->errorHandler->handleException($from, $e, 'friend_request_deny');
         }
     }
 
     public function handleFriendRequestAccept(ConnectionInterface $from, $data)
     {
-        if (!isset($data['recipient_id'])) {
-            $from->send(json_encode([
-                'type' => 'error',
-                'message' => 'Missing recipient ID for friend request accept',
-                'code' => 'INVALID_REQUEST'
-            ]));
+        if (!$this->errorHandler->validateRequest($from, $data, ['recipient_id'])) {
             return;
         }
 
@@ -139,30 +120,28 @@ class FriendshipHandler
             $result = $friendship->acceptFriendRequest($sender->id);
 
             if ($result) {
-                $from->send(json_encode([
-                    'type' => 'friend_request_accepted',
-                    'recipient_id' => $recipientId,
-                    'status' => 'success',
-                    'timestamp' => time()
-                ]));
+                ResponseHandlerService::sendSuccess($from, 'friend_accept');
 
-                $this->notificationService->notifyFriendRequestAccept($sender, $recipientId);
+                $notifyData = ['sender' => [
+                    'id' => $sender->id,
+                    'username' => $sender->username
+                ]];
+                $this->notificationService->notifyClient($recipientId, 'friend_request_accepted', $notifyData);
 
                 $this->logger->info("Friend request accepted from user {$sender->id} to user {$recipientId}");
             }
+        } catch (\WebSocketException $e) {
+            $this->errorHandler->handleException($from, $e, 'friend_request_accept');
         } catch (\ApiException $e) {
-            $from->send(json_encode([
-                'type' => 'error',
-                'message' => $e->getMessage(),
-                'code' => 'FRIEND_REQUEST_ACCEPT_FAILED',
-                'status_code' => $e->getStatusCode()
-            ]));
+            $this->errorHandler->sendError(
+                $from,
+                $e->getMessage(),
+                'FRIEND_REQUEST_ACCEPT_FAILED',
+                $e->getStatusCode()
+            );
+            $this->logger->error("Friend request accept failed: {$e->getMessage()}");
         } catch (\Exception $e) {
-            $from->send(json_encode([
-                'type' => 'error',
-                'message' => 'Failed to accept friend request',
-                'code' => 'INTERNAL_ERROR'
-            ]));
+            $this->errorHandler->handleException($from, $e, 'friend_request_accept');
         }
     }
 }

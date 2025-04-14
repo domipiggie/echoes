@@ -1,6 +1,5 @@
 <?php
 header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE");
 header("Access-Control-Max-Age: 3600");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
@@ -30,6 +29,7 @@ require_once $rootDir . '/src/config/core.php';
 //Other
 require_once $rootDir . '/src/exceptions/ApiException.php';
 require_once $rootDir . '/src/utils/ErrorHandler.php';
+require_once $rootDir . '/src/utils/ResponseHandler.php';
 require_once $rootDir . '/src/utils/JWTTools.php';
 require_once $rootDir . '/src/utils/DatabaseOperations.php';
 

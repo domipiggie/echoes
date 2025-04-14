@@ -24,12 +24,12 @@ class UserinfoMiddleware
             throw new ApiException("User not found", 404);
         }
 
-        return json_encode([
+        return [
             'userID' => $user->getUserID(),
             'username' => $user->getUsername(),
             'displayName' => $user->getDisplayName(),
             'profilePicture' => $user->getProfilePicture()
-        ]);
+        ];
     }
 
     public static function getFriendList($userId, $dbConn)

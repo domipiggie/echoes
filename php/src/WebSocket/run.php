@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../config/core.php';
 require_once __DIR__ . '/../config/WebSocketConfig.php';
 require_once __DIR__ . '/../exceptions/ApiException.php';
+require_once __DIR__ . '/../exceptions/WebSocketException.php';
 require_once __DIR__ . '/../utils/JWTTools.php';
 require_once __DIR__ . '/../utils/Logger.php';
 require_once __DIR__ . '/../config/database.php';

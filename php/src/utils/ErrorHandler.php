@@ -8,12 +8,6 @@ class ErrorHandler
             ? $exception->getStatusCode()
             : 500;
 
-        http_response_code($statusCode);
-        echo json_encode([
-            'error' => true,
-            'message' => $exception->getMessage(),
-            'code' => $statusCode
-        ]);
-        exit;
+        ResponseHandler::error($exception->getMessage(), $statusCode);
     }
 }

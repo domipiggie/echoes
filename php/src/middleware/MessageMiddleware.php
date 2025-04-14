@@ -20,7 +20,7 @@ class MessageMiddleware
                 $messagesWithUserInfo[] = $msg;
             }
 
-            return json_encode([
+            return [
                 'success' => true,
                 'messages' => $messagesWithUserInfo,
                 'pagination' => [
@@ -28,7 +28,7 @@ class MessageMiddleware
                     'limit' => (int)$limit,
                     'total' => count($messagesWithUserInfo)
                 ]
-            ]);
+            ];
         } catch (ApiException $e) {
             throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {

@@ -21,7 +21,7 @@ class UserinfoController
 
             $response = UserinfoMiddleware::getUserInfo($userId, $this->dbConn);
 
-            echo json_encode($response);
+            ResponseHandler::success($response);
         } catch (ApiException $e) {
             throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
@@ -65,7 +65,7 @@ class UserinfoController
 
             $result = UserinfoMiddleware::getFriendList($user->id, $this->dbConn);
 
-            echo json_encode($result);
+            ResponseHandler::success($result);
         } catch (ApiException $e) {
             throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
@@ -84,7 +84,7 @@ class UserinfoController
 
             $result = UserinfoMiddleware::getFriendChannelList($user->id, $this->dbConn);
 
-            echo json_encode($result);
+            ResponseHandler::success($result);
         } catch (ApiException $e) {
             throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
@@ -103,7 +103,7 @@ class UserinfoController
 
             $result = UserinfoMiddleware::getGroupChannelList($user->id, $this->dbConn);
 
-            echo json_encode($result);
+            ResponseHandler::success($result);
         } catch (ApiException $e) {
             throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
