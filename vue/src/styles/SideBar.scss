@@ -314,3 +314,260 @@
     border-radius: 0;
   }
 }
+
+.main-tabs {
+  display: flex;
+  width: 100%;
+  background-color: transparent;
+  padding: 0 10px;
+  margin-top: 10px;
+}
+
+.main-tab-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 0;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 0; /* Eltávolítottam a lekerekített sarkokat */
+  margin: 0;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  
+  &.active {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
+  svg {
+    stroke: white;
+  }
+}
+
+/* Barátkérelmek altabfülek */
+.request-tabs {
+  display: flex;
+  width: 100%;
+  padding: 0 10px;
+  margin-top: 10px;
+  margin-bottom: 15px; /* Nagyobb térköz a gombok és a tartalom között */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Elválasztó vonal */
+  padding-bottom: 10px; /* Alsó padding a vonalhoz */
+}
+
+.request-tab-button {
+  flex: 1;
+  padding: 10px 0;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: white;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 20px;
+  margin: 0 5px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+  
+  &.active {
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    font-weight: 600;
+  }
+}
+
+/* Barátkérelmek lista stílusok */
+.requests-content {
+  /* Eltávolítom a világoslila háttérszínt */
+  /* background-color: #7078e6; */
+  color: white;
+}
+
+.friend-request-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+  margin-left: 5px; /* Beljebb helyezi a kártyát */
+  margin-right: 5px; /* Beljebb helyezi a kártyát */
+  
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .avatar {
+    margin-right: 12px;
+  }
+  
+  .avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 500;
+    font-size: 16px;
+  }
+  
+  .request-info {
+    flex: 1;
+    margin-right: 12px;
+  }
+  
+  .request-name {
+    font-weight: 500;
+    color: white;
+    margin-bottom: 4px;
+  }
+  
+  .request-time {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  
+  .request-actions {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .accept-btn,
+  .reject-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    
+    &:hover {
+      transform: scale(1.05);
+    }
+    
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  text-align: center;
+  
+  svg {
+    stroke: white;
+    opacity: 0.7;
+    margin-bottom: 15px;
+  }
+  
+  p {
+    color: white;
+    font-size: 14px;
+    opacity: 0.8;
+  }
+}
+
+.main-tabs {
+      display: flex;
+      width: 100%;
+      background-color: transparent;
+      padding: 0;
+      margin-top: 0;
+    }
+    
+    .main-tab-button {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 0;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin: 0;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      
+      &.active {
+        background: rgba(255, 255, 255, 0.3);
+      }
+      
+      svg {
+        stroke: white;
+      }
+    }
+
+    .chat-tabs {
+      display: flex;
+      width: 100%;
+      padding: 0 10px;
+      margin-top: 10px;
+      margin-bottom: 15px; /* Nagyobb térköz a gombok és a tartalom között */
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Elválasztó vonal */
+      padding-bottom: 10px; /* Alsó padding a vonalhoz */
+    }
+    
+    .chat-tab-button {
+      flex: 1;
+      padding: 10px 0;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: white;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-radius: 20px;
+      margin: 0 5px;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.25);
+      }
+      
+      &.active {
+        background: rgba(255, 255, 255, 0.3);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        font-weight: 600;
+      }
+    }

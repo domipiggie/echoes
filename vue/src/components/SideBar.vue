@@ -59,6 +59,8 @@ const selectChat = (chat) => {
 
 // Aktív nézet kezelése
 const activeView = ref('chats'); // 'chats' vagy 'requests'
+const requestType = ref('incoming'); // 'incoming' vagy 'sent'
+const chatType = ref('personal'); // 'personal' vagy 'groups'
 
 // New chat dialog visibility
 const showNewChatDialog = ref(false);
@@ -195,21 +197,23 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- Navigációs gombok -->
-    <div class="tab-navigation">
-      <button class="tab-button" :class="{ active: activeView === 'chats' }" @click="activeView = 'chats'">
+    <!-- Új navigációs gombokok a képnek megfelelően -->
+    <div class="main-tabs">
+      <button 
+        class="main-tab-button" 
+        :class="{ active: activeView === 'chats' }" 
+        @click="activeView = 'chats'"
+      >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
         </svg>
         ÜZENETEK
-
       </button>
       <button 
-        class="tab-button" 
+        class="main-tab-button" 
         :class="{ active: activeView === 'requests' }" 
         @click="activeView = 'requests'"
-        data-view="requests"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2">
@@ -222,41 +226,73 @@ onUnmounted(() => {
       </button>
     </div>
 
-    <!-- Üzenetek lista -->
-    <div v-if="activeView === 'chats'" class="chats-list">
-      <div v-for="chat in recents" :key="chat.channelID" class="chat-item" @click="selectChat(chat)">
-        <div class="avatar">
-          <div class="avatar-circle"></div>
-        </div>
-        <div class="chat-info">
-          <div class="chat-name">{{ userStore.getUserID() == chat.user1.id ? chat.user2.username : chat.user1.username
-            }}</div>
-          <div class="last-seen">{{ }}</div>
-          <div class="last-message">{{ chat.lastMessage || 'Még nincs üzenet' }}</div>
-        </div>
-      </div>
+    <!-- Üzenetek altabfülek - csak akkor jelenik meg, ha az üzenetek aktívak -->
+    <div v-if="activeView === 'chats'" class="chat-tabs">
+      <button 
+        class="chat-tab-button" 
+        :class="{ active: chatType === 'personal' }" 
+        @click="chatType = 'personal'"
+      >
+        SZEMÉLYES
+      </button>
+      <button 
+        class="chat-tab-button" 
+        :class="{ active: chatType === 'groups' }" 
+        @click="chatType = 'groups'"
+      >
+        CSOPORTOK
+      </button>
     </div>
 
-    <!-- Barátkérelmek lista -->
-    <div v-if="activeView === 'requests'" class="chats-list">
-      <!-- Kérelem típus választó -->
-      <div class="request-type-selector">
-        <button 
-          class="request-type-btn" 
-          :class="{ active: requestType === 'incoming' }" 
-          @click="requestType = 'incoming'"
-        >
-          Bejövő kérelmek
-        </button>
-        <button 
-          class="request-type-btn" 
-          :class="{ active: requestType === 'sent' }" 
-          @click="requestType = 'sent'"
-        >
-          Elküldött kérelmek
-        </button>
-      </div>
+    <!-- Barátkérelmek altabfülek - csak akkor jelenik meg, ha a barátkérelmek aktívak -->
+    <div v-if="activeView === 'requests'" class="request-tabs">
+      <button 
+        class="request-tab-button" 
+        :class="{ active: requestType === 'incoming' }" 
+        @click="requestType = 'incoming'"
+      >
+        BEJÖVŐ KÉRELMEK
+      </button>
+      <button 
+        class="request-tab-button" 
+        :class="{ active: requestType === 'sent' }" 
+        @click="requestType = 'sent'"
+      >
+        ELKÜLDÖTT KÉRELMEK
+      </button>
+    </div>
 
+    <!-- Üzenetek lista -->
+    <div v-if="activeView === 'chats'" class="chats-list">
+      <!-- Személyes üzenetek -->
+      <div v-if="chatType === 'personal'">
+        <div v-for="chat in recents" :key="chat.channelID" class="chat-item" @click="selectChat(chat)">
+          <div class="avatar">
+            <div class="avatar-circle"></div>
+          </div>
+          <div class="chat-info">
+            <div class="chat-name">{{ userStore.getUserID() == chat.user1.id ? chat.user2.username : chat.user1.username }}</div>
+            <div class="last-seen">{{ }}</div>
+            <div class="last-message">{{ chat.lastMessage || 'Még nincs üzenet' }}</div>
+          </div>
+        </div>
+      </div>
+    
+    <!-- Csoportos üzenetek -->
+    <div v-if="chatType === 'groups'" class="empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="1">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      </svg>
+      <p>Nincsenek csoportos beszélgetések</p>
+    </div>
+  </div>
+
+    <!-- Barátkérelmek lista -->
+    <div v-if="activeView === 'requests'" class="chats-list requests-content">
       <!-- Bejövő kérelmek -->
       <div v-if="requestType === 'incoming'">
         <div v-if="friendRequests.length === 0" class="empty-state">
@@ -385,522 +421,7 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 @import '../styles/SideBar.scss';
 
-.friend-request-item {
-  display: flex;
-  align-items: center;
-  padding: 12px 16px;
-  border-radius: 8px;
-  margin-bottom: 4px;
-  transition: background-color 0.2s ease;
+/* Új stílusok a képnek megfelelően */
 
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
 
-  .avatar-circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #5a62d3;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 500;
-    font-size: 16px;
-  }
-
-  .request-info {
-    flex: 1;
-    margin-left: 12px;
-  }
-
-  .request-name {
-    font-weight: 500;
-    color: white;
-    margin-bottom: 2px;
-  }
-
-  .request-time {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.7);
-  }
-
-  .request-actions {
-    display: flex;
-    gap: 10px;
-  }
-
-  .accept-btn,
-  .reject-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    background: white;
-  }
-
-  .accept-btn {
-    &:hover {
-      background: #f5f5f5;
-      transform: scale(1.05);
-    }
-
-    &:active {
-      transform: scale(0.95);
-    }
-  }
-
-  .reject-btn {
-    &:hover {
-      background: #f5f5f5;
-      transform: scale(1.05);
-    }
-
-    &:active {
-      transform: scale(0.95);
-    }
-  }
-}
-
-// Beállítások modal stílusok
-.settings-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.settings-modal {
-  width: 400px;
-  max-width: 90%;
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
-}
-
-.settings-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid rgba(112, 120, 230, 0.1);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  
-  h2 {
-    margin: 0;
-    font-size: 18px;
-    color: #484a6a;
-  }
-  
-  .close-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    
-    &:hover {
-      background-color: rgba(112, 120, 230, 0.1);
-    }
-    
-    svg {
-      stroke: #484a6a;
-    }
-  }
-}
-
-.settings-content {
-  padding: 16px 20px;
-}
-
-.settings-item {
-  padding: 12px 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(112, 120, 230, 0.1);
-  
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-.settings-item-label {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  
-  svg {
-    stroke: #7078e6;
-  }
-  
-  span {
-    font-size: 15px;
-    color: #484a6a;
-  }
-}
-
-.toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 44px;
-  height: 24px;
-  
-  input {
-    opacity: 0;
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    margin: 0;
-    cursor: pointer;
-    z-index: 2;
-    
-    &:checked + .toggle-slider {
-      background-color: #7078e6;
-    }
-    
-    &:checked + .toggle-slider:before {
-      transform: translateX(20px);
-    }
-  }
-  
-  .toggle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
-    border-radius: 24px;
-    
-    &:before {
-      position: absolute;
-      content: "";
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: .4s;
-      border-radius: 50%;
-    }
-  }
-}
-
-.storage-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-  
-  span {
-    font-size: 12px;
-    color: #7078e6;
-  }
-}
-
-.storage-bar {
-  width: 120px;
-  height: 8px;
-  background-color: #e6e8f0;
-  border-radius: 4px;
-  overflow: hidden;
-  
-  .storage-used {
-    height: 100%;
-    background-color: #7078e6;
-    border-radius: 4px;
-  }
-}
-
-.logout-item {
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background-color: rgba(112, 120, 230, 0.05);
-  }
-  
-  .settings-item-label svg {
-    stroke: #f44336;
-  }
-}
-
-// Dark mode stílusok
-:global(body.dark-mode) {
-  .settings-modal {
-    background-color: #2d2d2d;
-  }
-  
-  .settings-header {
-    border-bottom-color: rgba(255, 255, 255, 0.1);
-    
-    h2 {
-      color: #7078e6;
-    }
-    
-    .close-button svg {
-      stroke: #7078e6;
-    }
-  }
-  
-  .settings-item {
-    border-bottom-color: rgba(255, 255, 255, 0.1);
-  }
-  
-  .settings-item-label span {
-    color: #7078e6;
-  }
-  
-  .storage-info span {
-    color: #7078e6;
-  }
-  
-  .storage-bar {
-    background-color: #3d3d3d;
-  }
-  
-  // Fehér szövegek lila színűvé alakítása
-  .sidebar {
-    background-color: #1a1a1a;
-    
-    h1, p, .chat-name, .last-message, .request-name {
-      color: #7078e6 !important;
-    }
-    
-    .search-bar input {
-      background-color: #2d2d2d;
-      color: #7078e6;
-      
-      &::placeholder {
-        color: rgba(112, 120, 230, 0.7);
-      }
-    }
-    
-    .tab-button {
-      color: #7078e6;
-      
-      &.active {
-        background-color: rgba(112, 120, 230, 0.2);
-      }
-      
-      svg {
-        stroke: #7078e6;
-      }
-    }
-    
-    .chat-item {
-      background-color: #2d2d2d;
-      
-      &:hover {
-        background-color: #3d3d3d;
-      }
-    }
-    
-    .avatar-circle {
-      background-color: #3d3d3d;
-      color: #7078e6;
-    }
-    
-    .last-seen, .request-time {
-      color: rgba(112, 120, 230, 0.7) !important;
-    }
-    
-    .empty-state {
-      color: #7078e6;
-      
-      svg {
-        stroke: #7078e6;
-      }
-    }
-    
-    .friend-request-item {
-      background-color: #2d2d2d;
-      
-      &:hover {
-        background-color: #3d3d3d;
-      }
-      
-      .request-name {
-        color: #7078e6 !important;
-      }
-    }
-    
-    .action-btn {
-      background-color: #3d3d3d;
-      
-      svg {
-        fill: #7078e6;
-      }
-    }
-  }
-}
-
-// Kérelem típus választó stílusok
-.tab-navigation {
-  display: flex;
-  gap: 4px;
-  padding: 8px;
-
-  .tab-button.active[data-view="requests"] {
-    background-color: #7078e6;
-    color: white;
-    
-    & + .chats-list {
-      background-color: #7078e6;
-      margin-top: -4px;
-      padding: 16px;
-      border-radius: 0 12px 12px 12px;
-      
-      .request-type-selector {
-        background-color: transparent;
-        margin-bottom: 16px;
-      }
-      
-      .request-type-btn {
-        color: rgba(255, 255, 255, 0.8);
-        border-radius: 8px;
-        
-        &:hover {
-          background-color: rgba(255, 255, 255, 0.1);
-        }
-        
-        &.active {
-          background-color: rgba(255, 255, 255, 0.2);
-          color: white;
-        }
-      }
-
-      .empty-state {
-        color: white;
-        
-        svg {
-          stroke: white;
-        }
-      }
-
-      .friend-request-item {
-        background-color: rgba(255, 255, 255, 0.1);
-        
-        &:hover {
-          background-color: rgba(255, 255, 255, 0.2);
-        }
-        
-        .request-name {
-          color: white !important;
-        }
-        
-        .request-time {
-          color: rgba(255, 255, 255, 0.7);
-        }
-      }
-    }
-  }
-}
-
-.request-type-selector {
-  display: flex;
-  width: 100%;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-// A tab-navigation módosítása
-.tab-navigation {
-  display: flex;
-  width: 100%;
-  margin-bottom: 12px;
-  overflow: hidden;
-  background-color: transparent;
-}
-
-// A tab-navigation módosítása
-.tab-navigation {
-  display: flex;
-  width: 100%;
-  margin-bottom: 12px;
-  overflow: hidden;
-  background-color: transparent;
-}
-
-// A tab-navigation módosítása
-.tab-navigation {
-  display: flex;
-  width: 100%;
-  margin-bottom: 12px;
-  overflow: hidden;
-  background-color: transparent;
-}
-
-.request-type-btn {
-  flex: 1;
-  padding: 10px 12px;
-  background-color: transparent;
-  border: none;
-  color: white;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-  }
-  
-  &.active {
-    background-color: #7078e6;
-    color: white;
-    border-radius: 6px;
-  }
-}
-
-.request-type-btn {
-  flex: 1;
-  padding: 10px 12px;
-  background-color: transparent;
-  border: none;
-  color: white;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-  }
-  
-  &.active {
-    background-color: #7078e6;
-    color: white;
-    border-radius: 6px;
-  }
-}  </style>
+</style>
