@@ -5,6 +5,16 @@ export default class Message {
         this.#setMessageID(messageID);
         this.#setChannelID(channelID);
         this.#setContent(content);
+        this.#setType(type);
+        this.#setSentAt(sentAt);
+        this.#setUser(user);
+
+        this.getMessageID = this.getMessageID.bind(this);
+        this.getChannelID = this.getChannelID.bind(this);
+        this.getContent = this.getContent.bind(this);
+        this.getType = this.getType.bind(this);
+        this.getSentAt = this.getSentAt.bind(this);
+        this.getUser = this.getUser.bind(this);
     }
 
     getMessageID() {

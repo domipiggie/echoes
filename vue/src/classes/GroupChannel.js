@@ -4,6 +4,9 @@ export default class GroupChannel {
     constructor(channelID, users) {
         this.#setChannelID(channelID);
         this.#setUsers(users);
+
+        this.getChannelID = this.getChannelID.bind(this);
+        this.getUsers = this.getUsers.bind(this);
     }
 
     getChannelID() {

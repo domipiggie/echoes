@@ -6,6 +6,11 @@ export default class User {
         this.#setUserName(userName);
         this.#setDisplayName(displayName);
         this.#setProfilePicture(profilePicture);
+
+        this.getUserID = this.getUserID.bind(this);
+        this.getUserName = this.getUserName.bind(this);
+        this.getDisplayName = this.getDisplayName.bind(this);
+        this.getProfilePicture = this.getProfilePicture.bind(this);
     }
 
     getUserID() {

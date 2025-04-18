@@ -6,6 +6,11 @@ export default class Friendship {
         this.#setStatusID(statusID);
         this.#setStatus(status);
         this.#setTargetUser(targetUser);
+
+        this.getFriendshipID = this.getFriendshipID.bind(this);
+        this.getStatusID = this.getStatusID.bind(this);
+        this.getStatus = this.getStatus.bind(this);
+        this.getTargetUser = this.getTargetUser.bind(this);
     }
 
     getFriendshipID() {

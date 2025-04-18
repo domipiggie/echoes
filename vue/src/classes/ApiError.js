@@ -5,6 +5,10 @@ export default class ApiError {
         this.#setError(error);
         this.#setMessage(message);
         this.#setCode(code);
+
+        this.getError = this.getError.bind(this);
+        this.getMessage = this.getMessage.bind(this);
+        this.getCode = this.getCode.bind(this);
     }
 
     getError() {

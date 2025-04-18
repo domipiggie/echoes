@@ -5,6 +5,10 @@ export default class FriendshipChannel {
         this.#setChannelID(channelID);
         this.#setUser1(user1);
         this.#setUser2(user2);
+
+        this.getChannelID = this.getChannelID.bind(this);
+        this.getUser1 = this.getUser1.bind(this);
+        this.getUser2 = this.getUser2.bind(this);
     }
 
     getChannelID() {
