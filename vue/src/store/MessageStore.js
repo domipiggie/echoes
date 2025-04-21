@@ -7,6 +7,7 @@ import User from '../classes/User';
 export const useMessageStore = defineStore('message', () => {
   const messages = ref([]);
   const currentChannelId = ref(null);
+  const currentChannelName = ref(null);
   const isLoading = ref(false);
   const error = ref(null);
   const pagination = ref({
@@ -17,6 +18,7 @@ export const useMessageStore = defineStore('message', () => {
 
   const getMessages = computed(() => messages.value);
   const getCurrentChannelId = computed(() => currentChannelId.value);
+  const getCurrentChannelName = computed(() => currentChannelName.value);
   const getIsLoading = computed(() => isLoading.value);
   const getError = computed(() => error.value);
   const getPagination = computed(() => pagination.value);
@@ -24,6 +26,13 @@ export const useMessageStore = defineStore('message', () => {
   const getMessageById = computed(() => (messageId) => {
     return messages.value.find(message => message.getMessageID() === messageId);
   });
+
+  const setCurrentChannelId = (channelId) => {
+    currentChannelId.value = channelId;
+  };
+  const setCurrentChannelName = (channelName) => {
+    currentChannelName.value = channelName;
+  };
 
   function mapToMessageInstance(messageData) {
     let user = null;
@@ -46,18 +55,15 @@ export const useMessageStore = defineStore('message', () => {
     );
   }
 
-  async function fetchMessages(channelId, offset = 0, limit = 20) {
-    if (!channelId) return;
-
-    currentChannelId.value = channelId;
+  async function fetchMessages(offset = 0, limit = 20) {
     isLoading.value = true;
     error.value = null;
 
     try {
-      const response = await messageService.getChannelMessages(channelId, offset, limit);
-
-      if (response && response.messages) {
-        messages.value = response.messages.map(msg => mapToMessageInstance(msg));
+      const response = await messageService.getChannelMessages(currentChannelId.value, offset, limit);
+      
+      if (response.data && response.data.messages) {
+        messages.value = response.data.messages.map(msg => mapToMessageInstance(msg));
 
         if (response.pagination) {
           pagination.value = {
@@ -241,6 +247,8 @@ export const useMessageStore = defineStore('message', () => {
     getError,
     getPagination,
     getMessageById,
+
+    setCurrentChannelId,
 
     fetchMessages,
     loadMoreMessages,

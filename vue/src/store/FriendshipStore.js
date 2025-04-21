@@ -1,10 +1,12 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import friendService from '../services/friendService';
+import { userdataStore } from './UserdataStore';
 import Friendship from '../classes/Friendship';
 import User from '../classes/User';
 
 export const useFriendshipStore = defineStore('friendship', () => {
+    const userdata = userdataStore();
     const friendships = ref([]);
     const isLoading = ref(false);
     const error = ref(null);
@@ -15,6 +17,13 @@ export const useFriendshipStore = defineStore('friendship', () => {
 
     const getPendingRequests = computed(() =>
         friendships.value.filter(friendship => friendship.getStatus() === 0)
+    );
+
+    const getIncomingRequests = computed(() =>
+        friendships.value.filter(friendship => friendship.getStatus() === 0 && friendship.getInitiator() == userdata.getUserID())
+    );
+    const getOutgoingRequests = computed(() =>
+        friendships.value.filter(friendship => friendship.getStatus() === 0 && friendship.getInitiator() != userdata.getUserID())
     );
 
     const getAcceptedFriendships = computed(() =>
@@ -47,7 +56,8 @@ export const useFriendshipStore = defineStore('friendship', () => {
             friendshipData.friendshipID,
             friendshipData.statusID,
             friendshipData.status,
-            targetUser
+            targetUser,
+            friendshipData.initiator
         );
     }
 
@@ -144,6 +154,8 @@ export const useFriendshipStore = defineStore('friendship', () => {
         getAcceptedFriendships,
         getFriendshipById,
         getFriendshipByUserId,
+        getIncomingRequests,
+        getOutgoingRequests,
 
         fetchFriendships,
         updateFriendshipStatus,

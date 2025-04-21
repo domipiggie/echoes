@@ -4,22 +4,18 @@ import Sidebar from './SideBar.vue';
 import ChatWindow from './ChatWindow.vue';
 import { userdataStore } from '../store/UserdataStore';
 import { useWebSocket } from '../composables/useWebSocket';
-import { chatService } from '../services/chatService';
-import { fileService } from '../services/fileService';
+import { useFriendshipStore } from '../store/FriendshipStore';
+import { useChannelStore } from '../store/ChannelStore';
+import { useMessageStore } from '../store/MessageStore';
 import { messageFormatter } from '../utils/messageFormatter';
 import { WS_CONFIG } from '../config/ws';
 
 const userStore = userdataStore();
+const friendshipStore = useFriendshipStore();
+const channelStore = useChannelStore();
+const messageStore = useMessageStore();
 const showChat = ref(false);
 const isMobile = ref(false);
-const recentChats = ref([]);
-const currentChat = ref({
-  id: 1,
-  name: 'Név',
-  online: true,
-  lastSeen: '2 perce'
-});
-const messages = ref([]);
 
 const processedFriendRequests = ref(new Set());
 
@@ -60,9 +56,11 @@ onMounted(async () => {
   window.addEventListener('resize', checkScreenSize);
   
   try {
-    const channelsData = await chatService.getChannels();
-    recentChats.value = channelsData.friendshipChannels;
-    console.log('Channels loaded:', recentChats.value);
+    await friendshipStore.fetchFriendships();
+    await channelStore.fetchAllChannels();
+
+    console.log('Channels loaded:', channelStore.getFriendChannels, channelStore.getFriendChannels);
+    console.log('Friendships loaded:', friendshipStore.getFriendships);
   } catch (error) {
     console.error('Failed to load channels:', error);
   }
@@ -76,24 +74,18 @@ const checkScreenSize = () => {
 };
 
 const handleChatSelect = async (chat) => {
-  currentChat.value = chat;
+  messageStore.setCurrentChannelId(chat.getChannelID());
   
-  currentChat.value.name = userStore.getUserID() == chat.user1.id 
+  var name = userStore.getUserID() == chat.user1.id 
     ? chat.user2.username 
     : chat.user1.username;
   
-  messages.value = [];
+  messageStore.setCurrentChannelName(name);
   
   try {
-    const messagesData = await chatService.getMessages(chat.channelID);
-    
-    if (messagesData && Array.isArray(messagesData.messages)) {
-      messages.value = messagesData.messages
-        .map(msg => messageFormatter.formatIncomingMessage(msg))
-        .reverse();
-    }
-    
-    console.log('Loaded messages:', messages.value);
+    await messageStore.fetchMessages();
+
+    console.log('Messages loaded:', messageStore.getMessages);
   } catch (error) {
     console.error('Error fetching messages:', error);
   }
@@ -190,18 +182,15 @@ const handleFileUpload = async (fileData) => {
   <div class="chat-application">
     <Sidebar 
       v-if="!isMobile || !showChat" 
-      :recents="recentChats" 
       @select-chat="handleChatSelect" 
     />
-    <ChatWindow
+    <!--<ChatWindow
       v-if="!isMobile || showChat"
-      :currentChat="currentChat"
-      :messages="messages"
       @send-message="sendMessage"
       @send-file="handleFileUpload"
       @go-back="goBackToList"
       @update-message="updateMessage"
-    />
+    />-->
   </div>
 </template>
 

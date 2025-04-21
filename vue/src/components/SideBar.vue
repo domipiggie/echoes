@@ -1,16 +1,15 @@
 <script setup>
-import { defineProps, defineEmits, ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { userdataStore } from '../store/UserdataStore';
+import { useChannelStore } from '../store/ChannelStore';
+import { useFriendshipStore } from '../store/FriendshipStore';
 import NewChatDialog from './NewChatDialog.vue';
 import friendService from '../services/friendService';
 
 const userStore = userdataStore();
-const props = defineProps({
-  recents: {
-    type: Array,
-    required: true
-  }
-});
+const channelStore = useChannelStore();
+const friendStore = useFriendshipStore();
+
 
 const emit = defineEmits(['select-chat']);
 
@@ -33,7 +32,7 @@ const toggleDarkMode = () => {
 // Kijelentkezés függvény
 const logout = () => {
   // Töröljük a felhasználói adatokat
-  userStore.clearUserData();
+  userStore.clearAuth();
   // Átirányítás a bejelentkezési oldalra
   window.location.href = '/login';
 };
@@ -48,8 +47,6 @@ onMounted(() => {
     darkMode.value = false;
     document.body.classList.remove('dark-mode');
   }
-  
-  loadFriendRequests();
   window.addEventListener('new-friend-request', handleNewFriendRequest);
 });
 
@@ -73,15 +70,6 @@ const handleChatCreated = (newChat) => {
   console.log('New chat created:', newChat);
 };
 
-const friendRequests = ref([
-  {
-    id: 1,
-    username: 'KovácsAnna',
-    avatar: null,
-    timestamp: new Date(Date.now() - 3600000 * 2) // 2 hours ago
-  }
-]);
-
 const formatTime = (date) => {
   const now = new Date();
   const diff = Math.floor((now - date) / 60000); // difference in minutes
@@ -92,14 +80,6 @@ const formatTime = (date) => {
     return `${Math.floor(diff / 60)} órája`;
   } else {
     return date.toLocaleDateString('hu-HU');
-  }
-};
-
-const loadFriendRequests = async () => {
-  try {
-    friendRequests.value = await friendService.getPendingFriendRequests();
-  } catch (error) {
-    console.error('Failed to load friend requests:', error);
   }
 };
 
@@ -126,15 +106,15 @@ const rejectFriendRequest = async (request) => {
 const handleNewFriendRequest = (event) => {
   const data = event.detail;
   console.log('New friend request received via WebSocket:', data);
-  
+
   if (!data) {
     console.error('Invalid friend request data received');
     return;
   }
-  
+
   const requestData = data.friendRequest || data;
   const initiator = requestData.initiator || {};
-  
+
   const formattedRequest = {
     id: requestData.friendshipID,
     friendID: initiator.userID,
@@ -143,12 +123,12 @@ const handleNewFriendRequest = (event) => {
     profilePicture: initiator.profilePicture,
     timestamp: new Date()
   };
-  
+
   console.log('Formatted friend request:', formattedRequest);
-  
+
   if (formattedRequest.id && formattedRequest.friendID && !friendRequests.value.some(r => r.id === formattedRequest.id)) {
     friendRequests.value.push(formattedRequest);
-    
+
     if (activeView.value !== 'requests') {
       console.log('New friend request received while on another tab');
     }
@@ -156,7 +136,6 @@ const handleNewFriendRequest = (event) => {
 };
 
 onMounted(() => {
-  loadFriendRequests();
   window.addEventListener('new-friend-request', handleNewFriendRequest);
 });
 
@@ -199,22 +178,14 @@ onUnmounted(() => {
 
     <!-- Új navigációs gombokok a képnek megfelelően -->
     <div class="main-tabs">
-      <button 
-        class="main-tab-button" 
-        :class="{ active: activeView === 'chats' }" 
-        @click="activeView = 'chats'"
-      >
+      <button class="main-tab-button" :class="{ active: activeView === 'chats' }" @click="activeView = 'chats'">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
         </svg>
         ÜZENETEK
       </button>
-      <button 
-        class="main-tab-button" 
-        :class="{ active: activeView === 'requests' }" 
-        @click="activeView = 'requests'"
-      >
+      <button class="main-tab-button" :class="{ active: activeView === 'requests' }" @click="activeView = 'requests'">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2">
           <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -228,36 +199,21 @@ onUnmounted(() => {
 
     <!-- Üzenetek altabfülek - csak akkor jelenik meg, ha az üzenetek aktívak -->
     <div v-if="activeView === 'chats'" class="chat-tabs">
-      <button 
-        class="chat-tab-button" 
-        :class="{ active: chatType === 'personal' }" 
-        @click="chatType = 'personal'"
-      >
+      <button class="chat-tab-button" :class="{ active: chatType === 'personal' }" @click="chatType = 'personal'">
         SZEMÉLYES
       </button>
-      <button 
-        class="chat-tab-button" 
-        :class="{ active: chatType === 'groups' }" 
-        @click="chatType = 'groups'"
-      >
+      <button class="chat-tab-button" :class="{ active: chatType === 'groups' }" @click="chatType = 'groups'">
         CSOPORTOK
       </button>
     </div>
 
     <!-- Barátkérelmek altabfülek - csak akkor jelenik meg, ha a barátkérelmek aktívak -->
     <div v-if="activeView === 'requests'" class="request-tabs">
-      <button 
-        class="request-tab-button" 
-        :class="{ active: requestType === 'incoming' }" 
-        @click="requestType = 'incoming'"
-      >
+      <button class="request-tab-button" :class="{ active: requestType === 'incoming' }"
+        @click="requestType = 'incoming'">
         BEJÖVŐ KÉRELMEK
       </button>
-      <button 
-        class="request-tab-button" 
-        :class="{ active: requestType === 'sent' }" 
-        @click="requestType = 'sent'"
-      >
+      <button class="request-tab-button" :class="{ active: requestType === 'sent' }" @click="requestType = 'sent'">
         ELKÜLDÖTT KÉRELMEK
       </button>
     </div>
@@ -266,36 +222,50 @@ onUnmounted(() => {
     <div v-if="activeView === 'chats'" class="chats-list">
       <!-- Személyes üzenetek -->
       <div v-if="chatType === 'personal'">
-        <div v-for="chat in recents" :key="chat.channelID" class="chat-item" @click="selectChat(chat)">
+        <div v-for="chat in channelStore.getFriendChannels" :key="chat.getChannelID()" class="chat-item"
+          @click="selectChat(chat)">
           <div class="avatar">
             <div class="avatar-circle"></div>
           </div>
           <div class="chat-info">
-            <div class="chat-name">{{ userStore.getUserID() == chat.user1.id ? chat.user2.username : chat.user1.username }}</div>
+            <div class="chat-name">{{ userStore.getUserID() == chat.getUser1().getUserID() ?
+              chat.getUser2().getUserName() : chat.getUser1().getUserName() }}</div>
             <div class="last-seen">{{ }}</div>
             <div class="last-message">{{ chat.lastMessage || 'Még nincs üzenet' }}</div>
           </div>
         </div>
       </div>
-    
-    <!-- Csoportos üzenetek -->
-    <div v-if="chatType === 'groups'" class="empty-state">
-      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="1">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-        <circle cx="9" cy="7" r="4"></circle>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-      </svg>
-      <p>Nincsenek csoportos beszélgetések</p>
+
+      <!-- Csoportos üzenetek -->
+      <div v-if="chatType === 'groups' && channelStore.getGroupChannels.length == 0" class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="1">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        <p>Nincsenek csoportos beszélgetések</p>
+      </div>
+      <div v-else-if="chatType === 'groups' && channelStore.getGroupChannels.length > 0">
+        <div v-for="chat in channelStore.getGroupChannels" :key="chat.getChannelID()" class="chat-item"
+          @click="selectChat(chat)">
+          <div class="avatar">
+            <div class="avatar-circle"></div>
+          </div>
+          <div class="chat-info">
+            <div class="chat-name">{{ chat.getUsers()[0].getUserName() }}</div>
+            <div class="last-message">{{ chat.lastMessage || 'Még nincs üzenet' }}</div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
 
     <!-- Barátkérelmek lista -->
     <div v-if="activeView === 'requests'" class="chats-list requests-content">
       <!-- Bejövő kérelmek -->
       <div v-if="requestType === 'incoming'">
-        <div v-if="friendRequests.length === 0" class="empty-state">
+        <div v-if="friendStore.getIncomingRequests.length === 0" class="empty-state">
           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="1">
             <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -308,16 +278,16 @@ onUnmounted(() => {
 
         <div v-else>
           <!-- Meglévő barátkérelmek listája -->
-          <div v-for="request in friendRequests" :key="request.id" class="friend-request-item">
+          <div v-for="request in friendStore.getIncomingRequests" :key="request.getFriendshipID()"
+            class="friend-request-item">
             <div class="avatar">
               <div class="avatar-circle">
                 <!-- Display first letter of username if no avatar -->
-                <span v-if="!request.avatar">{{ request.username.charAt(0) }}</span>
+                <span v-if="!request.avatar">{{ request.getTargetUser().getUserName().charAt(0) }}</span>
               </div>
             </div>
             <div class="request-info">
-              <div class="request-name">{{ request.username }}</div>
-              <div class="request-time">{{ formatTime(request.timestamp) }}</div>
+              <div class="request-name">{{ request.getTargetUser().getUserName() }}</div>
             </div>
             <div class="request-actions">
               <button class="accept-btn round accept" @click="acceptFriendRequest(request)">
@@ -340,7 +310,7 @@ onUnmounted(() => {
 
       <!-- Elküldött kérelmek -->
       <div v-if="requestType === 'sent'">
-        <div class="empty-state">
+        <div v-if="friendStore.getOutgoingRequests.length == 0" class="empty-state">
           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="1">
             <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -350,29 +320,54 @@ onUnmounted(() => {
           </svg>
           <p>Nincsenek elküldött barátkérelmek</p>
         </div>
+        <div v-else>
+          <!-- Meglévő barátkérelmek listája -->
+          <div v-for="request in friendStore.getOutgoingRequests" :key="request.getFriendshipID()" class="friend-request-item">
+            <div class="avatar">
+              <div class="avatar-circle">
+                <!-- Display first letter of username if no avatar -->
+                <span v-if="!request.avatar">{{ request.getTargetUser().getUserName().charAt(0) }}</span>
+              </div>
+            </div>
+            <div class="request-info">
+              <div class="request-name">{{ request.getTargetUser().getUserName() }}</div>
+            </div>
+            <div class="request-actions">
+              <button class="reject-btn round reject" @click="rejectFriendRequest(request)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="#f44336" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <!-- New Chat Dialog -->
     <NewChatDialog v-if="showNewChatDialog" @close="showNewChatDialog = false" @chat-created="handleChatCreated" />
-    
+
     <!-- Beállítások Modal -->
     <div v-if="showSettingsModal" class="settings-modal-overlay" @click="showSettingsModal = false">
       <div class="settings-modal" @click.stop>
         <div class="settings-header">
           <h2>Beállítások</h2>
           <button class="close-button" @click="showSettingsModal = false">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
           </button>
         </div>
-        
+
         <div class="settings-content">
           <!-- Dark Mode kapcsoló -->
           <div class="settings-item">
             <div class="settings-item-label">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
               </svg>
               <span>Sötét mód</span>
@@ -382,11 +377,12 @@ onUnmounted(() => {
               <span class="toggle-slider"></span>
             </label>
           </div>
-          
+
           <!-- Tárhely mutató -->
           <div class="settings-item">
             <div class="settings-item-label">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
                 <path d="M21 3H3v18h18V3z"></path>
                 <path d="M21 12H3"></path>
                 <path d="M12 3v18"></path>
@@ -400,11 +396,12 @@ onUnmounted(() => {
               <span>{{ storageUsed }} MB / 100 MB</span>
             </div>
           </div>
-          
+
           <!-- Kijelentkezés -->
           <div class="settings-item logout-item" @click="logout">
             <div class="settings-item-label">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                 <polyline points="16 17 21 12 16 7"></polyline>
                 <line x1="21" y1="12" x2="9" y2="12"></line>
@@ -422,6 +419,4 @@ onUnmounted(() => {
 @import '../styles/SideBar.scss';
 
 /* Új stílusok a képnek megfelelően */
-
-
 </style>

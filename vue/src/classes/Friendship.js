@@ -1,16 +1,18 @@
 export default class Friendship {
-    #friendshipID; #statusID; #status; #targetUser;
+    #friendshipID; #statusID; #status; #targetUser; #initiator;
 
-    constructor(friendshipID, statusID, status, targetUser) {
+    constructor(friendshipID, statusID, status, targetUser, initiator) {
         this.#setFriendshipID(friendshipID);
         this.#setStatusID(statusID);
         this.#setStatus(status);
         this.#setTargetUser(targetUser);
+        this.#setInitiator(initiator);
 
         this.getFriendshipID = this.getFriendshipID.bind(this);
         this.getStatusID = this.getStatusID.bind(this);
         this.getStatus = this.getStatus.bind(this);
         this.getTargetUser = this.getTargetUser.bind(this);
+        this.getInitiator = this.getInitiator.bind(this);
     }
 
     getFriendshipID() {
@@ -29,6 +31,10 @@ export default class Friendship {
         return this.#targetUser;
     }
 
+    getInitiator() {
+        return this.#initiator;
+    }
+
     #setFriendshipID(friendshipID) {
         this.#friendshipID = friendshipID;
     }
@@ -43,5 +49,9 @@ export default class Friendship {
 
     #setTargetUser(targetUser) {
         this.#targetUser = targetUser;
+    }
+
+    #setInitiator(initiator) {
+        this.#initiator = initiator;
     }
 }
