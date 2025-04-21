@@ -76,9 +76,9 @@ const checkScreenSize = () => {
 const handleChatSelect = async (chat) => {
   messageStore.setCurrentChannelId(chat.getChannelID());
   
-  var name = userStore.getUserID() == chat.user1.id 
-    ? chat.user2.username 
-    : chat.user1.username;
+  var name = userStore.getUserID() == chat.getUser1().getUserID() 
+    ? chat.getUser2().getUserName() 
+    : chat.getUser1().getUserName();
   
   messageStore.setCurrentChannelName(name);
   
@@ -184,13 +184,13 @@ const handleFileUpload = async (fileData) => {
       v-if="!isMobile || !showChat" 
       @select-chat="handleChatSelect" 
     />
-    <!--<ChatWindow
+    <ChatWindow
       v-if="!isMobile || showChat"
       @send-message="sendMessage"
       @send-file="handleFileUpload"
       @go-back="goBackToList"
       @update-message="updateMessage"
-    />-->
+    />
   </div>
 </template>
 

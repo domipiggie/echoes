@@ -7,7 +7,7 @@ import User from '../classes/User';
 export const useMessageStore = defineStore('message', () => {
   const messages = ref([]);
   const currentChannelId = ref(null);
-  const currentChannelName = ref(null);
+  const currentChannelName = ref("ccc");
   const isLoading = ref(false);
   const error = ref(null);
   const pagination = ref({
@@ -38,12 +38,14 @@ export const useMessageStore = defineStore('message', () => {
     let user = null;
     if (messageData.user) {
       user = new User(
-        messageData.user.id,
+        messageData.user.userID,
         messageData.user.username,
         messageData.user.displayName || '',
         messageData.user.profilePicture
       );
     }
+
+    console.log(messageData.user)
 
     return new Message(
       messageData.messageID,
@@ -243,12 +245,14 @@ export const useMessageStore = defineStore('message', () => {
   return {
     getMessages,
     getCurrentChannelId,
+    getCurrentChannelName,
     getIsLoading,
     getError,
     getPagination,
     getMessageById,
 
     setCurrentChannelId,
+    setCurrentChannelName,
 
     fetchMessages,
     loadMoreMessages,

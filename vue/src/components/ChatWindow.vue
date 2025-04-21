@@ -1,20 +1,13 @@
 <script setup>
-  import { defineProps, defineEmits, ref, watch, nextTick, onMounted } from 'vue';
+  import { ref, watch, nextTick, onMounted } from 'vue';
   import ChatProfile from './ChatProfile.vue';
   import GifPicker from './GifPicker.vue';
+  import { userdataStore } from '../store/UserdataStore';
+  import { useMessageStore } from '../store/MessageStore';
   
   const currentTheme = ref('messenger');
-  
-  const props = defineProps({
-    currentChat: {
-      type: Object,
-      required: true
-    },
-    messages: {
-      type: Array,
-      required: true
-    }
-  });
+  const userStore = userdataStore();
+  const messageStore = useMessageStore();
   
   const emit = defineEmits(['send-message', 'go-back', 'update-message', 'send-file']);
   
@@ -134,7 +127,7 @@
     }
   };
   
-  watch(() => props.messages.length, scrollToBottom);
+  watch(() => messageStore.getMessages, scrollToBottom);
   
   const toggleGifPicker = (event) => {
     event.stopPropagation();
@@ -251,11 +244,11 @@
           </button>
           <div class="avatar">
             <div class="avatar-circle">
-              <span>{{ currentChat.name.charAt(0) }}</span>
+              <span>{{ messageStore.getCurrentChannelName.charAt(0) }}</span>
             </div>
           </div>
           <div class="user-details">
-            <div class="user-name">{{ currentChat.name }}</div>
+            <div class="user-name">{{ messageStore.getCurrentChannelName }}</div>
             <div class="user-status">Online</div>
           </div>
         </div>
@@ -276,42 +269,42 @@
       <!-- Discord üzenetek esetén -->
       <template v-if="currentTheme === 'discord'">
         <div 
-          v-for="(message, index) in messages" 
-          :key="message.id" 
+          v-for="(message, index) in messageStore.getMessages" 
+          :key="message.getMessageID()" 
           class="message discord-style"
           :class="[
-            message.sender === 'me' ? 'message-sent' : 'message-received',
+            message.getUser().getUserID() == userStore.getUserID() ? 'message-sent' : 'message-received',
             {
-              'first-message': index === 0 || messages[index - 1]?.sender !== message.sender
+              'first-message': index === 0 || messageStore.getMessages[index - 1]?.getUser().getUserID() !== message.getUser().getUserID()
             }
           ]"
         >
           <div class="discord-message-container">
-            <div v-if="index === 0 || messages[index - 1]?.sender !== message.sender" class="discord-avatar">
+            <div v-if="index === 0 || messageStore.getMessages[index - 1]?.getUser().getUserID() !== message.getUser().getUserID()" class="discord-avatar">
               <div class="avatar-circle">
-                <span>{{ message.sender === 'me' ? 'Y' : currentChat.name.charAt(0) }}</span>
+                <span>{{ message.getUser().getUserID() == userStore.getUserID() ? 'Y' : messageStore.getCurrentChannelName.charAt(0) }}</span>
               </div>
             </div>
             <div v-else class="discord-avatar-placeholder"></div>
             
             <div class="discord-message-content">
-              <div v-if="index === 0 || messages[index - 1]?.sender !== message.sender" class="discord-username">
-                {{ message.sender === 'me' ? 'You' : currentChat.name }}
+              <div v-if="index === 0 || messageStore.getMessages[index - 1]?.getUser().getUserID() !== message.getUser().getUserID()" class="discord-username">
+                {{ message.getUser().getUserID() == userStore.getUserID() ? 'You' : messageStore.getCurrentChannelName.charAt(0) }}
               </div>
               
               <div class="discord-message-wrapper">
                 <div class="message-bubble discord-bubble">
                   <!-- Kép és GIF kezelés -->
-                  <img v-if="message.type === 'gif' || message.type === 'image'" 
-                       :src="message.text" 
+                  <img v-if="message.getType() === 'gif' || message.getType() === 'image'" 
+                       :src="message.getContent()" 
                        class="message-gif"
                        @load="console.log('Image loaded successfully:', message.fileName)"
                        @error="(e) => console.error('Image load error:', message.fileName, e)" />
                   
                   <!-- Javított videó kezelés -->
-                  <div v-else-if="message.type === 'video'" class="video-container">
+                  <div v-else-if="message.getType() === 'video'" class="video-container">
                     <video 
-                      :src="message.text" 
+                      :src="message.getContent()" 
                       class="message-video" 
                       controls
                       @click.stop
@@ -319,14 +312,14 @@
                       preload="metadata"
                     ></video>
                     <div class="video-options">
-                      <button @click.stop="toggleVideoOptions(message.id)" class="video-options-button">
+                      <button @click.stop="toggleVideoOptions(message.getMessageID())" class="video-options-button">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <circle cx="12" cy="12" r="1"></circle>
                           <circle cx="12" cy="5" r="1"></circle>
                           <circle cx="12" cy="19" r="1"></circle>
                         </svg>
                       </button>
-                      <div v-if="showVideoOptions[message.id]" class="video-options-menu">
+                      <div v-if="showVideoOptions[message.getMessageID()]" class="video-options-menu">
                         <div class="video-option-item" @click.stop="toggleFullscreen($event.target.closest('.video-container').querySelector('video'))">
                           Teljes képernyő
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -338,16 +331,16 @@
                   </div>
                   
                   <!-- Szöveges üzenetek -->
-                  <span v-else-if="message.type !== 'audio' && message.type !== 'file'" 
+                  <span v-else-if="message.getType() !== 'audio' && message.getType() !== 'file'" 
                         :class="{ 'revoked-message': message.isRevoked }">
-                      {{ message.text }}
+                      {{ message.getContent() }}
                     </span>
                   
                   <!-- Hover action tálca közvetlenül a buborékon belül -->
                   <!-- Discord hover actions módosítása -->
                   <div class="discord-hover-actions">
                     <!-- Ceruza ikon a három pont helyett, csak saját üzeneteknél -->
-                    <button v-if="message.sender === 'me' && !message.isRevoked" class="hover-action-btn" @click="startEditing(message)">
+                    <button v-if="message.getUser().getUserID() == userStore.getUserID() && !message.isRevoked" class="hover-action-btn" @click="startEditing(message)">
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -358,7 +351,7 @@
                         <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
                       </svg>
                     </button>
-                    <button class="hover-action-btn" @click="deleteMessage(message.id)">
+                    <button class="hover-action-btn" @click="deleteMessage(message.getMessageID())">
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <polyline points="3 6 5 6 21 6"/>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -375,13 +368,13 @@
       <!-- Regular message layout for other themes -->
       <template v-else>
         <div 
-          v-for="(message, index) in messages" 
-          :key="message.id" 
+          v-for="(message, index) in messageStore.getMessages" 
+          :key="message.getMessageID()" 
           :class="[
             'message', 
-            message.sender === 'me' ? 'message-sent' : 'message-received',
+            message.getUser().getUserID() == userStore.getUserID() ? 'message-sent' : 'message-received',
             {
-              'first-message': index === 0 || messages[index - 1]?.sender !== message.sender
+              'first-message': index === 0 || messageStore.getMessages[index - 1]?.getUser().getUserID() !== message.getUser().getUserID()
             }
           ]"
         >
@@ -389,7 +382,7 @@
           <!-- Normál üzenetek hover actions módosítása -->
           <div class="message-hover-actions">
             <!-- Három pont gomb csak akkor, ha nem a saját üzenetünk -->
-            <button v-if="message.sender !== 'me'" class="hover-action-btn">
+            <button v-if="message.getUser().getUserID() != userStore.getUserID()" class="hover-action-btn">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <circle cx="12" cy="12" r="1"></circle>
                 <circle cx="19" cy="12" r="1"></circle>
@@ -397,7 +390,7 @@
               </svg>
             </button>
             <!-- Ceruza ikon csak a saját üzeneteknél -->
-            <button v-if="message.sender === 'me' && !message.isRevoked" class="hover-action-btn" @click="startEditing(message)">
+            <button v-if="message.getUser().getUserID() == userStore.getUserID() && !message.isRevoked" class="hover-action-btn" @click="startEditing(message)">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -408,7 +401,7 @@
                 <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
               </svg>
             </button>
-            <button class="hover-action-btn" @click="deleteMessage(message.id)">
+            <button class="hover-action-btn" @click="deleteMessage(message.getMessageID())">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <polyline points="3 6 5 6 21 6"/>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -416,9 +409,9 @@
             </button>
           </div>
           
-          <div v-if="index === 0 || messages[index - 1]?.sender !== message.sender" class="message-avatar">
+          <div v-if="index === 0 || messageStore.getMessages[index - 1]?.getUser().getUserID() !== message.getUser().getUserID()" class="message-avatar">
             <div class="avatar-circle">
-              <span>{{ currentChat.name.charAt(0) }}</span>
+              <span>{{ messageStore.getCurrentChannelName.charAt(0) }}</span>
             </div>
           </div>
           <div class="message-bubble" :class="{ 'has-reply': message.replyTo }">
@@ -429,18 +422,18 @@
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="reply-icon">
                     <path d="M7 17l-4-4 4-4"/>
                   </svg>
-                  {{ message.replyToSender === 'me' ? 'Saját üzeneted' : currentChat.name }}
+                  {{ message.replyToSender === 'me' ? 'Saját üzeneted' : messageStore.getCurrentChannelName }}
                 </div>
                 <div class="reply-indicator-text">{{ message.replyToText }}</div>
               </div>
             </div>
             
             <!-- Üzenet tartalma -->
-            <img v-if="message.type === 'image'" :src="message.text" class="message-image" />
-            <img v-else-if="message.type === 'gif'" :src="message.text" class="message-gif" />
-            <div v-else-if="message.type === 'video'" class="video-container">
+            <img v-if="message.getType() === 'image'" :src="message.getContent()" class="message-image" />
+            <img v-else-if="message.getType() === 'gif'" :src="message.getContent()" class="message-gif" />
+            <div v-else-if="message.getType() === 'video'" class="video-container">
               <video 
-                :src="message.text" 
+                :src="message.getContent()" 
                 class="message-video" 
                 controls
                 @click.stop
@@ -448,14 +441,14 @@
                 preload="metadata"
               ></video>
               <div class="video-options">
-                <button @click.stop="toggleVideoOptions(message.id)" class="video-options-button">
+                <button @click.stop="toggleVideoOptions(message.getMessageID())" class="video-options-button">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="1"></circle>
                     <circle cx="12" cy="5" r="1"></circle>
                     <circle cx="12" cy="19" r="1"></circle>
                   </svg>
                 </button>
-                <div v-if="showVideoOptions[message.id]" class="video-options-menu">
+                <div v-if="showVideoOptions[message.getMessageID()]" class="video-options-menu">
                   <div class="video-option-item" @click.stop="toggleFullscreen($event.target.closest('.video-container').querySelector('video'))">
                     Teljes képernyő
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -466,9 +459,9 @@
               </div>
             </div>
             <!-- Normál üzeneteknél is frissítsük a visszavont üzenet megjelenítését -->
-            <span v-else-if="message.type !== 'audio' && message.type !== 'file'" 
+            <span v-else-if="message.getType() !== 'audio' && message.getType() !== 'file'" 
                   :class="{ 'revoked-message': message.isRevoked }">
-                {{ message.text }}
+                {{ message.getContent() }}
             </span>
           </div>
         </div>
@@ -485,7 +478,7 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="reply-icon">
                 <path d="M7 17l-4-4 4-4"/>
               </svg>
-              Válasz {{ replyingTo.sender === 'me' ? 'saját üzenetedre' : currentChat.name + ' üzenetére' }}
+              Válasz {{ replyingTo.sender === 'me' ? 'saját üzenetedre' : messageStore.getCurrentChannelName + ' üzenetére' }}
             </div>
           </div>
           <div class="reply-box-text">{{ replyingTo.text }}</div>
