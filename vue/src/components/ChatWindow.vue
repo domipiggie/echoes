@@ -5,7 +5,6 @@
   import { userdataStore } from '../store/UserdataStore';
   import { useMessageStore } from '../store/MessageStore';
   
-  const currentTheme = ref('messenger');
   const userStore = userdataStore();
   const messageStore = useMessageStore();
   
@@ -99,18 +98,7 @@
     }
   };
   
-  const handleThemeChange = (theme) => {
-    console.log('Theme changed to:', theme);
-    currentTheme.value = theme;
-    localStorage.setItem('chatTheme', theme);
-  };
-  
   onMounted(() => {
-    const savedTheme = localStorage.getItem('chatTheme');
-    if (savedTheme) {
-      currentTheme.value = savedTheme;
-    }
-    
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     scrollToBottom();
@@ -229,7 +217,7 @@
 </script>
 
 <template>
-  <div class="chat-window container-fluid p-0" :class="currentTheme">
+  <div class="chat-window container-fluid p-0" :class="userStore.getCurrentTheme()">
     <div class="chat-header row m-0 align-items-center">
       <div class="col d-flex align-items-center">
         <div class="user-info">
@@ -267,7 +255,7 @@
     <div class="messages-container" ref="messagesContainer">
       <!-- A template részben javítsuk a Discord-specifikus részt -->
       <!-- Discord üzenetek esetén -->
-      <template v-if="currentTheme === 'discord'">
+      <template v-if="userStore.getCurrentTheme() === 'discord'">
         <div 
           v-for="(message, index) in messageStore.getMessages" 
           :key="message.getMessageID()" 
@@ -567,11 +555,7 @@
     </div>
     
     <ChatProfile
-      v-if="showProfile" 
-      :currentChat="currentChat" 
-      :messages="messages"  
-      :currentTheme="currentTheme"
-      @change-theme="handleThemeChange"
+      v-if="showProfile"
       class="chat-profile-sidebar"
       @update:showProfile="showProfile = $event"
     />

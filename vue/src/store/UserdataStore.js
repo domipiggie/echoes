@@ -5,6 +5,7 @@ export const userdataStore = defineStore("userdata", () => {
     const accessToken = ref($cookies.get('accessToken') || "");
     const userID = ref($cookies.get('userID') || "");
     const refreshToken = ref($cookies.get('refreshToken') || "");
+    const currentTheme = ref(localStorage.getItem('chatTheme') || "messenger")
 
     function setAccessToken(token) {
         accessToken.value = token;
@@ -29,6 +30,15 @@ export const userdataStore = defineStore("userdata", () => {
         $cookies.set('refreshToken', token);
     }
 
+    function getCurrentTheme() {
+        return currentTheme.value;
+    }
+
+    const handleThemeChange = (theme) => {
+        currentTheme.value = theme;
+        localStorage.setItem('chatTheme', theme);
+      };
+
     function getRefreshToken() {
         return refreshToken.value; 
     }
@@ -42,5 +52,5 @@ export const userdataStore = defineStore("userdata", () => {
         $cookies.remove('refreshToken');
     }
 
-    return { setAccessToken, getAccessToken, setUserID, getUserID, setRefreshToken, getRefreshToken, clearAuth };
+    return { setAccessToken, getAccessToken, setUserID, getUserID, handleThemeChange, getCurrentTheme, setRefreshToken, getRefreshToken, clearAuth };
 });

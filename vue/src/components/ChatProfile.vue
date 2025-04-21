@@ -1,33 +1,16 @@
 <script setup>
-import { ref, defineProps, defineEmits, watch, computed } from 'vue';
+import { ref, computed } from 'vue';
 // Hiányzó AppearanceSelector komponens importja
 import AppearanceSelector from './AppearanceSelector.vue';
-
-const props = defineProps({
-  currentChat: {
-    type: Object,
-    required: true
-  },
-  messages: {
-    type: Array,
-    required: true
-  },
-  // Adjuk hozzá a currentTheme prop-ot
-  currentTheme: {
-    type: String,
-    default: 'messenger'
-  }
-});
+import { useMessageStore } from '../store/MessageStore';
+import { userdataStore } from '../store/UserdataStore';
 
 const emit = defineEmits(['change-theme', 'update:showProfile']);
 
+const messageStore = useMessageStore();
+const userStore = userdataStore();
 const activeTab = ref('appearance'); // Alapértelmezetten a megjelenés fül legyen aktív
 const showAppearanceSelector = ref(false); // Hiányzó ref
-
-// Téma váltás kezelése
-const changeTheme = (theme) => {
-  emit('change-theme', theme);
-};
 
 // Hiányzó closeProfile metódus
 const closeProfile = () => {
@@ -36,7 +19,6 @@ const closeProfile = () => {
 
 // Hiányzó handleThemeSelect metódus
 const handleThemeSelect = (theme) => {
-  changeTheme(theme);
   showAppearanceSelector.value = false;
 };
 
@@ -58,11 +40,7 @@ const getVideoThumbnail = (videoUrl) => {
 
 // Update mediaMessages computed property
 const mediaMessages = computed(() => {
-  if (!props.messages || !Array.isArray(props.messages)) {
-    return [];
-  }
-
-  return props.messages
+  return messageStore.getMessages
     .filter(msg => {
       return msg && msg.type && (
         msg.type === 'image' ||
@@ -93,8 +71,8 @@ const mediaMessagesData = computed(() => {
         <div class="profile-image">
           <img src="" alt="" />
         </div>
-        <h2>{{ currentChat.name }}</h2>
-        <div class="last-seen">Elérhető volt: {{ currentChat.lastSeen }}</div>
+        <h2>{{ messageStore.getCurrentChannelName }}</h2>
+        <div class="last-seen">Elérhető volt: {{  }}soha</div>
       </div>
 
       <div class="profile-section">
@@ -153,7 +131,7 @@ const mediaMessagesData = computed(() => {
     </div>
 
     <AppearanceSelector v-if="showAppearanceSelector" @close="showAppearanceSelector = false"
-      @select="handleThemeSelect" />
+      @select="userStore.handleThemeChange" />
   </div>
 </template>
 
