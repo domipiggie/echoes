@@ -418,5 +418,154 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 @import '../styles/SideBar.scss';
 
-/* Új stílusok a képnek megfelelően */
+/* Új stílusok a beállítások modalhoz */
+.settings-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.settings-modal {
+  background-color: white;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(112, 120, 230, 0.1);
+}
+
+.settings-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #484a6a;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #7078e6;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-button:hover {
+  background-color: rgba(112, 120, 230, 0.1);
+}
+
+.settings-content {
+  padding: 20px;
+}
+
+.settings-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(112, 120, 230, 0.1);
+}
+
+.settings-item:last-child {
+  border-bottom: none;
+}
+
+.settings-item-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #484a6a;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 22px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: #7078e6;
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(22px);
+}
+
+.storage-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.storage-bar {
+  width: 100px;
+  height: 8px;
+  background-color: #f0f2ff;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.storage-used {
+  height: 100%;
+  background-color: #7078e6;
+  border-radius: 4px;
+}
+
+.logout-item {
+  cursor: pointer;
+  color: #f44336;
+}
+
+.logout-item:hover {
+  background-color: rgba(244, 67, 54, 0.05);
+}
 </style>

@@ -5,15 +5,16 @@ import AppearanceSelector from './AppearanceSelector.vue';
 import { useMessageStore } from '../store/MessageStore';
 import { userdataStore } from '../store/UserdataStore';
 
-const emit = defineEmits(['change-theme', 'update:showProfile']);
+const emit = defineEmits(['close', 'update:showProfile']);
 
 const messageStore = useMessageStore();
 const userStore = userdataStore();
 const activeTab = ref('appearance'); // Alapértelmezetten a megjelenés fül legyen aktív
 const showAppearanceSelector = ref(false); // Hiányzó ref
 
-// Hiányzó closeProfile metódus
+// Javított closeProfile metódus
 const closeProfile = () => {
+  emit('close');
   emit('update:showProfile', false);
 };
 

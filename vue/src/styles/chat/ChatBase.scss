@@ -1,0 +1,30 @@
+// Alap konténer stílusok
+.chat-window {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #f8fafc;
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  color: #333;
+  box-shadow: 0 4px 20px rgba(112, 120, 230, 0.15);
+  height: 100%;
+  width: calc(100% - 400px);
+  margin-left: auto;
+  
+  &.with-profile {
+    .messages-container, .input-area {
+      width: calc(100% - 300px);
+    }
+  }
+}
+
+// Sötét mód
+.dark-mode {
+  .chat-window {
+    background-color: #1e1e2d;
+    color: #e0e0e0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+}

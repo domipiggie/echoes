@@ -1,0 +1,16 @@
+// Fő importáló fájl a chat stílusokhoz
+
+// Alap stílusok
+@import './ChatBase.scss';
+@import './ChatHeader.scss';
+@import './Avatar.scss';
+@import './MessageList.scss';
+@import './MessageInput.scss';
+
+// Üzenet stílusok
+@import './messages/MessageBase.scss';
+@import './messages/MessageActions.scss';
+@import './messages/MediaElements.scss';
+
+// Témák
+@import './themes/DiscordTheme.scss';

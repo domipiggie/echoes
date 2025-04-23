@@ -1,0 +1,32 @@
+// Üzenetek konténer
+.messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 130px);
+  max-height: calc(100% - 130px);
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #fff;
+  scrollbar-width: thin;
+  scrollbar-color: #7078e6 #f0f0f0;
+  
+  &.with-reply {
+    height: calc(100% - 180px);
+    max-height: calc(100% - 180px);
+  }
+}
+
+.chat-window.discord .messages-container {
+  padding: 16px;
+}
+
+// Sötét mód
+.dark-mode {
+  .messages-container {
+    background-color: #1e1e2d;
+    scrollbar-color: #a0a0ff #2d2d3a;
+  }
+}

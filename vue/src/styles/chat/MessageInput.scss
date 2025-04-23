@@ -1,0 +1,184 @@
+// Beviteli terület
+.input-area {
+  padding: 16px 10px;
+  background-color: #fff;
+  border-top: 1px solid rgba(112, 120, 230, 0.1);
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  box-sizing: border-box;
+  bottom: 0;
+  left: 0;
+}
+
+.modern-message-box {
+  display: flex;
+  align-items: center;
+  background-color: #f5f5f5;
+  border-radius: 24px;
+  padding: 10px 16px;
+  width: calc(100% - 20px);
+  margin: 0 auto;
+  box-sizing: border-box;
+  
+  input {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 8px 0;
+    font-size: 14px;
+    color: #2d3748;
+    background: transparent;
+    
+    &::placeholder {
+      color: #a0aec0;
+    }
+  }
+}
+
+.left-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-right: 12px;
+  margin-left: 4px;
+}
+
+.message-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-right: 8px;
+}
+
+.action-button {
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s ease;
+  background-color: #7078e6;
+  color: #fff;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  
+  &:hover {
+    background-color: #5a61d2;
+    transform: translateY(-1px);
+  }
+}
+
+.attachment-button, .gif-button, .send-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #7078e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s ease;
+  
+  &:hover {
+    color: #5a61d2;
+    transform: translateY(-1px);
+  }
+}
+
+// Válasz doboz
+.reply-box, .edit-box {
+  background-color: #f0f2ff;
+  border-radius: 12px;
+  padding: 10px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.reply-box-content, .edit-box-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.reply-info, .edit-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.reply-to, .edit-label {
+  font-size: 12px;
+  color: #7078e6;
+  font-weight: 500;
+}
+
+.reply-text {
+  font-size: 14px;
+  color: #484a6a;
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cancel-reply-btn, .cancel-edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #a0aec0;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s ease;
+  
+  &:hover {
+    color: #7078e6;
+    background-color: rgba(112, 120, 230, 0.1);
+  }
+}
+
+// Sötét mód
+.dark-mode {
+  .input-area {
+    background-color: #2d2d3a;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .modern-message-box {
+    background-color: #3d3d4a;
+    
+    input {
+      color: #e0e0e0;
+      
+      &::placeholder {
+        color: #a0aec0;
+      }
+    }
+  }
+  
+  .attachment-button, .gif-button, .send-button {
+    color: #a0a0ff;
+    
+    &:hover {
+      color: #c0c0ff;
+    }
+  }
+  
+  .reply-box, .edit-box {
+    background-color: #3d3d4a;
+  }
+  
+  .reply-to, .edit-label {
+    color: #a0a0ff;
+  }
+  
+  .reply-text {
+    color: #e0e0e0;
+  }
+}
