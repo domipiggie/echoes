@@ -45,8 +45,6 @@ export const useMessageStore = defineStore('message', () => {
       );
     }
 
-    console.log(messageData.user)
-
     return new Message(
       messageData.messageID,
       messageData.channelID,
@@ -118,28 +116,6 @@ export const useMessageStore = defineStore('message', () => {
     }
   }
 
-  async function sendMessage(content, type = 'text') {
-    if (!currentChannelId.value) {
-      error.value = 'No channel selected';
-      return null;
-    }
-
-    try {
-      const response = await messageService.sendMessage(currentChannelId.value, content, type);
-
-      if (response) {
-        const newMessage = mapToMessageInstance(response);
-        messages.value.unshift(newMessage);
-        return newMessage;
-      }
-      return null;
-    } catch (err) {
-      error.value = err.message || 'Failed to send message';
-      console.error('Error sending message:', err);
-      return null;
-    }
-  }
-
   async function updateMessage(messageId, newContent) {
     try {
       const response = await messageService.editMessage(messageId, newContent);
@@ -172,36 +148,8 @@ export const useMessageStore = defineStore('message', () => {
     }
   }
 
-  async function removeMessage(messageId) {
-    try {
-      const response = await messageService.deleteMessage(messageId);
-
-      if (response) {
-        messages.value = messages.value.filter(msg => msg.getMessageID() !== messageId);
-        return true;
-      }
-      return false;
-    } catch (err) {
-      error.value = err.message || 'Failed to delete message';
-      console.error('Error deleting message:', err);
-      return false;
-    }
-  }
-
-  function addWebSocketMessage(messageData) {
-    if (messageData.channelId !== currentChannelId.value) return;
-
-    const newMessage = mapToMessageInstance({
-      messageID: messageData.messageId,
-      channelID: messageData.channelId,
-      content: messageData.content,
-      type: messageData.messageType || 'text',
-      sent_at: new Date().toISOString(),
-      user: messageData.sender
-    });
-
-    messages.value.unshift(newMessage);
-    return newMessage;
+  function addMessage(message) {
+    messages.value.push(message);
   }
 
   function updateWebSocketMessage(messageId, newContent) {
@@ -227,7 +175,7 @@ export const useMessageStore = defineStore('message', () => {
     return null;
   }
 
-  function removeWebSocketMessage(messageId) {
+  function removeMessage(messageId) {
     messages.value = messages.value.filter(msg => msg.getMessageID() !== messageId);
   }
 
@@ -256,12 +204,10 @@ export const useMessageStore = defineStore('message', () => {
 
     fetchMessages,
     loadMoreMessages,
-    sendMessage,
     updateMessage,
     removeMessage,
-    addWebSocketMessage,
+    addMessage,
     updateWebSocketMessage,
-    removeWebSocketMessage,
     clearMessages
   };
 });

@@ -10,7 +10,7 @@
   const userStore = userdataStore();
   const messageStore = useMessageStore();
   
-  const emit = defineEmits(['send-message', 'go-back', 'update-message', 'send-file']);
+  const emit = defineEmits(['send-message', 'go-back', 'update-message', 'send-file', 'delete-message']);
   
   const messagesContainer = ref(null);
   const isMobile = ref(false);
@@ -97,16 +97,7 @@
   
   const deleteMessage = (messageId) => {
     if (confirm("Biztos vissza akarja vonni ezt az üzenetet?")) {
-      const messageIndex = messageStore.getMessages.findIndex(msg => msg.getMessageID() === messageId);
-      if (messageIndex !== -1) {
-        const message = messageStore.getMessages[messageIndex];
-        message.setContent("visszavont üzenet");
-        message.isRevoked = true;
-        
-        emit('update-message', message);
-        
-        console.log('Üzenet visszavonva:', message);
-      }
+      emit('delete-message', messageId);
     }
   };
   
