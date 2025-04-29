@@ -3,13 +3,14 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { userdataStore } from '../store/UserdataStore';
 import { useChannelStore } from '../store/ChannelStore';
 import { useFriendshipStore } from '../store/FriendshipStore';
+import { useWebSocketStore } from '../store/WebSocketStore';
 import NewChatDialog from './NewChatDialog.vue';
 import friendService from '../services/friendService';
 
 const userStore = userdataStore();
 const channelStore = useChannelStore();
 const friendStore = useFriendshipStore();
-
+const webSocketStore = useWebSocketStore();
 
 const emit = defineEmits(['select-chat']);
 
@@ -85,9 +86,13 @@ const formatTime = (date) => {
 
 const acceptFriendRequest = async (request) => {
   try {
-    await friendService.acceptFriendRequest(request.friendID);
-    console.log('Friend request accepted:', request);
-    friendRequests.value = friendRequests.value.filter(r => r.id !== request.id);
+    if (webSocketStore.getIsConnected) {
+      console.log(request.getFriendshipID())
+      webSocketStore.send({
+        type: 'friend_accept',
+        recipient_id: request.getInitiator()
+      });
+    }
   } catch (error) {
     console.error('Failed to accept friend request:', error);
   }

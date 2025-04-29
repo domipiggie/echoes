@@ -20,10 +20,10 @@ export const useFriendshipStore = defineStore('friendship', () => {
     );
 
     const getIncomingRequests = computed(() =>
-        friendships.value.filter(friendship => friendship.getStatus() === 0 && friendship.getInitiator() == userdata.getUserID())
+        friendships.value.filter(friendship => friendship.getStatus() === 0 && friendship.getInitiator() != userdata.getUserID())
     );
     const getOutgoingRequests = computed(() =>
-        friendships.value.filter(friendship => friendship.getStatus() === 0 && friendship.getInitiator() != userdata.getUserID())
+        friendships.value.filter(friendship => friendship.getStatus() === 0 && friendship.getInitiator() == userdata.getUserID())
     );
 
     const getAcceptedFriendships = computed(() =>
@@ -101,26 +101,6 @@ export const useFriendshipStore = defineStore('friendship', () => {
         }
     }
 
-    function addWebSocketFriendRequest(friendRequestData) {
-        const targetUser = new User(
-            friendRequestData.sender.id,
-            friendRequestData.sender.username,
-            friendRequestData.sender.displayName || '',
-            friendRequestData.sender.profilePicture
-        );
-
-        const newFriendship = new Friendship(
-            friendRequestData.friendshipId,
-            null,
-            0,
-            targetUser
-        );
-
-        if (!friendships.value.some(f => f.getFriendshipID() === friendRequestData.friendshipId)) {
-            friendships.value.push(newFriendship);
-        }
-    }
-
     function updateWebSocketFriendshipStatus(friendshipId, newStatus) {
         const friendshipIndex = friendships.value.findIndex(
             friendship => friendship.getFriendshipID() === friendshipId
@@ -159,7 +139,6 @@ export const useFriendshipStore = defineStore('friendship', () => {
 
         fetchFriendships,
         updateFriendshipStatus,
-        addWebSocketFriendRequest,
         updateWebSocketFriendshipStatus,
         clearFriendships
     };

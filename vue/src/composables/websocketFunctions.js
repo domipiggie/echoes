@@ -32,4 +32,16 @@ const handleDeleteMessage = (data) => {
     }
 }
 
-export { handleNewMessage, handleDeleteMessage };
+const handleOnFriendAdded = (data) => {
+    if (isSuccess(data)) {
+        friendshipStore = useFriendshipStore();
+        friendshipStore.clearFriendships();
+        friendshipStore.fetchFriendships();
+    }
+}
+
+const isSuccess = (data) => {
+    return data.status === "success";
+}
+
+export { handleNewMessage, handleDeleteMessage, isSuccess, handleOnFriendAdded };

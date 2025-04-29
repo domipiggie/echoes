@@ -63,7 +63,9 @@ export const useMessageStore = defineStore('message', () => {
       const response = await messageService.getChannelMessages(currentChannelId.value, offset, limit);
       
       if (response.data && response.data.messages) {
-        messages.value = response.data.messages.map(msg => mapToMessageInstance(msg));
+        // Reverse the messages array to display newest messages at the bottom
+        const reversedMessages = [...response.data.messages].reverse();
+        messages.value = reversedMessages.map(msg => mapToMessageInstance(msg));
 
         if (response.pagination) {
           pagination.value = {

@@ -7,9 +7,8 @@ import { useFriendshipStore } from '../store/FriendshipStore';
 import { useChannelStore } from '../store/ChannelStore';
 import { useMessageStore } from '../store/MessageStore';
 import { useWebSocketStore } from '../store/WebSocketStore';
-import { messageFormatter } from '../utils/messageFormatter';
 
-import { handleNewMessage, handleDeleteMessage } from '../composables/websocketFunctions.js';
+import { handleNewMessage, handleDeleteMessage, handleOnFriendAdded } from '../composables/websocketFunctions.js';
 
 const userStore = userdataStore();
 const friendshipStore = useFriendshipStore();
@@ -35,6 +34,7 @@ onMounted(async () => {
 
       webSocketStore.registerHandler('new_message', handleNewMessage);
       webSocketStore.registerHandler('message_deleted', handleDeleteMessage);
+      webSocketStore.registerHandler('friend_add', handleOnFriendAdded);
     }
   } catch (error) {
     console.error('Failed to load channels:', error);

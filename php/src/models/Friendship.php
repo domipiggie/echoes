@@ -31,7 +31,8 @@ class Friendship
 
             $result = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
 
-
+            echo json_encode($result);
+            echo $this->user2ID;
             if (count($result) > 0) {
                 if (!isset($this->friendshipStatus)) {
                     $this->friendshipStatus = new FriendshipStatus($this->dbConn);
