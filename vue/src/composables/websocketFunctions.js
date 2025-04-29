@@ -34,7 +34,7 @@ const handleDeleteMessage = (data) => {
 
 const handleOnFriendAdded = (data) => {
     if (isSuccess(data)) {
-        friendshipStore = useFriendshipStore();
+        var friendshipStore = useFriendshipStore();
         friendshipStore.clearFriendships();
         friendshipStore.fetchFriendships();
     }

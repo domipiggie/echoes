@@ -96,6 +96,35 @@ class FriendshipStatus
         }
     }
 
+    public function updateInitiator($newInitiator)
+    {
+        try {
+            $sql = "UPDATE " . $this->status_table . "
+                    SET
+                        initiator = :newInitiator
+                    WHERE
+                        statusID = :statusID";
+
+            $args = [
+                [':newInitiator', $newInitiator],
+                [':statusID', $this->statusID]
+            ];
+
+            $result = DatabaseOperations::updateDB($this->dbConn, $sql, $args);
+
+            if ($result === true || (is_numeric($result) && $result > 0)) {
+                $this->initiator = $newInitiator;
+                return true;
+            }
+            return false;
+            throw new ApiException('Updating friendship initiator yielded no result', 500);
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to update friendship initiator ' . $e->getMessage(), 500);
+        }
+    }
+    
     //getters
     public function getStatusID()
     {

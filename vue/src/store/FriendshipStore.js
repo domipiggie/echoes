@@ -70,6 +70,7 @@ export const useFriendshipStore = defineStore('friendship', () => {
 
             if (response.success) {
                 friendships.value = response.data.map(friendship => mapToFriendshipInstance(friendship));
+                console.log(response.data)
             } else {
                 throw new Error(response.message || 'Failed to fetch friendships');
             }

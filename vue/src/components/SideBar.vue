@@ -38,19 +38,6 @@ const logout = () => {
   window.location.href = '/login';
 };
 
-// Dark mode állapot betöltése
-onMounted(() => {
-  const savedDarkMode = localStorage.getItem('darkMode');
-  if (savedDarkMode === 'true') {
-    darkMode.value = true;
-    document.body.classList.add('dark-mode');
-  } else {
-    darkMode.value = false;
-    document.body.classList.remove('dark-mode');
-  }
-  window.addEventListener('new-friend-request', handleNewFriendRequest);
-});
-
 const selectChat = (chat) => {
   emit('select-chat', chat);
 };
@@ -71,19 +58,6 @@ const handleChatCreated = (newChat) => {
   console.log('New chat created:', newChat);
 };
 
-const formatTime = (date) => {
-  const now = new Date();
-  const diff = Math.floor((now - date) / 60000); // difference in minutes
-
-  if (diff < 60) {
-    return `${diff} perce`;
-  } else if (diff < 1440) {
-    return `${Math.floor(diff / 60)} órája`;
-  } else {
-    return date.toLocaleDateString('hu-HU');
-  }
-};
-
 const acceptFriendRequest = async (request) => {
   try {
     if (webSocketStore.getIsConnected) {
@@ -100,52 +74,47 @@ const acceptFriendRequest = async (request) => {
 
 const rejectFriendRequest = async (request) => {
   try {
-    await friendService.declineFriendRequest(request.friendID);
-    console.log('Friend request rejected:', request);
-    friendRequests.value = friendRequests.value.filter(r => r.id !== request.id);
+    if (webSocketStore.getIsConnected) {
+      console.log(request.getFriendshipID())
+      webSocketStore.send({
+        type: 'friend_deny',
+        recipient_id: request.getInitiator() == userStore.getUserID() ? request.getTargetUser().getUserID() : request.getInitiator()
+      });
+    }
   } catch (error) {
-    console.error('Failed to reject friend request:', error);
+    console.error('Failed to accept friend request:', error);
   }
 };
 
-const handleNewFriendRequest = (event) => {
-  const data = event.detail;
-  console.log('New friend request received via WebSocket:', data);
-
-  if (!data) {
-    console.error('Invalid friend request data received');
-    return;
-  }
-
-  const requestData = data.friendRequest || data;
-  const initiator = requestData.initiator || {};
-
-  const formattedRequest = {
-    id: requestData.friendshipID,
-    friendID: initiator.userID,
-    username: initiator.username || 'Unknown User',
-    displayName: initiator.displayName || initiator.username || 'Unknown User',
-    profilePicture: initiator.profilePicture,
-    timestamp: new Date()
-  };
-
-  console.log('Formatted friend request:', formattedRequest);
-
-  if (formattedRequest.id && formattedRequest.friendID && !friendRequests.value.some(r => r.id === formattedRequest.id)) {
-    friendRequests.value.push(formattedRequest);
-
-    if (activeView.value !== 'requests') {
-      console.log('New friend request received while on another tab');
-    }
+const reloadFriendships = async () => {
+  try {
+    await friendStore.clearFriendships();
+    await friendStore.fetchFriendships();
+  } catch (error) {
+    console.error('Failed to reload friendships:', error);
   }
 };
 
 onMounted(() => {
-  window.addEventListener('new-friend-request', handleNewFriendRequest);
+  const savedDarkMode = localStorage.getItem('darkMode');
+  if (savedDarkMode === 'true') {
+    darkMode.value = true;
+    document.body.classList.add('dark-mode');
+  } else {
+    darkMode.value = false;
+    document.body.classList.remove('dark-mode');
+  }
+
+  webSocketStore.registerHandler("friend_request_denied", reloadFriendships);
+  webSocketStore.registerHandler("friend_deny", reloadFriendships);
+  webSocketStore.registerHandler("friend_request_recieved", reloadFriendships);
+  
 });
 
 onUnmounted(() => {
-  window.removeEventListener('new-friend-request', handleNewFriendRequest);
+  webSocketStore.unregisterHandler("friend_request_denied");
+  webSocketStore.unregisterHandler("friend_deny");
+  webSocketStore.unregisterHandler("friend_request_recieved");
 });
 </script>
 
