@@ -34,14 +34,21 @@ export const chatService = {
     }
   },
 
-  async sendMessage(channelID, content, type = 'text') {
+  async sendMessage(channelID, content, type = 'text', replyToId = null) {
     const userStore = userdataStore();
     try {
-      const response = await axios.post(`${API_CONFIG.BASE_URL}/message/send`, {
+      const messageData = {
         channelID,
         content,
         type
-      }, {
+      };
+      
+      // Ha van válaszolt üzenet ID, akkor hozzáadjuk a kéréshez
+      if (replyToId) {
+        messageData.replyToId = replyToId;
+      }
+      
+      const response = await axios.post(`${API_CONFIG.BASE_URL}/message/send`, messageData, {
         headers: {
           'Authorization': `Bearer ${userStore.getAccessToken()}`
         }

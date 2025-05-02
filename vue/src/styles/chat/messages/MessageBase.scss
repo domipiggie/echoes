@@ -39,7 +39,7 @@
 
 // Üzenet buborékok
 .message-bubble {
-  padding: 14px 18px;
+  padding: 10px 15px;
   border-radius: 18px;
   word-break: break-word;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
@@ -48,14 +48,16 @@
   transition: transform .2s ease;
   background-color: #f0f2ff;
   color: #484a6a;
-  min-width: 40px;
-  max-width: 100%;
+  width: fit-content; /* Csak olyan széles, mint a tartalom */
+  max-width: 100%; // Módosítva 80%-ról 100%-ra
   word-wrap: break-word;
   overflow-wrap: break-word;
+  white-space: pre-wrap; // Módosítva normal-ról pre-wrap-re
+  position: relative;
   
   img, video {
     max-width: 100%;
-    height: auto;
+    border-radius: 12px;
   }
   
   &.has-reply {
@@ -63,6 +65,33 @@
     padding-top: 0;
     display: flex;
     flex-direction: column;
+  }
+  
+  .reply-indicator {
+    margin-bottom: 8px;
+    padding: 5px 10px;
+    border-radius: 12px;
+    background-color: rgba(0, 0, 0, 0.05);
+    font-size: 0.85em;
+    
+    .reply-content {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .reply-to {
+      font-weight: bold;
+      margin-bottom: 2px;
+      color: #666;
+    }
+    
+    .reply-text {
+      color: #777;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
+    }
   }
 }
 

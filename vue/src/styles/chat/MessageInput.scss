@@ -40,7 +40,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-right: 12px;
+  margin-right: 32px; // Távolság az input mezőtől
   margin-left: 4px;
 }
 
@@ -48,6 +48,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  margin-left: 32px; // Távolság az input mezőtől
   margin-right: 8px;
 }
 
@@ -61,8 +62,8 @@
   background-color: #7078e6;
   color: #fff;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   
   &:hover {
@@ -71,7 +72,23 @@
   }
 }
 
-.attachment-button, .gif-button, .send-button {
+.attachment-button, .gif-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #7078e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s ease;
+  
+  &:hover {
+    color: #5a61d2;
+    transform: translateY(-1px);
+  }
+}
+
+.send-button {
   background: none;
   border: none;
   cursor: pointer;

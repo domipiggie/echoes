@@ -182,23 +182,25 @@
 
 .search-container {
   margin-bottom: 15px;
+  background: transparent;
+  border: none;
 }
 
 .search-bar {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.08);
+  background: transparent;
   border-radius: 16px;
   padding: 10px 16px;
   gap: 12px;
   transition: all 0.3s ease;
-  border: 2px solid rgba(255, 255, 255, 0.05);
+  border: none;
 }
 
 .search-bar:focus-within {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  box-shadow: none;
 }
 
 .search-bar svg {
@@ -206,7 +208,7 @@
 }
 
 .search-bar input {
-  background: none;
+  background: transparent;
   border: none;
   color: #fff;
   width: 100%;

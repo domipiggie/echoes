@@ -84,10 +84,6 @@ const mediaMessagesData = computed(() => {
         </button>
         <button class="profile-button">
           <span class="button-icon">Aa</span>
-          Hangulatjel megváltoztatása
-        </button>
-        <button class="profile-button">
-          <span class="button-icon">Aa</span>
           Becenevek módosítása
         </button>
       </div>

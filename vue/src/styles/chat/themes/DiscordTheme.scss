@@ -64,7 +64,8 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
   padding: 8px 12px !important;
   position: relative;
-  max-width: 100%;
+  width: 100% !important;
+  max-width: 100% !important;
   
   img, video {
     max-width: 100%;
@@ -99,11 +100,38 @@
 
 .discord-message-wrapper {
   position: relative;
-  display: inline-block;
+  display: block;
   width: 100%;
   
   &:hover .discord-hover-actions {
     opacity: 1;
+  }
+  
+  .discord-reply-indicator {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+    font-size: 0.85em;
+    color: #72767d;
+    
+    .reply-arrow {
+      margin-right: 5px;
+      color: #72767d;
+      
+      svg {
+        width: 12px;
+        height: 12px;
+      }
+    }
+    
+    .reply-content {
+      .reply-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+      }
+    }
   }
 }
 

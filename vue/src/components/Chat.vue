@@ -8,6 +8,8 @@ import { useFriendshipStore } from '../store/FriendshipStore';
 import { useChannelStore } from '../store/ChannelStore';
 import { useMessageStore } from '../store/MessageStore';
 import { messageFormatter } from '../utils/messageFormatter';
+import { chatService } from '../services/chatService';
+import { fileService } from '../services/fileService';
 import { WS_CONFIG } from '../config/ws';
 
 const userStore = userdataStore();
@@ -28,10 +30,10 @@ const handleWebSocketMessage = (data) => {
       return;
     }
     
-    if (currentChat.value && currentChat.value.channelID == data.channelID) {
+    if (messageStore.getCurrentChannelId == data.channelID) {
       const formattedMessage = messageFormatter.formatIncomingMessage(data.message);
       console.log('[WebSocket] Adding formatted message to chat:', formattedMessage);
-      messages.value.push(formattedMessage);
+      messageStore.getMessages.push(formattedMessage);
     }
   } else if (data.type === 'friend_request') {
     const friendshipID = data.friendRequest?.friendshipID;
@@ -100,51 +102,65 @@ const goBackToList = () => {
 };
 
 const sendMessage = async (text) => {
-  const newId = messages.value.length + 1;
+  const newId = messageStore.getMessages.length + 1;
   let messageContent;
   let messageType = 'text';
+  let replyToId = null;
   
   const messageObj = messageFormatter.formatOutgoingMessage(text, newId);
-  messages.value.push(messageObj);
+  // Hozzáadjuk az üzenetet a store-hoz
+  messageStore.getMessages.push(messageObj);
   
   if (typeof text === 'object') {
     messageContent = text.text;
     messageType = text.type || 'text';
+    
+    // Ha válasz üzenet, akkor elmentjük a válaszolt üzenet ID-jét
+    if (text.replyTo) {
+      replyToId = text.replyTo;
+      console.log('Válasz üzenet küldése, válaszolt üzenet ID:', replyToId);
+    }
   } else {
     messageContent = text;
   }
   
   try {
     const response = await chatService.sendMessage(
-      currentChat.value.channelID,
+      messageStore.getCurrentChannelId,
       messageContent,
-      messageType
+      messageType,
+      replyToId // Továbbítjuk a válaszolt üzenet ID-jét
     );
     
     console.log('Message sent successfully:', response);
     
     if (response && response.messageID) {
-      messageObj.id = response.messageID;
+      // Frissítjük az üzenet ID-t a válasz alapján
+      const msgIndex = messageStore.getMessages.findIndex(msg => msg.id === messageObj.id);
+      if (msgIndex !== -1) {
+        messageStore.getMessages[msgIndex].id = response.messageID;
+      }
     }
   } catch (error) {
     console.error('Error sending message:', error);
   }
 };
 
+
 const updateMessage = async (updatedMessage) => {
   console.log('Üzenet frissítés fogadva:', updatedMessage);
   
-  const messageIndex = messages.value.findIndex(msg => msg.id === updatedMessage.id);
+  const messageIndex = messageStore.getMessages.findIndex(msg => msg.id === updatedMessage.id);
   
   if (messageIndex !== -1) {
-    messages.value[messageIndex] = updatedMessage;
+    messageStore.getMessages[messageIndex] = updatedMessage;
     
     try {
       if (updatedMessage.isRevoked) {
-        await chatService.deleteMessage(currentChat.value.channelID, updatedMessage.id);
+        await chatService.deleteMessage(messageStore.getCurrentChannelId, updatedMessage.id);
       } else {
         await chatService.updateMessage(
-          currentChat.value.channelID,
+          messageStore.getCurrentChannelId,
           updatedMessage.id,
           updatedMessage.text
         );
@@ -163,12 +179,12 @@ const handleFileUpload = async (fileData) => {
     console.log('File uploaded successfully:', response);
     
     if (response && response.messageID) {
-      const tempMessageIndex = messages.value.findIndex(
+      const tempMessageIndex = messageStore.getMessages.findIndex(
         msg => msg.fileName === fileData.file.name && msg.sender === 'me'
       );
       
       if (tempMessageIndex !== -1) {
-        messages.value[tempMessageIndex].id = response.messageID;
+        messageStore.getMessages[tempMessageIndex].id = response.messageID;
         console.log('Updated message with server ID:', response.messageID);
       }
     }

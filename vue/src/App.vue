@@ -27,6 +27,12 @@ body {
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body.dark-mode {
+  background-color: #1e1e2e;
+  color: #e0e0e0;
 }
 
 #app {
