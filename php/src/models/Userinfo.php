@@ -15,7 +15,7 @@ class Userinfo
                     CASE 
                         WHEN f.user1ID = :user THEN f.user2ID
                         ELSE f.user1ID
-                    END as friendID, f.user1ID as initiator, u.username, u.displayName, u.profilePicture
+                    END as friendID, fs.initiator as initiator, u.username, u.displayName, u.profilePicture
                     FROM friendship f
                     INNER JOIN friendshipStatus fs
                         ON f.statusID = fs.statusID

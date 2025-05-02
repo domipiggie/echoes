@@ -1,10 +1,14 @@
 <script setup>
 import { ref, defineEmits } from 'vue';
 import { userdataStore } from '../store/UserdataStore';
-import friendService from '../services/friendService';
+import { useWebSocketStore } from '../store/WebSocketStore';
+import { userService } from '../services/userService';
+import { useFriendshipStore } from '../store/FriendshipStore.js';
 
 const emit = defineEmits(['close', 'chat-created']);
 const userStore = userdataStore();
+const friendshipStore = useFriendshipStore();
+const webSocketStore = useWebSocketStore();
 const username = ref('');
 const isLoading = ref(false);
 const errorMessage = ref('');
@@ -14,14 +18,24 @@ const createChat = async () => {
     errorMessage.value = 'Kérlek adj meg egy felhasználónevet!';
     return;
   }
-
-  isLoading.value = true;
-  errorMessage.value = '';
-
   try {
-    const response = await friendService.sendFriendRequest(username.value);
-    console.log('Friend request sent:', response);
-    emit('chat-created', response);
+    const userData = await userService.getUserByUsername(username.value);
+    
+    if (!userData.success) {
+      console.log(userData)
+      errorMessage.value = 'Nem található felhasználó ezzel a névvel.';
+      return;
+    }
+    
+    const recipientId = userData.data.userID;
+    
+    if (webSocketStore.getIsConnected) {
+      webSocketStore.send({
+        type: 'friend_add',
+        recipient_id: recipientId
+      });
+    }
+
     emit('close');
   } catch (error) {
     console.error('Error sending friend request:', error);
