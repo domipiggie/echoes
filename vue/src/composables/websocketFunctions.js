@@ -40,8 +40,15 @@ const handleOnFriendAdded = (data) => {
     }
 }
 
+const handleGroupCreated = (data) => {
+    if (isSuccess(data)) {
+        var channelStore = useChannelStore();
+        channelStore.fetchAllChannels();
+    }
+}
+
 const isSuccess = (data) => {
     return data.status === "success";
 }
 
-export { handleNewMessage, handleDeleteMessage, isSuccess, handleOnFriendAdded };
+export { handleNewMessage, handleDeleteMessage, isSuccess, handleOnFriendAdded, handleGroupCreated };

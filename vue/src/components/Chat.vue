@@ -8,7 +8,7 @@ import { useChannelStore } from '../store/ChannelStore';
 import { useMessageStore } from '../store/MessageStore';
 import { useWebSocketStore } from '../store/WebSocketStore';
 
-import { handleNewMessage, handleDeleteMessage, handleOnFriendAdded } from '../composables/websocketFunctions.js';
+import { handleNewMessage, handleDeleteMessage, handleOnFriendAdded, handleGroupCreated } from '../composables/websocketFunctions.js';
 
 const userStore = userdataStore();
 const friendshipStore = useFriendshipStore();
@@ -35,6 +35,7 @@ onMounted(async () => {
       webSocketStore.registerHandler('new_message', handleNewMessage);
       webSocketStore.registerHandler('message_deleted', handleDeleteMessage);
       webSocketStore.registerHandler('friend_add', handleOnFriendAdded);
+      webSocketStore.registerHandler('group_created', handleGroupCreated);
     }
   } catch (error) {
     console.error('Failed to load channels:', error);
@@ -45,7 +46,9 @@ onUnmounted(() => {
   window.removeEventListener('resize', checkScreenSize);
 
   webSocketStore.unregisterHandler('new_message');
-  webSocketStore.unregisterHandler('friend_request');
+  webSocketStore.unregisterHandler('message_deleted');
+  webSocketStore.unregisterHandler('friend_add');
+  webSocketStore.unregisterHandler('group_created');
   webSocketStore.disconnect();
 });
 

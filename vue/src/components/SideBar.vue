@@ -5,6 +5,7 @@ import { useChannelStore } from '../store/ChannelStore';
 import { useFriendshipStore } from '../store/FriendshipStore';
 import { useWebSocketStore } from '../store/WebSocketStore';
 import NewChatDialog from './NewChatDialog.vue';
+import NewGroupDialog from './NewGroupDialog.vue';
 import friendService from '../services/friendService';
 
 const userStore = userdataStore();
@@ -47,8 +48,9 @@ const activeView = ref('chats'); // 'chats' vagy 'requests'
 const requestType = ref('incoming'); // 'incoming' vagy 'sent'
 const chatType = ref('personal'); // 'personal' vagy 'groups'
 
-// New chat dialog visibility
+// Dialog visibility states
 const showNewChatDialog = ref(false);
+const showNewGroupDialog = ref(false);
 
 const handleNewChat = () => {
   showNewChatDialog.value = true;
@@ -56,6 +58,11 @@ const handleNewChat = () => {
 
 const handleChatCreated = (newChat) => {
   console.log('New chat created:', newChat);
+};
+
+const handleGroupCreated = (newGroup) => {
+  console.log('New group created:', newGroup);
+  showNewGroupDialog.value = false;
 };
 
 const acceptFriendRequest = async (request) => {
@@ -320,7 +327,9 @@ onUnmounted(() => {
       </div>
     </div>
     <!-- New Chat Dialog -->
-    <NewChatDialog v-if="showNewChatDialog" @close="showNewChatDialog = false" @chat-created="handleChatCreated" />
+    <NewChatDialog v-if="showNewChatDialog" @close="showNewChatDialog = false" @chat-created="handleChatCreated" @open-group-dialog="showNewGroupDialog = true" />
+    <!-- New Group Dialog -->
+    <NewGroupDialog v-if="showNewGroupDialog" @close="showNewGroupDialog = false" @group-created="handleGroupCreated" />
 
     <!-- Beállítások Modal -->
     <div v-if="showSettingsModal" class="settings-modal-overlay" @click="showSettingsModal = false">
