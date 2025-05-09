@@ -14,7 +14,7 @@ const handleNewMessage = (data) => {
             data.message.messageId,
             data.message.channelId,
             data.message.content,
-            data.message.type,
+            data.message.messageType,
             data.message.timestamp,
             new User(
                 data.message.sender.id,

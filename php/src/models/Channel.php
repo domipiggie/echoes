@@ -36,22 +36,44 @@ class Channel
         }
     }
 
-    public function createGroupChannel($useIds)
+    public function createGroupChannel($userIds, $groupName, $groupPicture = null, $ownerId)
     {
         try {
-            $sql = "INSERT INTO channel_list
+            $sql = "INSERT INTO group_info
                     SET
-                        friendshipID = :friendshipID";
+                        name = :name,
+                        picture = :picture,
+                        ownerID = :ownerID";
 
             $args = [
-                [':friendshipID', null]
+                [':name', $groupName],
+                [':picture', $groupPicture],
+                [':ownerID', $ownerId]
+            ];
+
+            $groupResults = DatabaseOperations::insertIntoDB($this->db, $sql, $args);
+            
+            if (!$groupResults) {
+                throw new ApiException('Failed to create group chat', 500);
+            }
+            
+            $groupId = $groupResults[1];
+            
+            $sql = "INSERT INTO channel_list
+                    SET
+                        friendshipID = :friendshipID,
+                        groupID = :groupID";
+
+            $args = [
+                [':friendshipID', null],
+                [':groupID', $groupId]
             ];
 
             $results = DatabaseOperations::insertIntoDB($this->db, $sql, $args);
 
             if ($results) {
                 $channelId = $results[1];
-                $this->addUsersToChannel($channelId, $useIds);
+                $this->addUsersToChannel($channelId, $userIds);
                 return $channelId;
             }
 
@@ -91,6 +113,34 @@ class Channel
         }
     }
 
+    public function removeUsersFromChannel($channelId, $userIds)
+    {
+        try {
+            $sql = "DELETE FROM channel_access
+                    WHERE
+                        channelID = :channelID AND
+                        userID = :userID";
+
+            foreach ($userIds as $userId) {
+                $args = [
+                    [':channelID', $channelId],
+                    [':userID', $userId]
+                ];
+
+                $results = DatabaseOperations::updateDB($this->db, $sql, $args);
+
+                if ($results === false) {
+                    throw new ApiException('Failed to remove users from channel', 500);
+                }
+            }
+            return true;
+        } catch (ApiException $apie) {
+            throw new ApiException($apie->getMessage(), $apie->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to remove users from channel ' . $e->getMessage(), 500);
+        }
+    }
+
     public function doesFriendshipChannelExists($friendshipId)
     {
         try {
@@ -113,6 +163,86 @@ class Channel
             throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
             throw new ApiException('Couldn\'t check if friendship exists', 500);
+        }
+    }
+
+    public function getGroupInfo($groupId)
+    {
+        try {
+            $sql = "SELECT g.*, u.username, u.displayName, u.profilePicture 
+                    FROM group_chat g
+                    JOIN user u ON g.ownerID = u.userID
+                    WHERE g.groupID = :groupID";
+
+            $args = [
+                [':groupID', $groupId]
+            ];
+
+            $result = DatabaseOperations::fetchFromDB($this->db, $sql, $args);
+
+            if (count($result) > 0) {
+                return $result[0];
+            }
+            return false;
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Couldn\'t get group information', 500);
+        }
+    }
+
+    public function updateGroupInfo($groupId, $name = null, $picture = null)
+    {
+        try {
+            $updates = [];
+            $args = [[':groupID', $groupId]];
+            
+            if ($name !== null) {
+                $updates[] = "name = :name";
+                $args[] = [':name', $name];
+            }
+            
+            if ($picture !== null) {
+                $updates[] = "picture = :picture";
+                $args[] = [':picture', $picture];
+            }
+            
+            if (empty($updates)) {
+                return true;
+            }
+            
+            $sql = "UPDATE group_chat SET " . implode(", ", $updates) . " WHERE groupID = :groupID";
+            
+            $result = DatabaseOperations::updateDB($this->db, $sql, $args);
+            
+            return $result;
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Couldn\'t update group information: ' . $e->getMessage(), 500);
+        }
+    }
+    
+    public function isGroupOwner($userId, $groupId)
+    {
+        try {
+            $sql = "SELECT ownerID FROM group_chat WHERE groupID = :groupID";
+            
+            $args = [
+                [':groupID', $groupId]
+            ];
+            
+            $result = DatabaseOperations::fetchFromDB($this->db, $sql, $args);
+            
+            if (count($result) > 0 && $result[0]['ownerID'] == $userId) {
+                return true;
+            }
+            
+            return false;
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to check group ownership: ' . $e->getMessage(), 500);
         }
     }
 }

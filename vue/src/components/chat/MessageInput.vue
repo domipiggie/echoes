@@ -46,7 +46,14 @@ const toggleGifPicker = (event) => {
 };
 
 const handleGifSelect = (gifUrl) => {
-  emit('send-message', { text: gifUrl, type: 'gif' });
+  const messageToSend = {
+      id: Date.now(),
+      text: gifUrl,
+      type: 'gif',
+      sender: 'me',
+      timestamp: new Date().toISOString()
+    };
+  emit('send-message', messageToSend);
   showGifPicker.value = false;
 };
 
@@ -157,7 +164,7 @@ const handleImageUpload = (event) => {
     <!-- GIF picker -->
     <GifPicker 
       v-if="showGifPicker" 
-      @select="handleGifSelect" 
+      @select-gif="handleGifSelect" 
       @close="showGifPicker = false"
     />
   </div>

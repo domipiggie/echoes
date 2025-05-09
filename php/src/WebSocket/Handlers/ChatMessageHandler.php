@@ -36,6 +36,7 @@ class ChatMessageHandler
         $channelId = $data['channelId'];
         $content = $data['content'];
         $messageType = $data['messageType'];
+        $replyTo = isset($data['replyTo']) ? $data['replyTo'] : null;
 
         try {
             $message = new \Message($this->dbConn);
@@ -46,7 +47,7 @@ class ChatMessageHandler
                     403
                 );
             }
-            $result = $message->createMessage($channelId, $sender->id, $content, $messageType);
+            $result = $message->createMessage($channelId, $sender->id, $content, $messageType, $replyTo);
 
             ResponseHandlerService::sendSuccess($from, 'chatmessage_sent', ['messageId' => $result['messageID']]);
 
@@ -58,6 +59,7 @@ class ChatMessageHandler
                     'messageId' => $result['messageID'],
                     'content' => $content,
                     'messageType' => $messageType,
+                    'replyTo' => $replyTo,
                     'sender' => [
                         'id' => $sender->id,
                         'username' => $sender->username

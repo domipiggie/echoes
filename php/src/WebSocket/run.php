@@ -13,6 +13,7 @@ require_once __DIR__ . '/../models/Friendship.php';
 require_once __DIR__ . '/../models/FriendshipStatus.php';
 require_once __DIR__ . '/../models/Message.php';
 require_once __DIR__ . '/../models/Channel.php';
+require_once __DIR__ . '/../utils/DatabaseOperations.php';
 
 use Ratchet\Server\IoServer;
 use Ratchet\Http\HttpServer;
