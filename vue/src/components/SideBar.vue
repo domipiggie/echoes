@@ -4,10 +4,13 @@ import { userdataStore } from '../store/UserdataStore';
 import { useChannelStore } from '../store/ChannelStore';
 import { useFriendshipStore } from '../store/FriendshipStore';
 import { useWebSocketStore } from '../store/WebSocketStore';
+import { useRouter } from 'vue-router';
 import NewChatDialog from './NewChatDialog.vue';
 import NewGroupDialog from './NewGroupDialog.vue';
 import ProfileSettingsDialog from './ProfileSettingsDialog.vue';
 import friendService from '../services/friendService';
+
+const router = useRouter();
 
 const userStore = userdataStore();
 const channelStore = useChannelStore();
@@ -41,10 +44,14 @@ const openProfileSettings = () => {
 
 // Kijelentkezés függvény
 const logout = () => {
+  // Sötét mód eltávolítása a kijelentkezés előtt, hogy a login oldal világos maradjon
+  document.body.classList.remove('dark-mode');
+  // Töröljük a sötét mód beállítást a localStorage-ból
+  localStorage.removeItem('darkMode');
   // Töröljük a felhasználói adatokat
   userStore.clearAuth();
-  // Átirányítás a bejelentkezési oldalra
-  window.location.href = '/login';
+  // Átirányítás a bejelentkezési oldalra a router segítségével
+  router.push('/');
 };
 
 const selectChat = (chat) => {

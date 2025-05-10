@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import DiscordMessage from './messages/DiscordMessage.vue';
 import StandardMessage from './messages/StandardMessage.vue';
+import { useMessageStore } from '../../store/MessageStore';
 
 const props = defineProps({
   messages: Array,
@@ -35,6 +36,12 @@ const toggleMute = (video, messageId) => {
     muted: video.muted
   };
 };
+
+const startReply = (message) => {
+    emit('start-reply', message);
+};
+
+
 </script>
 
 <template>
@@ -53,7 +60,7 @@ const toggleMute = (video, messageId) => {
         @toggle-video-options="toggleVideoOptions"
         @toggle-fullscreen="toggleFullscreen"
         @toggle-mute="toggleMute"
-        @start-reply="emit('start-reply', $event)"
+        @start-reply="startReply(message)"
         @start-editing="emit('start-editing', $event)"
         @delete-message="emit('delete-message', $event)"
       />
@@ -72,7 +79,7 @@ const toggleMute = (video, messageId) => {
         @toggle-video-options="toggleVideoOptions"
         @toggle-fullscreen="toggleFullscreen"
         @toggle-mute="toggleMute"
-        @start-reply="emit('start-reply', $event)"
+        @start-reply="startReply(message)"
         @start-editing="emit('start-editing', $event)"
         @delete-message="emit('delete-message', $event)"
       />

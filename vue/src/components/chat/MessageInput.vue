@@ -2,6 +2,8 @@
 import { ref } from 'vue';
 import GifPicker from '../GifPicker.vue';
 
+
+
 const props = defineProps({
   replyingTo: Object,
   editingMessage: Object
@@ -14,6 +16,8 @@ const showGifPicker = ref(false);
 const fileInput = ref(null);
 
 const submitMessage = () => {
+
+  console.log(props.replyingTo)
   if (newMessage.value.trim()) {
     if (props.editingMessage) {
       emit('save-edit', newMessage.value);
@@ -30,9 +34,7 @@ const submitMessage = () => {
     
     if (props.replyingTo) {
       messageToSend.replyTo = props.replyingTo.id;
-      messageToSend.replyToText = props.replyingTo.text;
-      messageToSend.replyToSender = props.replyingTo.sender;
-      messageToSend.replyToType = props.replyingTo.type || 'text';
+      
     }
     
     emit('send-message', messageToSend);

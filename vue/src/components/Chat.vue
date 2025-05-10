@@ -90,7 +90,9 @@ const sendMessage = async (text) => {
         type: 'chatmessage_send',
         channelId: messageStore.getCurrentChannelId,
         content: text.text,
-        messageType: text.type
+        messageType: text.type,
+        replyTo: text.replyTo == undefined ? null : text.replyTo 
+        
       });
     }
   } catch (error) {

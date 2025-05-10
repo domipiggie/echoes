@@ -35,7 +35,7 @@ const login = () => {
     <form @submit.prevent="login">
       <h1>Üdv újra itt!</h1>
       <span class="alcim">Jelentkezz be gyorsan!</span>
-      <input type="text" v-model="email" placeholder="Felhasználónév vagy email" :class="{ 'error': errorMessage }"
+      <input type="text" v-model="email" placeholder="Email cím" :class="{ 'error': errorMessage }"
         style="font-style: italic;" />
       <span v-if="errorMessage" class="error-text">{{ errorMessageEmail }}</span>
       <input type="password" v-model="password" placeholder="Jelszó" :class="{ 'error': errorMessage }"

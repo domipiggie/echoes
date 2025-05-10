@@ -147,11 +147,6 @@ onMounted(() => {
             <input type="email" id="email" v-model="email" class="form-control" placeholder="Email cím" />
           </div>
 
-          <div class="form-group">
-            <label for="bio">Bemutatkozás</label>
-            <textarea id="bio" v-model="bio" class="form-control" placeholder="Írj magadról néhány mondatot..."></textarea>
-          </div>
-
           <div class="form-actions">
             <button class="cancel-button" @click="emit('close')">Mégse</button>
             <button class="save-button" @click="saveUserData" :disabled="isLoading">

@@ -20,10 +20,8 @@
   
   const startReply = (message) => {
     replyingTo.value = {
-      id: message.id,
-      text: message.text,
-      sender: message.sender,
-      type: message.type
+      id: message.getMessageID(),
+      
     };
     
     nextTick(() => {

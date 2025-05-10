@@ -51,7 +51,8 @@ export const useMessageStore = defineStore('message', () => {
       messageData.content,
       messageData.type || 'text',
       messageData.sent_at,
-      user
+      user,
+      messageData.replyTo
     );
   }
 

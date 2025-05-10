@@ -19,7 +19,8 @@ const handleNewMessage = (data) => {
             new User(
                 data.message.sender.id,
                 data.message.sender.username
-            )
+            ),
+            data.message.replyTo
         );
         messageStore.addMessage(message);
     }

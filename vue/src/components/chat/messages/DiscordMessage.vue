@@ -1,4 +1,7 @@
 <script setup>
+import { useMessageStore } from '../../../store/MessageStore';
+const messageStore = useMessageStore();
+
 const props = defineProps({
   message: Object,
   index: Number,
@@ -51,7 +54,7 @@ const emit = defineEmits([
               </svg>
             </div>
             <div class="reply-content">
-              <span class="reply-text">{{ message.getReplyToText() }}</span>
+              <span class="reply-text">{{ messageStore.getMessageById(message.getReplyTo()).getContent() }}</span>
             </div>
           </div>
           

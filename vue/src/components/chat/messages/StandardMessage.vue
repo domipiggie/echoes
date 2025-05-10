@@ -1,4 +1,7 @@
 <script setup>
+import { useMessageStore } from '../../../store/MessageStore';
+const messageStore = useMessageStore();
+
 const props = defineProps({
   message: Object,
   index: Number,
@@ -70,7 +73,7 @@ const emit = defineEmits([
       <div v-if="message.getReplyTo()" class="reply-indicator">
         <div class="reply-content">
           <span class="reply-to">Válasz erre:</span>
-          <span class="reply-text">{{ message.getReplyToText() }}</span>
+          <span class="reply-text">{{ messageStore.getMessageById(message.getReplyTo()).getContent() }}</span>
         </div>
       </div>
       
