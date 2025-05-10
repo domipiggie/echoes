@@ -14,15 +14,18 @@ $rootDir = dirname(__DIR__);
 require_once $rootDir . '/src/controllers/AuthController.php';
 require_once $rootDir . '/src/controllers/UserinfoController.php';
 require_once $rootDir . '/src/controllers/MessageController.php';
+require_once $rootDir . '/src/controllers/FileController.php';
 //Models
 require_once $rootDir . '/src/models/User.php';
 require_once $rootDir . '/src/models/RefreshToken.php';
 require_once $rootDir . '/src/models/Userinfo.php';
 require_once $rootDir . '/src/models/Message.php';
+require_once $rootDir . '/src/models/File.php';
 //Middleware
 require_once $rootDir . '/src/middleware/AuthMiddleware.php';
 require_once $rootDir . '/src/middleware/UserinfoMiddleware.php';
 require_once $rootDir . '/src/middleware/MessageMiddleware.php';
+require_once $rootDir . '/src/middleware/FileMiddleware.php';
 //Config
 require_once $rootDir . '/src/config/database.php';
 require_once $rootDir . '/src/config/core.php';
@@ -98,6 +101,31 @@ try {
                 default:
                     throw new ApiException('Invalid route', 404);
                     break;
+            }
+            break;
+            
+        case "files":
+            $fileController = new FileController($db);
+            
+            if (!isset($uri[2])) {
+                // Handle file upload
+                if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                    $fileController->handleUploadFile();
+                } else {
+                    throw new ApiException('Invalid method', 405);
+                }
+            } else if ($uri[2] === 'size') {
+                // Handle getting total file size
+                $fileController->handleGetTotalFileSize();
+            } else {
+                // Handle operations on a specific file
+                if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+                    $fileController->handleServeFile($uri[2]);
+                } else if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+                    $fileController->handleDeleteFile($uri[2]);
+                } else {
+                    throw new ApiException('Invalid method', 405);
+                }
             }
             break;
 

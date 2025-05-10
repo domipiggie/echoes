@@ -5,7 +5,9 @@ namespace WebSocket\Handlers;
 use Ratchet\ConnectionInterface;
 use Utils\Logger;
 use WebSocket\Services\ResponseHandlerService;
+use WebSocket\Services\ErrorHandlerService;
 use Utils\DatabaseOperations;
+use WebSocket\Services\NotificationService;
 
 class GroupHandler
 {
@@ -14,12 +16,12 @@ class GroupHandler
     private $notificationService;
     private $errorHandler;
 
-    public function __construct($dbConn, $logger, $notificationService, $errorHandler)
+    public function __construct($dbConn, $logger, $clients)
     {
         $this->dbConn = $dbConn;
         $this->logger = $logger;
-        $this->notificationService = $notificationService;
-        $this->errorHandler = $errorHandler;
+        $this->notificationService = new NotificationService($clients, $logger, $dbConn);
+        $this->errorHandler = new ErrorHandlerService($logger);
     }
 
     public function handleCreateGroupChannel(ConnectionInterface $from, $data)
