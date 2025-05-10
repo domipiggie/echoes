@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import GifPicker from '../GifPicker.vue';
 
 
@@ -9,14 +9,20 @@ const props = defineProps({
   editingMessage: Object
 });
 
-const emit = defineEmits(['send-message', 'cancel-reply', 'cancel-editing', 'send-file']);
+const emit = defineEmits(['send-message', 'cancel-reply', 'cancel-editing', 'send-file', 'save-edit']);
 
 const newMessage = ref('');
 const showGifPicker = ref(false);
 const fileInput = ref(null);
 
-const submitMessage = () => {
+// Ha szerkesztési módban vagyunk, akkor az üzenet tartalmát betöltjük az input mezőbe
+watch(() => props.editingMessage, (newVal) => {
+  if (newVal) {
+    newMessage.value = newVal.getContent();
+  }
+}, { immediate: true });
 
+const submitMessage = () => {
   console.log(props.replyingTo)
   if (newMessage.value.trim()) {
     if (props.editingMessage) {
@@ -174,4 +180,37 @@ const handleImageUpload = (event) => {
 
 <style lang="scss" scoped>
 @import '../../styles/chat/MessageInput.scss';
+
+.reply-box {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.reply-box-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.reply-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.reply-to {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 2px;
+}
+
+.reply-text {
+  font-size: 14px;
+  color: #ffffff; /* Fehér szín a válasz szövegének */
+  word-break: break-word;
+}
 </style>

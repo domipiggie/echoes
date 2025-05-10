@@ -8,7 +8,7 @@ import { useChannelStore } from '../store/ChannelStore';
 import { useMessageStore } from '../store/MessageStore';
 import { useWebSocketStore } from '../store/WebSocketStore';
 
-import { handleNewMessage, handleDeleteMessage, handleOnFriendAdded, handleGroupCreated } from '../composables/websocketFunctions.js';
+import { handleNewMessage, handleDeleteMessage, handleOnFriendAdded, handleGroupCreated, handleMessageUpdate } from '../composables/websocketFunctions.js';
 
 const userStore = userdataStore();
 const friendshipStore = useFriendshipStore();
@@ -36,6 +36,7 @@ onMounted(async () => {
       webSocketStore.registerHandler('message_deleted', handleDeleteMessage);
       webSocketStore.registerHandler('friend_add', handleOnFriendAdded);
       webSocketStore.registerHandler('group_created', handleGroupCreated);
+      webSocketStore.registerHandler('message_updated', handleMessageUpdate);
     }
   } catch (error) {
     console.error('Failed to load channels:', error);
@@ -49,6 +50,7 @@ onUnmounted(() => {
   webSocketStore.unregisterHandler('message_deleted');
   webSocketStore.unregisterHandler('friend_add');
   webSocketStore.unregisterHandler('group_created');
+  webSocketStore.unregisterHandler('message_updated');
   webSocketStore.disconnect();
 });
 
@@ -123,25 +125,23 @@ const deleteMessage = async (messageId) => {
 const updateMessage = async (updatedMessage) => {
   console.log('Üzenet frissítés fogadva:', updatedMessage);
 
-  const messageIndex = messages.value.findIndex(msg => msg.id === updatedMessage.id);
-
-  if (messageIndex !== -1) {
-    messages.value[messageIndex] = updatedMessage;
-
-    try {
-      if (updatedMessage.isRevoked) {
-        await chatService.deleteMessage(currentChat.value.channelID, updatedMessage.id);
+  try {
+    if (webSocketStore.getIsConnected) {
+      // Ellenőrizzük, hogy az updatedMessage objektum rendelkezik-e a szükséges metódusokkal
+      if (updatedMessage && typeof updatedMessage.getMessageID === 'function' && typeof updatedMessage.getContent === 'function') {
+        webSocketStore.send({
+          type: 'chatmessage_update',
+          channelId: messageStore.getCurrentChannelId,
+          messageId: updatedMessage.getMessageID(),
+          content: updatedMessage.getContent()
+        });
+        console.log('Üzenet frissítve a szerveren');
       } else {
-        await chatService.updateMessage(
-          currentChat.value.channelID,
-          updatedMessage.id,
-          updatedMessage.text
-        );
+        console.error('Érvénytelen üzenet objektum:', updatedMessage);
       }
-      console.log('Message updated successfully on server');
-    } catch (error) {
-      console.error('Error updating message on server:', error);
     }
+  } catch (error) {
+    console.error('Hiba az üzenet frissítésekor:', error);
   }
 };
 

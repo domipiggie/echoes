@@ -418,7 +418,20 @@
   
   // Reply box
   .reply-box {
-    background-color: rgba(0, 0, 0, 0.2) !important;
+    background-color: rgba(90, 97, 210, 0.2) !important;
+  }
+  
+  // Discord válasz doboz világosítása sötét módban
+  .discord-reply-indicator {
+    background-color: rgba(90, 97, 210, 0.3) !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+  }
+  
+  // Válasz szöveg színének beállítása sötét módban
+  .reply-content .reply-text {
+    color: #e0e0e0 !important;
+    opacity: 1 !important;
   }
   
   // Üzenet lista és konténer

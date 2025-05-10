@@ -35,7 +35,7 @@
   
   const startEditing = (message) => {
     console.log('Szerkesztés indítása:', message);
-    if (message.sender === 'me' && !message.isRevoked) {
+    if (message.getUser().getUserID() === userStore.getUserID() && !message.isRevoked) {
       editingMessage.value = message;
       
       nextTick(() => {

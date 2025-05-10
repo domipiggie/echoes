@@ -75,6 +75,7 @@ const startReply = (message) => {
         :index="index"
         :messages="messages"
         :userID="userID"
+        :currentChannelName="currentChannelName"
         :showVideoOptions="showVideoOptions"
         @toggle-video-options="toggleVideoOptions"
         @toggle-fullscreen="toggleFullscreen"

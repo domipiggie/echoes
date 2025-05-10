@@ -47,17 +47,31 @@
 }
 
 .message-avatar {
-  width: 28px;
-  height: 28px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   flex-shrink: 0;
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
   position: absolute;
-  left: -36px;
+  left: -46px;
+  display: none; /* Alapértelmezetten elrejtve */
   
   .message-sent & {
     left: auto;
-    right: -36px;
+    right: -46px;
+  }
+  
+  /* Csak az első üzenetnél jelenik meg */
+  .first-message & {
+    display: block;
+    top: 24px; /* A név mellől indul */
+    transform: translateY(-50%);
+  }
+  
+  /* Profilkép méretének növelése a csoportos beszélgetésekben */
+  .avatar-circle {
+    font-size: 16px;
+    font-weight: 500;
   }
 }
 

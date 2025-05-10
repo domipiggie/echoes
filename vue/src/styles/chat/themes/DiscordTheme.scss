@@ -83,6 +83,7 @@
   width: 100%;
   margin-bottom: 0.5px;
   padding: 0.5px 0;
+  gap: 8px; /* Vékony margó a profilkép és az üzenet konténer között */
 }
 
 .discord-message-content {
@@ -92,7 +93,7 @@
 }
 
 .discord-username {
-  font-size: 14px;
+  font-size: 14px; 
   font-weight: 500;
   color: #484a6a;
   margin-bottom: 2px;
@@ -105,6 +106,7 @@
   
   &:hover .discord-hover-actions {
     opacity: 1;
+    pointer-events: all; /* Engedélyezzük a kattintást hover esetén */
   }
   
   .discord-reply-indicator {
@@ -150,12 +152,14 @@
   border-radius: 4px;
   padding: 4px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  pointer-events: auto; /* Javítva: engedélyezzük a kattintást mindig */
   
   .hover-action-btn {
     width: 24px;
     height: 24px;
     background: transparent;
     box-shadow: none;
+    pointer-events: auto; /* Biztosítjuk, hogy a gomb mindig kattintható legyen */
     
     svg {
       stroke: #484a6a;

@@ -8,6 +8,7 @@
   z-index: 100;
   top: 50%;
   transform: translateY(-50%);
+  pointer-events: none; /* Fontos: ez volt a probléma */
 }
 
 .message-sent .message-hover-actions {
@@ -20,6 +21,7 @@
 
 .message:hover .message-hover-actions {
   opacity: 1;
+  pointer-events: all; /* Engedélyezzük a kattintást hover esetén */
 }
 
 // Lebegő művelet gombok
@@ -36,6 +38,7 @@
   transition: all 0.2s ease;
   padding: 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  pointer-events: auto; /* Biztosítjuk, hogy a gomb mindig kattintható legyen */
   
   svg {
     width: 14px;

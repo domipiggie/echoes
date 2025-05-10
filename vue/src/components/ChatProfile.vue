@@ -78,14 +78,29 @@ const mediaMessagesData = computed(() => {
 
       <div class="profile-section">
         <h3>Chat testreszabása</h3>
-        <button class="profile-button" @click="showAppearanceSelector = true">
-          <span class="button-icon"></span>
-          Téma megváltoztatása
-        </button>
+        
         <button class="profile-button">
           <span class="button-icon">Aa</span>
-          Becenevek módosítása
+          Csoport név módosítása
         </button>
+
+        <button class="profile-button">
+          <span class="button-icon">Aa</span>
+          Csoport profilkép módosítása
+        </button>
+
+        <button class="profile-button">
+          <span class="button-icon">Aa</span>
+          Új csoporttag felvétele
+        </button>
+
+        <button class="profile-button">
+          <span class="button-icon">Aa</span>
+          Csoporttagok
+        </button>
+
+
+
       </div>
 
       <div class="profile-section">
@@ -122,6 +137,10 @@ const mediaMessagesData = computed(() => {
         </div>
       </div>
 
+      <button class="profile-button">
+          <span class="button-icon">Aa</span>
+          Csoport elhagyása
+        </button>
       
     </div>
 

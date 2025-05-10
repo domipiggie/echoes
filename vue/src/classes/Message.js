@@ -89,6 +89,10 @@ export default class Message {
         return this.#replyToType;
     }
     
+    setContent(content) {
+        this.#setContent(content);
+    }
+    
     #setReplyTo(replyTo) {
         this.#replyTo = replyTo;
     }

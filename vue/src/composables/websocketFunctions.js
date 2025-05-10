@@ -52,4 +52,12 @@ const isSuccess = (data) => {
     return data.status === "success";
 }
 
-export { handleNewMessage, handleDeleteMessage, isSuccess, handleOnFriendAdded, handleGroupCreated };
+const handleMessageUpdate = (data) => {
+    const messageStore = useMessageStore();
+    if (data.message.channelId === messageStore.getCurrentChannelId) {
+        messageStore.updateWebSocketMessage(data.message.messageId, data.message.content);
+        console.log('Üzenet frissítve a WebSocket-en keresztül:', data.message);
+    }
+}
+
+export { handleNewMessage, handleDeleteMessage, isSuccess, handleOnFriendAdded, handleGroupCreated, handleMessageUpdate };

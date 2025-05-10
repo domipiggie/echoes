@@ -20,5 +20,23 @@ export const messageService = {
       console.error(`Error fetching messages for channel ${channelId}:`, error);
       throw error;
     }
+  },
+  
+  async editMessage(messageId, newContent) {
+    const userStore = userdataStore();
+    try {
+      const response = await axios.put(`${API_CONFIG.BASE_URL}/message/edit`, {
+        messageId,
+        content: newContent
+      }, {
+        headers: {
+          'Authorization': `Bearer ${userStore.getAccessToken()}`
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Error editing message ${messageId}:`, error);
+      throw error;
+    }
   }
 };
