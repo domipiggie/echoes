@@ -6,6 +6,7 @@ import { useFriendshipStore } from '../store/FriendshipStore';
 import { useWebSocketStore } from '../store/WebSocketStore';
 import NewChatDialog from './NewChatDialog.vue';
 import NewGroupDialog from './NewGroupDialog.vue';
+import ProfileSettingsDialog from './ProfileSettingsDialog.vue';
 import friendService from '../services/friendService';
 
 const userStore = userdataStore();
@@ -17,6 +18,7 @@ const emit = defineEmits(['select-chat']);
 
 // Beállítások modal kezelése
 const showSettingsModal = ref(false);
+const showProfileSettingsModal = ref(false);
 const darkMode = ref(false);
 const storageUsed = ref(45); // MB-ban, ezt később API-ból kérheted le
 
@@ -29,6 +31,12 @@ const toggleDarkMode = () => {
     document.body.classList.remove('dark-mode');
   }
   localStorage.setItem('darkMode', darkMode.value ? 'true' : 'false');
+};
+
+// Profil beállítások megnyitása
+const openProfileSettings = () => {
+  showProfileSettingsModal.value = true;
+  showSettingsModal.value = false;
 };
 
 // Kijelentkezés függvény
@@ -346,6 +354,24 @@ onUnmounted(() => {
         </div>
 
         <div class="settings-content">
+          <!-- Profil beállítások -->
+          <div class="settings-item" @click="openProfileSettings">
+            <div class="settings-item-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span>Profil beállítások</span>
+            </div>
+            <div class="settings-item-arrow">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </div>
+          </div>
+          
           <!-- Dark Mode kapcsoló -->
           <div class="settings-item">
             <div class="settings-item-label">
@@ -395,6 +421,9 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
+    
+    <!-- Profil beállítások dialog -->
+    <ProfileSettingsDialog v-if="showProfileSettingsModal" @close="showProfileSettingsModal = false" />
   </div>
 </template>
 
@@ -417,57 +446,80 @@ onUnmounted(() => {
 
 .settings-modal {
   background-color: white;
-  border-radius: 12px;
+  border-radius: 16px;
   width: 400px;
   max-width: 90%;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
   overflow: hidden;
+  animation: slide-up 0.3s ease-out;
 }
 
 .settings-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 20px 24px;
   border-bottom: 1px solid rgba(112, 120, 230, 0.1);
+  background: linear-gradient(135deg, #7078e6, #5a63d4);
+  color: white;
 }
 
 .settings-header h2 {
   margin: 0;
-  font-size: 18px;
-  color: #484a6a;
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
 }
 
 .close-button {
   background: none;
   border: none;
   cursor: pointer;
-  color: #7078e6;
-  padding: 4px;
+  color: white;
+  padding: 8px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background-color 0.2s;
 }
 
 .close-button:hover {
-  background-color: rgba(112, 120, 230, 0.1);
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .settings-content {
-  padding: 20px;
+  padding: 24px;
 }
 
 .settings-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 8px;
   border-bottom: 1px solid rgba(112, 120, 230, 0.1);
+  transition: background-color 0.2s;
+  cursor: pointer;
 }
 
 .settings-item:last-child {
   border-bottom: none;
+  margin-bottom: 0;
+}
+
+.settings-item:hover {
+  background-color: rgba(112, 120, 230, 0.05);
+}
+
+.settings-item-arrow {
+  color: #7078e6;
+}
+
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .settings-item-label {

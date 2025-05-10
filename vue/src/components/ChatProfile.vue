@@ -122,9 +122,7 @@ const mediaMessagesData = computed(() => {
         </div>
       </div>
 
-      <div class="profile-section">
-        <h3>Személyes adatok védelme és támogatás</h3>
-      </div>
+      
     </div>
 
     <AppearanceSelector v-if="showAppearanceSelector" @close="showAppearanceSelector = false"

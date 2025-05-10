@@ -8,6 +8,9 @@
     background-color: #F2F0FA;
     margin: 2.5vh 2.5vw;
     border-radius: 16px; /* Növeltem a lekerekítést */
+    border: none; /* Eltávolítottam a szegélyt */
+    outline: none; /* Eltávolítottam a körvonalat is */
+    box-shadow: none; /* Eltávolítottam az árnyékot */
 }
 
 /* Add this new style to ensure bottom corners are rounded */
@@ -44,7 +47,7 @@
     flex-direction: column;
     padding: 8px 0;
     align-items: center;
-    box-shadow: 0 2px 10px rgba(112, 120, 230, 0.1);
+    box-shadow: none;
 }
 
 .side-button {
