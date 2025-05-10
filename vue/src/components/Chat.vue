@@ -59,9 +59,15 @@ const checkScreenSize = () => {
 const handleChatSelect = async (chat) => {
   messageStore.setCurrentChannelId(chat.getChannelID());
 
-  var name = userStore.getUserID() == chat.getUser1().getUserID()
-    ? chat.getUser2().getUserName()
-    : chat.getUser1().getUserName();
+  var name;
+
+  try {
+    name = userStore.getUserID() == chat.getUser1().getUserID()
+      ? chat.getUser2().getUserName()
+      : chat.getUser1().getUserName();
+  } catch (e) {
+    name = chat.getName();
+  }
 
   messageStore.setCurrentChannelName(name);
 
@@ -91,8 +97,8 @@ const sendMessage = async (text) => {
         channelId: messageStore.getCurrentChannelId,
         content: text.text,
         messageType: text.type,
-        replyTo: text.replyTo == undefined ? null : text.replyTo 
-        
+        replyTo: text.replyTo == undefined ? null : text.replyTo
+
       });
     }
   } catch (error) {

@@ -250,7 +250,7 @@ onUnmounted(() => {
             <div class="avatar-circle"></div>
           </div>
           <div class="chat-info">
-            <div class="chat-name">{{ chat.getUsers()[0].getUserName() }}</div>
+            <div class="chat-name">{{ chat.getName() }}</div>
             <div class="last-message">{{ chat.lastMessage || 'Még nincs üzenet' }}</div>
           </div>
         </div>

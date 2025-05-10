@@ -50,8 +50,8 @@ const createGroup = async () => {
     if (webSocketStore.getIsConnected) {
       webSocketStore.send({
         type: 'group_create',
-        name: groupName.value,
-        members: selectedFriends.value.map(friend => friend.getUserID())
+        groupName: groupName.value,
+        userIds: selectedFriends.value.map(friend => friend.getUserID())
       });
     }
 
@@ -87,7 +87,7 @@ const createGroup = async () => {
       <div class="friends-list-container">
         <h3>Válassz barátokat a csoporthoz</h3>
         <div class="friends-list" v-if="friendshipStore.getAcceptedFriendships.length > 0">
-          <div v-for="friendship in friendshipStore.getAcceptedFriendships" :key="friendship.getFriendshipID()"
+          <div v-for="friendship in friendshipStore.getAcceptedFriendships"
             class="friend-item" :class="{ 'selected': isFriendSelected(friendship.getTargetUser()) }"
             @click="toggleFriendSelection(friendship.getTargetUser())">
             <div class="friend-avatar">

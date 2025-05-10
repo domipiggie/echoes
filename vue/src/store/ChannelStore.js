@@ -70,7 +70,9 @@ export const useChannelStore = defineStore('channel', () => {
         groupChannels.value = response.data.map(channel =>
           new GroupChannel(
             channel.channelID,
-            channel.users.map(user => mapToUserInstance(user))
+            channel.users.map(user => mapToUserInstance(user)),
+            channel.groupName,
+            channel.groupPicture
           )
         );
       } else {
