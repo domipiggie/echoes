@@ -101,11 +101,21 @@ class Userinfo
             $channels = [];
             $channelsMap = [];
 
-            $sql = "SELECT ca.channelID, ca.userID, u.username, u.displayName, u.profilePicture FROM channel_access ca
+            $sql = "SELECT ca.channelID, ca.userID, u.username, u.displayName, u.profilePicture, 
+                    cl.groupID, gi.name as groupName, gi.picture as groupPicture 
+                    FROM channel_access ca
                     INNER JOIN
                         user u
                     ON
                         ca.userID = u.userID
+                    INNER JOIN
+                        channel_list cl
+                    ON
+                        ca.channelID = cl.channelID
+                    LEFT JOIN
+                        group_info gi
+                    ON
+                        cl.groupID = gi.id
                     WHERE 
                         ca.channelID IN (
                             SELECT cl.channelID FROM channel_list cl
@@ -135,6 +145,9 @@ class Userinfo
                 if (!isset($channelsMap[$channelID])) {
                     $channelsMap[$channelID] = [
                         "channelID" => $channelID,
+                        "groupID" => $row['groupID'],
+                        "groupName" => $row['groupName'],
+                        "groupPicture" => $row['groupPicture'],
                         "users" => []
                     ];
                     $channels[] = &$channelsMap[$channelID];

@@ -14,6 +14,7 @@ class MessageHandler
     protected $dbConn;
     protected $friendshipHandler;
     protected $chatMessageHandler;
+    protected $groupHandler;
 
     public function __construct(\SplObjectStorage $clients, Logger $logger)
     {
@@ -25,6 +26,7 @@ class MessageHandler
 
         $this->friendshipHandler = new FriendshipHandler($clients, $logger, $this->dbConn);
         $this->chatMessageHandler = new ChatMessageHandler($clients, $logger, $this->dbConn);
+        $this->groupHandler = new GroupHandler($this->dbConn, $logger, $this->clients);
     }
 
     public function handleMessage(ConnectionInterface $from, $data)
@@ -55,6 +57,10 @@ class MessageHandler
                 break;
             case 'chatmessage_edit':
                 $this->chatMessageHandler->handleEditMessage($from, $data);
+                break;
+            
+            case 'group_create':
+                $this->groupHandler->handleCreateGroupChannel($from, $data);
                 break;
 
             default:
