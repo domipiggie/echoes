@@ -75,26 +75,19 @@ export default {
 	min-height: 600px;
 }
 
-.form-container {
-	position: absolute;
-	top: 0;
-	height: 100%;
-	transition: all 0.6s ease-in-out;
-}
-
-/* Add responsive styles */
 @media (max-width: 768px) {
 	.container {
 		width: 100%;
 		min-height: 100vh;
 		margin: 0;
-		padding: 20px;
+		padding: 15px;
 		box-shadow: none;
 		border-radius: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 20px;
 		background: #F2F0FA;
+		gap: 20px;
+		justify-content: center;
 	}
 
 	.form-container {
@@ -102,23 +95,92 @@ export default {
 		width: 100% !important;
 		height: auto !important;
 		transform: none !important;
-		opacity: 1 !important;
 	}
 
-	.overlay-container {
+	/* Alapértelmezetten a regisztráció látszik */
+	.sign-in-container {
+		display: block;
+		order: 1;
+	}
+
+	.sign-up-container {
 		display: none;
 	}
 
-	.sign-in-container,
-	.sign-up-container {
+	/* Bejelentkezés gomb megnyomása után */
+	.container.right-panel-active .sign-in-container {
+		display: none;
+	}
+
+	.container.right-panel-active .sign-up-container {
+		display: block;
+	}
+
+	.overlay-container {
+		position: static;
+		width: 100%;
+		height: auto;
+		transform: none !important;
+		order: 2;
+		margin-top: 20px;
+	}
+
+	.overlay {
+		position: static;
+		width: 100%;
+		transform: none !important;
+		border-radius: 15px;
+		background: linear-gradient(to right, #5a62d3, #7078e6);
+	}
+
+	.overlay-panel {
+		position: static;
+		width: 100%;
+		padding: 30px 20px;
+		text-align: center;
+		color: white;
+	}
+
+	.overlay-left {
+		display: none !important;
+	}
+
+	.overlay-right {
 		display: block !important;
-		background: transparent;
+	}
+
+	.container.right-panel-active .overlay-right {
+		display: none !important;
+	}
+
+	.container.right-panel-active .overlay-left {
+		display: block !important;
 	}
 
 	form {
 		background: white;
 		border-radius: 15px;
 		box-shadow: 0 4px 15px rgba(112, 120, 230, 0.1);
+		padding: 25px;
+		max-width: 400px;
+		margin: 0 auto;
+		width: 100%;
+	}
+
+	.ghost {
+		background: transparent;
+		border: 2px solid white;
+		color: white;
+		margin-top: 15px;
+		padding: 10px 30px;
+		border-radius: 20px;
+		font-weight: bold;
+		transition: all 0.3s ease;
+	}
+
+	.ghost:hover {
+		background: white;
+		color: #7078e6;
 	}
 }
 </style>

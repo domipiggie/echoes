@@ -127,17 +127,28 @@ h1 {
     transform: none !important;
     opacity: 1;
     z-index: 2;
+    padding: 10px;
   }
 
   form {
-    padding: 30px;
+    padding: 25px;
     width: 100%;
-    max-width: 100%;
+    max-width: 400px;
     height: auto;
     min-height: auto;
-    margin: 0;
+    margin: 0 auto;
     background: #fff;
     border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(112, 120, 230, 0.1);
+  }
+
+  input {
+    max-width: 100%;
+  }
+
+  button {
+    width: 100%;
+    max-width: 200px;
   }
 }
 </style>
