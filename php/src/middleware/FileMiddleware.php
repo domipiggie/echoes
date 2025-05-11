@@ -15,6 +15,14 @@ class FileMiddleware
                 throw new ApiException('File size exceeds the limit of 100MB', 400);
             }
 
+            $maxTotalStorage = 1000 * 1024 * 1024; // 1000MB in bytes
+            $fileModel = new File($dbConn);
+            $currentTotalSize = $fileModel->getTotalUserFileSize($userID);
+            
+            if (($currentTotalSize + $file['size']) > $maxTotalStorage) {
+                throw new ApiException('Upload would exceed your storage limit of 1000MB. Please delete some files first.', 400);
+            }
+
             $fileName = basename($file['name']);
             $fileSize = $file['size'];
             $fileType = $file['type'];
@@ -35,7 +43,6 @@ class FileMiddleware
                 throw new ApiException('Failed to move uploaded file', 500);
             }
 
-            $fileModel = new File($dbConn);
             $fileID = $fileModel->createFile($userID, $fileName, $uniqueName, $fileSize);
 
             return [

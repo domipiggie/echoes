@@ -32,3 +32,4 @@ vue/*.sln
 vue/*.sw?
 
 php/logs
+php/uploads
