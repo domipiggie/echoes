@@ -67,37 +67,20 @@ const handleGifSelect = (gifUrl) => {
 
 const handleImageUpload = (event) => {
   const file = event.target.files[0];
-  if (!file || !(file.type.startsWith('image/') || file.type.startsWith('video/'))) return;
-  
-  if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
-    emit('send-file', {
-      file: file,
-      channelID: props.currentChat?.channelID
-    });
+  let type = "";
+  if (file.type.startsWith('image/')) {
+    type = 'image';
+  } else if (file.type.startsWith('video/')) {
+    type = 'video';
+  } else {
+    type = 'file';
   }
   
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const message = {
-      id: Date.now(),
-      text: e.target.result,
-      type: file.type.startsWith('image/') ? 'image' : 'video',
-      fileName: file.name,
-      fileSize: file.size,
-      fileType: file.type,
-      sender: 'me',
-      timestamp: new Date().toISOString()
-    };
-
-    emit('send-message', message);
-  };
-
-  reader.onerror = (error) => {
-    console.error('Error reading file:', error);
-  };
-
-  reader.readAsDataURL(file);
-  event.target.value = '';
+  emit('send-file', {
+    file: file,
+    channelID: props.currentChat?.channelID,
+    type: type
+  });
 };
 </script>
 

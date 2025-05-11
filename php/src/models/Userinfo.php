@@ -102,7 +102,7 @@ class Userinfo
             $channelsMap = [];
 
             $sql = "SELECT ca.channelID, ca.userID, u.username, u.displayName, u.profilePicture, 
-                    cl.groupID, gi.name as groupName, gi.picture as groupPicture 
+                    cl.groupID, gi.name as groupName, gi.picture as groupPicture, gi.ownerID as groupOwnerID
                     FROM channel_access ca
                     INNER JOIN
                         user u
@@ -148,6 +148,7 @@ class Userinfo
                         "groupID" => $row['groupID'],
                         "groupName" => $row['groupName'],
                         "groupPicture" => $row['groupPicture'],
+                        "groupOwnerID" => $row['groupOwnerID'],
                         "users" => []
                     ];
                     $channels[] = &$channelsMap[$channelID];

@@ -3,11 +3,13 @@ import { ref, computed } from 'vue';
 // Hiányzó AppearanceSelector komponens importja
 import AppearanceSelector from './AppearanceSelector.vue';
 import { useMessageStore } from '../store/MessageStore';
+import { useChannelStore } from '../store/ChannelStore';
 import { userdataStore } from '../store/UserdataStore';
 
 const emit = defineEmits(['close', 'update:showProfile']);
 
 const messageStore = useMessageStore();
+const ChannelStore = useChannelStore();
 const userStore = userdataStore();
 const activeTab = ref('appearance'); // Alapértelmezetten a megjelenés fül legyen aktív
 const showAppearanceSelector = ref(false); // Hiányzó ref
@@ -73,34 +75,32 @@ const mediaMessagesData = computed(() => {
           <img src="" alt="" />
         </div>
         <h2>{{ messageStore.getCurrentChannelName }}</h2>
-        <div class="last-seen">Elérhető volt: {{  }}soha</div>
+        <div class="last-seen">Elérhető volt: {{ }}soha</div>
       </div>
 
-      <div class="profile-section">
+      <div class="profile-section" v-if="ChannelStore.getGroupChannelById(messageStore.getCurrentChannelId)">
         <h3>Chat testreszabása</h3>
-        
-        <button class="profile-button">
-          <span class="button-icon">Aa</span>
-          Csoport név módosítása
-        </button>
+        <div
+          v-if="ChannelStore.getGroupChannelById(messageStore.getCurrentChannelId)?.getOwnerID() == userStore.getUserID()">
+          <button class="profile-button">
+            <span class="button-icon">Aa</span>
+            Csoport név módosítása
+          </button>
 
-        <button class="profile-button">
-          <span class="button-icon">Aa</span>
-          Csoport profilkép módosítása
-        </button>
+          <button class="profile-button">
+            <span class="button-icon">Aa</span>
+            Csoport profilkép módosítása
+          </button>
 
-        <button class="profile-button">
-          <span class="button-icon">Aa</span>
-          Új csoporttag felvétele
-        </button>
-
+          <button class="profile-button">
+            <span class="button-icon">Aa</span>
+            Új csoporttag felvétele
+          </button>
+        </div>
         <button class="profile-button">
           <span class="button-icon">Aa</span>
           Csoporttagok
         </button>
-
-
-
       </div>
 
       <div class="profile-section">
@@ -120,28 +120,28 @@ const mediaMessagesData = computed(() => {
       <div class="profile-section">
         <h3>Médiatartalom és fájlok</h3>
         <div class="media-grid">
-          <div v-for="media in mediaMessagesData" :key="media.id || Math.random()" class="media-item">
-            <img v-if="media.type === 'image' || media.type === 'gif'" :src="media.text"
-              :alt="media.fileName || 'Media content'" @error="$event.target.src = 'fallback-image-url'" />
-            <div v-else-if="media.type === 'video'" class="video-preview"
-              :style="{ backgroundImage: `url(${media.thumbnail || media.text})` }">
-              <div class="video-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
+          <div v-for="message in messageStore.getNotTextMessages" :key="message.getMessageID() || Math.random()">
+            <div class="media-item">
+              <img v-if="message.getType() === 'image' || message.getType() === 'gif'" :src="message.getContent()"
+                :alt="message.getContent() || 'Media content'" @error="$event.target.src = 'fallback-image-url'" />
+              <div v-else-if="message.getType() === 'video'" class="video-preview"
+                :style="{ backgroundImage: `url(${message.getContent()})` }">
+                <div class="video-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
-          <div v-for="n in Math.max(0, 9 - (mediaMessages?.length || 0))" :key="'placeholder-' + n"
-            class="media-placeholder"></div>
         </div>
       </div>
 
-      <button class="profile-button">
-          <span class="button-icon">Aa</span>
-          Csoport elhagyása
-        </button>
-      
+      <button class="profile-button" v-if="ChannelStore.getGroupChannelById(messageStore.getCurrentChannelId)">
+        <span class="button-icon">Aa</span>
+        Csoport elhagyása
+      </button>
+
     </div>
 
     <AppearanceSelector v-if="showAppearanceSelector" @close="showAppearanceSelector = false"

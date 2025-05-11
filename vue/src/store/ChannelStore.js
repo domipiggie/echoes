@@ -72,7 +72,8 @@ export const useChannelStore = defineStore('channel', () => {
             channel.channelID,
             channel.users.map(user => mapToUserInstance(user)),
             channel.groupName,
-            channel.groupPicture
+            channel.groupPicture,
+            channel.groupOwnerID
           )
         );
       } else {

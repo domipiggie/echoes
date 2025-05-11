@@ -10,9 +10,9 @@ class FileMiddleware
                 throw new ApiException($errorMessage, 400);
             }
 
-            $maxFileSize = 10 * 1024 * 1024; // 10MB in bytes
+            $maxFileSize = 100 * 1024 * 1024; // 100MB in bytes
             if ($file['size'] > $maxFileSize) {
-                throw new ApiException('File size exceeds the limit of 10MB', 400);
+                throw new ApiException('File size exceeds the limit of 100MB', 400);
             }
 
             $fileName = basename($file['name']);
@@ -20,7 +20,8 @@ class FileMiddleware
             $fileType = $file['type'];
             $fileTmpPath = $file['tmp_name'];
 
-            $uniqueName = uniqid() . '_' . $fileName;
+            $sanitizedFileName = preg_replace('/[^a-zA-Z0-9\-\_\.]/', '_', $fileName);
+            $uniqueName = uniqid() . '_' . $sanitizedFileName;
             
             $uploadDir = __DIR__ . '/../../uploads/';
             
@@ -40,6 +41,7 @@ class FileMiddleware
             return [
                 'fileID' => $fileID,
                 'fileName' => $fileName,
+                'uniqueName' => $uniqueName,
                 'size' => $fileSize,
                 'uploadedAt' => date('Y-m-d H:i:s')
             ];
@@ -68,7 +70,6 @@ class FileMiddleware
             $fileModel = new File($dbConn);
             $fileInfo = $fileModel->getFileByUniqueName($uniqueName);
             
-            // Get the file path
             $filePath = __DIR__ . '/../../uploads/' . $fileInfo['unique_name'];
             
             if (!file_exists($filePath)) {
@@ -93,17 +94,14 @@ class FileMiddleware
         try {
             $fileModel = new File($dbConn);
             
-            // Get file info first to get the unique name
             $fileInfo = $fileModel->getFileById($fileID);
             
             if ($fileInfo['userID'] != $userID) {
                 throw new ApiException('You do not have permission to delete this file', 403);
             }
             
-            // Delete from database
             $fileModel->deleteFile($fileID, $userID);
             
-            // Delete the physical file
             $filePath = __DIR__ . '/../../uploads/' . $fileInfo['unique_name'];
             if (file_exists($filePath)) {
                 unlink($filePath);

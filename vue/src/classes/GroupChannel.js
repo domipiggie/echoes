@@ -1,16 +1,18 @@
 export default class GroupChannel {
-    #channelID; #users; #name; #picture;
+    #channelID; #users; #name; #picture; #ownerID;
 
-    constructor(channelID, users, name, picture) {
+    constructor(channelID, users, name, picture, ownerID) {
         this.#setChannelID(channelID);
         this.#setUsers(users);
         this.#setName(name);
         this.#setPicture(picture);
+        this.#setOwnerID(ownerID);
 
         this.getChannelID = this.getChannelID.bind(this);
         this.getUsers = this.getUsers.bind(this);
         this.getName = this.getName.bind(this);
         this.getPicture = this.getPicture.bind(this);
+        this.getOwnerID = this.getOwnerID.bind(this);
     }
 
     getChannelID() {
@@ -29,6 +31,10 @@ export default class GroupChannel {
         return this.#picture;
     }
 
+    getOwnerID() {
+        return this.#ownerID;
+    }
+
     #setChannelID(channelID) {
         this.#channelID = channelID;
     }
@@ -43,5 +49,9 @@ export default class GroupChannel {
 
     #setPicture(picture) {
         this.#picture = picture;
+    }
+
+    #setOwnerID(ownerID) {
+        this.#ownerID = ownerID;
     }
 }

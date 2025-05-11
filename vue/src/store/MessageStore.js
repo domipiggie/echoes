@@ -17,6 +17,9 @@ export const useMessageStore = defineStore('message', () => {
   });
 
   const getMessages = computed(() => messages.value);
+  const getNotTextMessages = computed(() => {
+    return messages.value.filter(message => message.getType() !== 'text');
+  });
   const getCurrentChannelId = computed(() => currentChannelId.value);
   const getCurrentChannelName = computed(() => currentChannelName.value);
   const getIsLoading = computed(() => isLoading.value);
@@ -195,6 +198,7 @@ export const useMessageStore = defineStore('message', () => {
 
   return {
     getMessages,
+    getNotTextMessages,
     getCurrentChannelId,
     getCurrentChannelName,
     getIsLoading,

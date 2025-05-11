@@ -9,6 +9,8 @@ import NewChatDialog from './NewChatDialog.vue';
 import NewGroupDialog from './NewGroupDialog.vue';
 import ProfileSettingsDialog from './ProfileSettingsDialog.vue';
 import friendService from '../services/friendService';
+import axios from 'axios';
+import { API_CONFIG } from '../config/api';
 
 const router = useRouter();
 
@@ -23,7 +25,8 @@ const emit = defineEmits(['select-chat']);
 const showSettingsModal = ref(false);
 const showProfileSettingsModal = ref(false);
 const darkMode = ref(false);
-const storageUsed = ref(45); // MB-ban, ezt később API-ból kérheted le
+const storageUsed = ref(0);
+const storageText = ref("");
 
 // Dark mode kapcsoló
 const toggleDarkMode = () => {
@@ -117,6 +120,21 @@ const reloadFriendships = async () => {
   }
 };
 
+const loadStorageUsage = async () => {
+  try {
+    const response = await axios.get(`${API_CONFIG.BASE_URL}/files/size`, {
+      headers: {
+        Authorization: `Bearer ${userStore.getAccessToken()}`,
+      }
+    })
+
+    storageUsed.value = response.data.data.total_size_bytes/1024/1024/10;
+    storageText.value = response.data.data.total_size_formatted;
+  } catch (error) {
+    console.error('Failed to fetch storage usage:', error);
+  }
+};
+
 onMounted(() => {
   const savedDarkMode = localStorage.getItem('darkMode');
   if (savedDarkMode === 'true') {
@@ -130,7 +148,8 @@ onMounted(() => {
   webSocketStore.registerHandler("friend_request_denied", reloadFriendships);
   webSocketStore.registerHandler("friend_deny", reloadFriendships);
   webSocketStore.registerHandler("friend_request_recieved", reloadFriendships);
-  
+
+  loadStorageUsage();
 });
 
 onUnmounted(() => {
@@ -318,7 +337,8 @@ onUnmounted(() => {
         </div>
         <div v-else>
           <!-- Meglévő barátkérelmek listája -->
-          <div v-for="request in friendStore.getOutgoingRequests" :key="request.getFriendshipID()" class="friend-request-item">
+          <div v-for="request in friendStore.getOutgoingRequests" :key="request.getFriendshipID()"
+            class="friend-request-item">
             <div class="avatar">
               <div class="avatar-circle">
                 <!-- Display first letter of username if no avatar -->
@@ -342,7 +362,8 @@ onUnmounted(() => {
       </div>
     </div>
     <!-- New Chat Dialog -->
-    <NewChatDialog v-if="showNewChatDialog" @close="showNewChatDialog = false" @chat-created="handleChatCreated" @open-group-dialog="showNewGroupDialog = true" />
+    <NewChatDialog v-if="showNewChatDialog" @close="showNewChatDialog = false" @chat-created="handleChatCreated"
+      @open-group-dialog="showNewGroupDialog = true" />
     <!-- New Group Dialog -->
     <NewGroupDialog v-if="showNewGroupDialog" @close="showNewGroupDialog = false" @group-created="handleGroupCreated" />
 
@@ -378,7 +399,7 @@ onUnmounted(() => {
               </svg>
             </div>
           </div>
-          
+
           <!-- Dark Mode kapcsoló -->
           <div class="settings-item">
             <div class="settings-item-label">
@@ -409,7 +430,7 @@ onUnmounted(() => {
               <div class="storage-bar">
                 <div class="storage-used" :style="{ width: `${storageUsed}%` }"></div>
               </div>
-              <span>{{ storageUsed }} MB / 100 MB</span>
+              <span>{{ storageText }} / 1000 MB</span>
             </div>
           </div>
 
@@ -428,7 +449,7 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
-    
+
     <!-- Profil beállítások dialog -->
     <ProfileSettingsDialog v-if="showProfileSettingsModal" @close="showProfileSettingsModal = false" />
   </div>
@@ -525,8 +546,15 @@ onUnmounted(() => {
 }
 
 @keyframes slide-up {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .settings-item-label {
@@ -573,11 +601,11 @@ onUnmounted(() => {
   border-radius: 50%;
 }
 
-input:checked + .toggle-slider {
+input:checked+.toggle-slider {
   background-color: #7078e6;
 }
 
-input:checked + .toggle-slider:before {
+input:checked+.toggle-slider:before {
   transform: translateX(22px);
 }
 
