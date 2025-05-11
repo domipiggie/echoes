@@ -53,6 +53,9 @@ class ChatMessageHandler
 
             $this->logger->info("Chat message sent by user {$sender->id} in channel {$channelId}");
 
+            $user = new \User($this->dbConn);
+            $user->loadFromID($sender->id);
+
             $notifyData = [
                 'message' => [
                     'channelId' => $channelId,
@@ -62,7 +65,8 @@ class ChatMessageHandler
                     'replyTo' => $replyTo,
                     'sender' => [
                         'id' => $sender->id,
-                        'username' => $sender->username
+                        'username' => $sender->username,
+                        'profilePicture' => $user->getProfilePicture()
                     ],
                     'timestamp' => $result['sent_at']
                 ]

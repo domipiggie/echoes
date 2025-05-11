@@ -62,6 +62,19 @@ class MessageHandler
             case 'group_create':
                 $this->groupHandler->handleCreateGroupChannel($from, $data);
                 break;
+            case 'group_leave':
+                $this->groupHandler->handleLeaveGroup($from, $data);
+                break;
+            case 'group_remove_user':
+                $this->groupHandler->handleRemoveUserFromGroup($from, $data);
+                break;
+            case 'group_add_user':
+                $this->groupHandler->handleAddUserToGroup($from, $data);
+                break;
+            case 'group_update_info':
+                $this->groupHandler->handleUpdateGroupInfo($from, $data);
+                break;
+    
 
             default:
                 $this->logger->debug("Received unknown message type '{$data['type']}' from connection {$from->resourceId}");

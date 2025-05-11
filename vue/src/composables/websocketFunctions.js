@@ -18,7 +18,9 @@ const handleNewMessage = (data) => {
             data.message.timestamp,
             new User(
                 data.message.sender.id,
-                data.message.sender.username
+                data.message.sender.username,
+                data.message.sender.username,
+                data.message.sender.profilePicture
             ),
             data.message.replyTo
         );

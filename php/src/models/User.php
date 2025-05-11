@@ -232,4 +232,33 @@ class User
     {
         return $this->profilePicture;
     }
+    
+    public function setProfilePicture($profilePicture)
+    {
+        try {
+            $query = "UPDATE " . $this->table_name . "
+                    SET
+                        profilePicture = :profilePicture
+                    WHERE
+                        userID = :userID";
+            
+            $args = [
+                [':profilePicture', $profilePicture],
+                [':userID', $this->userID]
+            ];
+            
+            $result = DatabaseOperations::updateDB($this->dbConn, $query, $args);
+            
+            if ($result > 0) {
+                $this->profilePicture = $profilePicture;
+                return true;
+            }
+            
+            throw new ApiException('Failed to update profile picture', 500);
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to update profile picture: ' . $e->getMessage(), 500);
+        }
+    }
 }

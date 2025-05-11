@@ -128,7 +128,7 @@ const loadStorageUsage = async () => {
       }
     })
 
-    storageUsed.value = response.data.data.total_size_bytes/1024/1024/10;
+    storageUsed.value = response.data.data.total_size_bytes / 1024 / 1024 / 10;
     storageText.value = response.data.data.total_size_formatted;
   } catch (error) {
     console.error('Failed to fetch storage usage:', error);
@@ -240,7 +240,15 @@ onUnmounted(() => {
         <div v-for="chat in channelStore.getFriendChannels" :key="chat.getChannelID()" class="chat-item"
           @click="selectChat(chat)">
           <div class="avatar">
-            <div class="avatar-circle"></div>
+            <div class="avatar-circle">
+              <img
+                v-if="chat.getUser1().getUserID() == userStore.getUserID() ? chat.getUser2().getProfilePicture() : chat.getUser1().getProfilePicture()"
+                :src="API_CONFIG.BASE_URL + (chat.getUser1().getUserID() == userStore.getUserID() ? chat.getUser2().getProfilePicture() : chat.getUser1().getProfilePicture())"
+                alt="Avatar">
+              <span v-else>{{ chat.getUser1().getUserID() == userStore.getUserID() ?
+                chat.getUser2().getUserName().charAt(0).toUpperCase() :
+                chat.getUser1().getUserName().charAt(0).toUpperCase() }}</span>
+            </div>
           </div>
           <div class="chat-info">
             <div class="chat-name">{{ userStore.getUserID() == chat.getUser1().getUserID() ?
@@ -266,7 +274,13 @@ onUnmounted(() => {
         <div v-for="chat in channelStore.getGroupChannels" :key="chat.getChannelID()" class="chat-item"
           @click="selectChat(chat)">
           <div class="avatar">
-            <div class="avatar-circle"></div>
+            <div class="avatar-circle">
+              <img
+                v-if="chat.getPicture()"
+                :src="API_CONFIG.BASE_URL + chat.getPicture()"
+                alt="Avatar">
+              <span v-else>{{ chat.getName().charAt(0).toUpperCase() }}</span>
+            </div>
           </div>
           <div class="chat-info">
             <div class="chat-name">{{ chat.getName() }}</div>
@@ -298,7 +312,9 @@ onUnmounted(() => {
             <div class="avatar">
               <div class="avatar-circle">
                 <!-- Display first letter of username if no avatar -->
-                <span v-if="!request.avatar">{{ request.getTargetUser().getUserName().charAt(0) }}</span>
+                <img v-if="request.getTargetUser().getProfilePicture()"
+                  :src="API_CONFIG.BASE_URL + request.getTargetUser().getProfilePicture()" alt="Profilkép" />
+                <span v-else>{{ request.getTargetUser().getUserName().charAt(0).toUpperCase() }}</span>
               </div>
             </div>
             <div class="request-info">
@@ -342,7 +358,9 @@ onUnmounted(() => {
             <div class="avatar">
               <div class="avatar-circle">
                 <!-- Display first letter of username if no avatar -->
-                <span v-if="!request.avatar">{{ request.getTargetUser().getUserName().charAt(0) }}</span>
+                <img v-if="request.getTargetUser().getProfilePicture()"
+                  :src="API_CONFIG.BASE_URL + request.getTargetUser().getProfilePicture()" alt="Profilkép" />
+                <span v-else>{{ request.getTargetUser().getUserName().charAt(0).toUpperCase() }}</span>
               </div>
             </div>
             <div class="request-info">

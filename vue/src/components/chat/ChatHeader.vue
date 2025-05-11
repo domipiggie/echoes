@@ -1,5 +1,13 @@
 <script setup>
-import { ref } from 'vue';
+import { ref,computed } from 'vue';
+import { useMessageStore } from '../../store/MessageStore';
+import { useChannelStore } from '../../store/ChannelStore';
+import { userdataStore } from '../../store/UserdataStore';
+import { API_CONFIG } from '../../config/api';
+
+const messageStore = useMessageStore();
+const channelStore = useChannelStore();
+const userStore = userdataStore();
 
 const props = defineProps({
   currentChannelName: String,
@@ -14,6 +22,18 @@ const toggleProfile = () => {
   showProfile.value = !showProfile.value;
   emit('toggle-profile', showProfile.value);
 };
+
+const profilePicture = computed(() => {
+  if (messageStore.getCurrentChannelId == null) return null;
+  if (channelStore.getFriendChannelById(messageStore.getCurrentChannelId)) {
+    const channel = channelStore.getFriendChannelById(messageStore.getCurrentChannelId);
+    const pfp = channel.getUser1().getUserID() == userStore.getUserID() ? channel.getUser2().getProfilePicture() : channel.getUser1().getProfilePicture();
+    return pfp;
+  } else {
+    const channel = channelStore.getGroupChannelById(messageStore.getCurrentChannelId);
+    return channel.getPicture();
+  }
+})
 </script>
 
 <template>
@@ -31,7 +51,8 @@ const toggleProfile = () => {
         </button>
         <div class="avatar">
           <div class="avatar-circle">
-            <span>{{ currentChannelName.charAt(0) }}</span>
+            <img v-if="profilePicture" :src="API_CONFIG.BASE_URL + profilePicture" alt="Profilkép" />
+            <span v-else>{{ currentChannelName.charAt(0).toUpperCase() }}</span>
           </div>
         </div>
         <div class="user-details">

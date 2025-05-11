@@ -2,17 +2,28 @@
 import { ref, computed } from 'vue';
 // Hiányzó AppearanceSelector komponens importja
 import AppearanceSelector from './AppearanceSelector.vue';
+import UserList from './groupModals/UserList.vue';
+import AddUser from './groupModals/AddUser.vue';
+import ChangeName from './groupModals/ChangeName.vue';
+import ChangeProfile from './groupModals/ChangeProfile.vue';
 import { useMessageStore } from '../store/MessageStore';
 import { useChannelStore } from '../store/ChannelStore';
 import { userdataStore } from '../store/UserdataStore';
+import { useWebSocketStore } from '../store/WebSocketStore';
+import { API_CONFIG } from '../config/api';
 
 const emit = defineEmits(['close', 'update:showProfile']);
 
 const messageStore = useMessageStore();
-const ChannelStore = useChannelStore();
+const channelStore = useChannelStore();
+const webSocketStore = useWebSocketStore();
 const userStore = userdataStore();
 const activeTab = ref('appearance'); // Alapértelmezetten a megjelenés fül legyen aktív
 const showAppearanceSelector = ref(false); // Hiányzó ref
+const showUserList = ref(false);
+const showAddUser = ref(false);
+const showChangeName = ref(false);
+const showChangeProfile = ref(false);
 
 // Javított closeProfile metódus
 const closeProfile = () => {
@@ -59,6 +70,27 @@ const mediaMessages = computed(() => {
 const mediaMessagesData = computed(() => {
   return mediaMessages.value;
 });
+
+const leaveGroup = () => {
+  if (webSocketStore.isConnected) {
+    webSocketStore.send({
+      type: 'group_leave',
+      channelId: messageStore.getCurrentChannelId,
+    });
+  }
+};
+
+const profilePicture = computed(() => {
+  if (messageStore.getCurrentChannelId == null) return null;
+  if (channelStore.getFriendChannelById(messageStore.getCurrentChannelId)) {
+    const channel = channelStore.getFriendChannelById(messageStore.getCurrentChannelId);
+    const pfp = channel.getUser1().getUserID() == userStore.getUserID() ? channel.getUser2().getProfilePicture() : channel.getUser1().getProfilePicture();
+    return pfp;
+  } else {
+    const channel = channelStore.getGroupChannelById(messageStore.getCurrentChannelId);
+    return channel.getPicture();
+  }
+})
 </script>
 
 <template>
@@ -72,32 +104,34 @@ const mediaMessagesData = computed(() => {
       </button>
       <div class="profile-header">
         <div class="profile-image">
-          <img src="" alt="" />
+          <img v-if="profilePicture" :src="API_CONFIG.BASE_URL + profilePicture" alt="Profilkép"
+            class="avatar-circle" />
+          <span v-else class="avatar-circle">{{ messageStore.getCurrentChannelName.charAt(0).toUpperCase() }}</span>
         </div>
         <h2>{{ messageStore.getCurrentChannelName }}</h2>
         <div class="last-seen">Elérhető volt: {{ }}soha</div>
       </div>
 
-      <div class="profile-section" v-if="ChannelStore.getGroupChannelById(messageStore.getCurrentChannelId)">
+      <div class="profile-section" v-if="channelStore.getGroupChannelById(messageStore.getCurrentChannelId)">
         <h3>Chat testreszabása</h3>
         <div
-          v-if="ChannelStore.getGroupChannelById(messageStore.getCurrentChannelId)?.getOwnerID() == userStore.getUserID()">
-          <button class="profile-button">
+          v-if="channelStore.getGroupChannelById(messageStore.getCurrentChannelId)?.getOwnerID() == userStore.getUserID()">
+          <button class="profile-button" @click="showChangeName = true">
             <span class="button-icon">Aa</span>
             Csoport név módosítása
           </button>
 
-          <button class="profile-button">
+          <button class="profile-button" @click="showChangeProfile = true">
             <span class="button-icon">Aa</span>
             Csoport profilkép módosítása
           </button>
 
-          <button class="profile-button">
+          <button class="profile-button" @click="showAddUser = true">
             <span class="button-icon">Aa</span>
             Új csoporttag felvétele
           </button>
         </div>
-        <button class="profile-button">
+        <button class="profile-button" @click="showUserList = true">
           <span class="button-icon">Aa</span>
           Csoporttagok
         </button>
@@ -137,7 +171,8 @@ const mediaMessagesData = computed(() => {
         </div>
       </div>
 
-      <button class="profile-button" v-if="ChannelStore.getGroupChannelById(messageStore.getCurrentChannelId)">
+      <button class="profile-button" v-if="channelStore.getGroupChannelById(messageStore.getCurrentChannelId)"
+        @click="leaveGroup">
         <span class="button-icon">Aa</span>
         Csoport elhagyása
       </button>
@@ -146,6 +181,14 @@ const mediaMessagesData = computed(() => {
 
     <AppearanceSelector v-if="showAppearanceSelector" @close="showAppearanceSelector = false"
       @select="userStore.handleThemeChange" />
+
+    <UserList v-if="showUserList" @close="showUserList = false" />
+
+    <AddUser v-if="showAddUser" @close="showAddUser = false" />
+
+    <ChangeName v-if="showChangeName" @close="showChangeName = false" />
+
+    <ChangeProfile v-if="showChangeProfile" @close="showChangeProfile = false" />
   </div>
 </template>
 

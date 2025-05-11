@@ -1,25 +1,33 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useFriendshipStore } from '../store/FriendshipStore';
-import { useWebSocketStore } from '../store/WebSocketStore';
-import { userdataStore } from '../store/UserdataStore';
-import { API_CONFIG } from '../config/api.js';
+import { ref, computed } from 'vue';
+import { useFriendshipStore } from '../../store/FriendshipStore';
+import { useWebSocketStore } from '../../store/WebSocketStore';
+import { userdataStore } from '../../store/UserdataStore';
+import { useMessageStore } from '../../store/MessageStore';
+import { useChannelStore } from '../../store/ChannelStore';
+import { API_CONFIG } from '../../config/api.js';
 
-const emit = defineEmits(['close', 'group-created']);
+const emit = defineEmits(['close']);
 const friendshipStore = useFriendshipStore();
 const webSocketStore = useWebSocketStore();
 const userStore = userdataStore();
+const messageStore = useMessageStore();
+const channelStore = useChannelStore();
 
-const groupName = ref('');
-const selectedFriends = ref([]);
-const isLoading = ref(false);
-const errorMessage = ref('');
+const availableUsers = computed(() => {
+  const currentChannelId = messageStore.getCurrentChannelId;
+  const currentChannel = channelStore.getGroupChannelById(currentChannelId);
+  const channelUsers = currentChannel.getUsers();
+  const friendList = friendshipStore.getAcceptedFriendships;
 
-onMounted(async () => {
-  if (friendshipStore.getFriendships.length === 0) {
-    await friendshipStore.fetchFriendships();
-  }
+  return friendList.filter(friendship => {
+    const friendUser = friendship.getTargetUser();
+    return !channelUsers.some(channelUser =>
+      channelUser.getUserID() === friendUser.getUserID()
+    );
+  });
 });
+const selectedFriends = ref([]);
 
 const toggleFriendSelection = (friend) => {
   const index = selectedFriends.value.findIndex(f => f.getUserID() === friend.getUserID());
@@ -34,44 +42,29 @@ const isFriendSelected = (friend) => {
   return selectedFriends.value.some(f => f.getUserID() === friend.getUserID());
 };
 
-const createGroup = async () => {
-  if (!groupName.value.trim()) {
-    errorMessage.value = 'Kérlek adj meg egy csoportnevet!';
-    return;
-  }
+const addUsers = () => {
+  const currentChannelId = messageStore.getCurrentChannelId;
+  const selectedUserIds = selectedFriends.value.map(friend => friend.getUserID());
 
-  if (selectedFriends.value.length === 0) {
-    errorMessage.value = 'Válassz ki legalább egy barátot a csoporthoz!';
-    return;
-  }
-
-  isLoading.value = true;
-
-  try {
-    if (webSocketStore.getIsConnected) {
-      webSocketStore.send({
-        type: 'group_create',
-        groupName: groupName.value,
-        userIds: selectedFriends.value.map(friend => friend.getUserID())
-      });
-    }
-
-    emit('group-created');
+  if (webSocketStore.isConnected) {
+    webSocketStore.send({
+      type: 'group_add_user',
+      channelId: currentChannelId,
+      userIds: selectedUserIds
+    });
     emit('close');
-  } catch (error) {
-    console.error('Hiba történt a csoport létrehozása közben:', error);
-    errorMessage.value = 'Hiba történt a csoport létrehozása közben.';
-  } finally {
-    isLoading.value = false;
   }
-};
+
+  channelStore.fetchGroupChannels();
+}
+
 </script>
 
 <template>
   <div class="new-group-overlay" @click.self="emit('close')">
     <div class="new-group-dialog">
       <div class="dialog-header">
-        <h2>Csoport létrehozása</h2>
+        <h2>Csoporttag felvétele</h2>
         <button class="close-button" @click="emit('close')">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2">
@@ -81,14 +74,10 @@ const createGroup = async () => {
         </button>
       </div>
 
-      <div class="input-container">
-        <input type="text" v-model="groupName" placeholder="Csoport neve" />
-      </div>
-
       <div class="friends-list-container">
         <h3>Válassz barátokat a csoporthoz</h3>
-        <div class="friends-list" v-if="friendshipStore.getAcceptedFriendships.length > 0">
-          <div v-for="friendship in friendshipStore.getAcceptedFriendships" class="friend-item"
+        <div class="friends-list" v-if="availableUsers.length > 0">
+          <div v-for="friendship in availableUsers" class="friend-item"
             :class="{ 'selected': isFriendSelected(friendship.getTargetUser()) }"
             @click="toggleFriendSelection(friendship.getTargetUser())">
             <div class="friend-avatar">
@@ -108,21 +97,18 @@ const createGroup = async () => {
           </div>
         </div>
         <div v-else class="no-friends-message">
-          Nincsenek barátaid. Adj hozzá barátokat a csoport létrehozásához.
+          Nincsenek barátaid akik nem tagja a csoportnak.
         </div>
       </div>
 
-      <div class="error-message" v-if="errorMessage">{{ errorMessage }}</div>
-
       <div class="button-container">
         <button class="cancel-button" @click="emit('close')">Mégse</button>
-        <button class="create-button" @click="createGroup" :disabled="isLoading || selectedFriends.length === 0">
-          <span>Csoport létrehozása</span>
-          <svg v-if="!isLoading" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" stroke-width="2">
+        <button class="create-button" @click="addUsers">
+          <span>Tagok felvétele</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
             <path d="M5 12h14M12 5l7 7-7 7"></path>
           </svg>
-          <div v-else class="loading-spinner"></div>
         </button>
       </div>
     </div>

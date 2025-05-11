@@ -9,5 +9,15 @@ export const userService = {
       console.error('Error fetching user by username:', error);
       throw error;
     }
+  },
+  
+  async getUserByID(id) {
+    try {
+      const response = await apiService.get(`/userInfo/id/${id.trim()}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user by id:', error);
+      throw error;
+    }
   }
 };

@@ -1,15 +1,16 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { userdataStore } from '../store/UserdataStore';
+import { userdataStore } from '../../store/UserdataStore';
+import { useMessageStore } from '../../store/MessageStore';
+import { useChannelStore } from '../../store/ChannelStore';
 import axios from 'axios';
-import { API_CONFIG } from '../config/api.js';
+import { API_CONFIG } from '../../config/api.js';
 
 const emit = defineEmits(['close']);
 const userStore = userdataStore();
+const messageStore = useMessageStore();
+const channelStore = useChannelStore();
 
-// Felhasználói adatok
-const username = ref('');
-const email = ref('');
 const profileImage = ref(null);
 const profileImageUrl = ref(null);
 
@@ -28,14 +29,14 @@ const handleImageUpload = (event) => {
 };
 
 // Felhasználói adatok mentése
-const saveUserData = async () => {
+const saveProfilePicture = async () => {
   try {
     isLoading.value = true;
     errorMessage.value = '';
     
     // Check if there's a profile image to upload
     if (!profileImage.value) {
-      successMessage.value = 'Nincs új profilkép kiválasztva.';
+      successMessage.value = 'Nincs új kép kiválasztva.';
       setTimeout(() => {
         successMessage.value = '';
       }, 3000);
@@ -48,11 +49,9 @@ const saveUserData = async () => {
     
     console.log('Uploading profile picture...');
     
-    const response = await axios.post(`${API_CONFIG.BASE_URL}/pfp/user`, formData, {
+    const response = await axios.post(`${API_CONFIG.BASE_URL}/pfp/group/${messageStore.getCurrentChannelId}`, formData, {
       headers: { 
         'Authorization': `Bearer ${userStore.getAccessToken()}`,
-        // Let the browser set the correct Content-Type with boundary
-        // 'Content-Type': 'multipart/form-data'
       }
     });
     
@@ -89,9 +88,10 @@ const saveUserData = async () => {
 onMounted(async () => {
   isLoading.value = true;
 
-  await userStore.fetchUserInfo();
-  username.value = userStore.getUsername();
-  profileImageUrl.value = userStore.getProfilePicture();
+  const channel = channelStore.getGroupChannelById(messageStore.getCurrentChannelId);
+  if (channel && channel.getPicture()) {
+    profileImageUrl.value = API_CONFIG.BASE_URL + channel.getPicture();
+  }
 
   isLoading.value = false;
 });
@@ -101,7 +101,7 @@ onMounted(async () => {
   <div class="profile-settings-overlay" @click.self="emit('close')">
     <div class="profile-settings-dialog">
       <div class="profile-settings-header">
-        <h2 style="width: 100%; text-align: center;">Profil beállítások</h2>
+        <h2 style="width: 100%; text-align: center;">Csoport profilkép módosítása</h2>
         <button class="close-button" @click="emit('close')">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2">
@@ -124,7 +124,7 @@ onMounted(async () => {
             <div class="profile-image-container">
               <img v-if="profileImageUrl" :src="profileImageUrl" alt="Profilkép" class="profile-image" />
               <div v-else class="profile-image-placeholder">
-                {{ username.value ? username.value.charAt(0).toUpperCase() : 'U' }}
+                {{ messageStore.getCurrentChannelName.charAt(0).toUpperCase() }}
               </div>
               <div class="profile-image-overlay">
                 <label for="profile-image-upload" class="profile-image-upload-label">
@@ -139,19 +139,9 @@ onMounted(async () => {
             </div>
           </div>
 
-          <div class="form-group">
-            <label for="username">Felhasználónév</label>
-            <input type="text" id="username" v-model="username" class="form-control" placeholder="Felhasználónév" />
-          </div>
-
-          <div class="form-group">
-            <label for="email">Email cím</label>
-            <input type="email" id="email" v-model="email" class="form-control" placeholder="Email cím" />
-          </div>
-
           <div class="form-actions">
             <button class="cancel-button" @click="emit('close')">Mégse</button>
-            <button class="save-button" @click="saveUserData" :disabled="isLoading">
+            <button class="save-button" @click="saveProfilePicture" :disabled="isLoading">
               <span v-if="isLoading">Mentés...</span>
               <span v-else>Mentés</span>
             </button>

@@ -32,6 +32,7 @@ onMounted(async () => {
     console.log('Friendships loaded:', friendshipStore.getFriendships);
 
     if (userStore.getAccessToken() != null) {
+      await userStore.fetchUserInfo();
       webSocketStore.connect();
 
       webSocketStore.registerHandler('new_message', handleNewMessage);

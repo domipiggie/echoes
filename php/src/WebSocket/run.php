@@ -15,6 +15,7 @@ require_once __DIR__ . '/../models/Message.php';
 require_once __DIR__ . '/../models/Channel.php';
 require_once __DIR__ . '/../utils/DatabaseOperations.php';
 require_once __DIR__ . '/../models/Group.php';
+require_once __DIR__ . '/../models/User.php';
 
 use Ratchet\Server\IoServer;
 use Ratchet\Http\HttpServer;

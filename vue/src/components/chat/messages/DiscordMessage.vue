@@ -1,5 +1,6 @@
 <script setup>
 import { useMessageStore } from '../../../store/MessageStore';
+import { API_CONFIG } from '../../../config/api';
 const messageStore = useMessageStore();
 
 const props = defineProps({
@@ -31,23 +32,20 @@ const emit = defineEmits([
       }
     ]"
   >
-    <!-- Küldő neve - csak csoportos beszélgetésben jelenik meg, ha változik a küldő -->
-    <div v-if="currentChannelName && (index === 0 || messages[index - 1]?.getUser().getUserID() !== message.getUser().getUserID())" class="sender-name">
-      {{ message.getUser().getUserID() == userID ? 'Te' : message.getUser().getUserName() }}
-    </div>
     
     <div class="message-content">
       <div class="discord-message-container">
         <div v-if="index === 0 || messages[index - 1]?.getUser().getUserID() !== message.getUser().getUserID()" class="discord-avatar">
           <div class="avatar-circle">
-            <span>{{ message.getUser().getUserID() == userID ? 'Y' : message.getUser().getUserName().charAt(0) }}</span>
+            <img v-if="message.getUser().getProfilePicture()" :src="API_CONFIG.BASE_URL + message.getUser().getProfilePicture()" alt="Avatar" class="avatar-image">
+            <span v-else>{{ message.getUser().getUserName().charAt(0) }}</span>
           </div>
         </div>
         <div v-else class="discord-avatar-placeholder"></div>
         
         <div class="discord-message-content">
           <div v-if="index === 0 || messages[index - 1]?.getUser().getUserID() !== message.getUser().getUserID()" class="discord-username">
-            {{ message.getUser().getUserID() == userID ? 'You' : message.getUser().getUserName() }}
+            {{ message.getUser().getUserName() }}
           </div>
           
           <div class="discord-message-wrapper">

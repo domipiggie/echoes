@@ -2,6 +2,10 @@
 
 class FileMiddleware
 {
+    private static $USER_PROFILE_DIR = '/../../uploads/userProfiles/';
+    private static $GROUP_PROFILE_DIR = '/../../uploads/groupProfiles/';
+    private static $PROFILE_PIC_MAX_SIZE = 5 * 1024 * 1024; // 5MB
+    
     public static function uploadFile($userID, $file, $dbConn)
     {
         try {
@@ -168,6 +172,176 @@ class FileMiddleware
             throw new ApiException($e->getMessage(), $e->getStatusCode());
         } catch (Exception $e) {
             throw new ApiException('Failed to get total file size: ' . $e->getMessage(), 500);
+        }
+    }
+    
+    public static function uploadUserProfilePicture($userID, $file, $dbConn)
+    {
+        try {
+            if (!isset($file) || $file['error'] !== UPLOAD_ERR_OK) {
+                $errorMessage = self::getFileUploadErrorMessage($file['error']);
+                throw new ApiException($errorMessage, 400);
+            }
+            
+            $fileInfo = getimagesize($file['tmp_name']);
+            if ($fileInfo === false) {
+                throw new ApiException('Uploaded file is not an image', 400);
+            }
+            
+            if ($file['size'] > self::$PROFILE_PIC_MAX_SIZE) {
+                throw new ApiException('Profile picture size exceeds the limit of 5MB', 400);
+            }
+            
+            $fileTmpPath = $file['tmp_name'];
+            $fileSize = $file['size'];
+            $fileType = $file['type'];
+            
+            $fileName = $userID . '.jpg';
+            
+            $uploadDir = __DIR__ . self::$USER_PROFILE_DIR;
+            
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            
+            $uploadPath = $uploadDir . $fileName;
+            
+            if (file_exists($uploadPath)) {
+                unlink($uploadPath);
+            }
+            
+            if (!move_uploaded_file($fileTmpPath, $uploadPath)) {
+                throw new ApiException('Failed to move uploaded file', 500);
+            }
+            
+            $timestamp = time();
+            $user = new User($dbConn);
+            $user->loadFromID($userID);
+            $user->setProfilePicture('/pfp/user/' . $userID . '?v=' . $timestamp);
+            
+            return [
+                'success' => true,
+                'message' => 'Profile picture uploaded successfully',
+                'profilePicture' => '/pfp/user/' . $userID . '?v=' . $timestamp
+            ];
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Profile picture upload failed: ' . $e->getMessage(), 500);
+        }
+    }
+    
+    public static function getUserProfilePicture($userID)
+    {
+        try {
+            $filePath = __DIR__ . self::$USER_PROFILE_DIR . $userID . '.jpg';
+            
+            if (!file_exists($filePath)) {
+                $filePath = __DIR__ . self::$USER_PROFILE_DIR . 'default.jpg';
+                
+                if (!file_exists($filePath)) {
+                    throw new ApiException('Profile picture not found', 404);
+                }
+            }
+            
+            return [
+                'filePath' => $filePath,
+                'fileName' => $userID . '.jpg',
+                'fileType' => mime_content_type($filePath),
+                'fileSize' => filesize($filePath)
+            ];
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to get profile picture: ' . $e->getMessage(), 500);
+        }
+    }
+    
+    public static function uploadGroupProfilePicture($channelID, $userID, $file, $dbConn)
+    {
+        try {
+            $groupModel = new Group($dbConn);
+            $groupID = $groupModel->getGroupIdFromChannel($channelID);
+            $isOwner = $groupModel->isGroupOwner($userID, $groupID);
+            
+            if (!$isOwner) {
+                throw new ApiException('Only the group owner can change the group profile picture', 403);
+            }
+            
+            if (!isset($file) || $file['error'] !== UPLOAD_ERR_OK) {
+                $errorMessage = self::getFileUploadErrorMessage($file['error']);
+                throw new ApiException($errorMessage, 400);
+            }
+            
+            $fileInfo = getimagesize($file['tmp_name']);
+            if ($fileInfo === false) {
+                throw new ApiException('Uploaded file is not an image', 400);
+            }
+            
+            if ($file['size'] > self::$PROFILE_PIC_MAX_SIZE) {
+                throw new ApiException('Profile picture size exceeds the limit of 5MB', 400);
+            }
+            
+            $fileTmpPath = $file['tmp_name'];
+            $fileSize = $file['size'];
+            $fileType = $file['type'];
+            
+            $fileName = $groupID . '.jpg';
+            
+            $uploadDir = __DIR__ . self::$GROUP_PROFILE_DIR;
+            
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            
+            $uploadPath = $uploadDir . $fileName;
+            
+            if (file_exists($uploadPath)) {
+                unlink($uploadPath);
+            }
+            
+            if (!move_uploaded_file($fileTmpPath, $uploadPath)) {
+                throw new ApiException('Failed to move uploaded file', 500);
+            }
+            
+            $timestamp = time();
+            $groupModel->setProfilePicture('/pfp/group/' . $groupID . '?v=' . $timestamp, $groupID, $dbConn);
+            
+            return [
+                'success' => true,
+                'message' => 'Group profile picture uploaded successfully',
+                'profilePicture' => '/pfp/group/' . $groupID . '?v=' . $timestamp
+            ];
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Group profile picture upload failed: ' . $e->getMessage(), 500);
+        }
+    }
+    
+    public static function getGroupProfilePicture($groupID)
+    {
+        try {
+            $filePath = __DIR__ . self::$GROUP_PROFILE_DIR . $groupID . '.jpg';
+            
+            if (!file_exists($filePath)) {
+                $filePath = __DIR__ . self::$GROUP_PROFILE_DIR . 'default.jpg';
+                
+                if (!file_exists($filePath)) {
+                    throw new ApiException('Group profile picture not found', 404);
+                }
+            }
+            
+            return [
+                'filePath' => $filePath,
+                'fileName' => $groupID . '.jpg',
+                'fileType' => mime_content_type($filePath),
+                'fileSize' => filesize($filePath)
+            ];
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to get group profile picture: ' . $e->getMessage(), 500);
         }
     }
 }

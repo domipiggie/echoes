@@ -106,16 +106,21 @@ class GroupHandler
     
     public function handleAddUserToGroup(ConnectionInterface $from, $data)
     {
-        if (!$this->errorHandler->validateRequest($from, $data, ['userId', 'groupId'])) {
+        if (!$this->errorHandler->validateRequest($from, $data, ['userIds', 'channelId'])) {
             return;
         }
 
         $sender = $from->userData;
-        $userId = $data['userId'];
-        $groupId = $data['groupId'];
+        $userIds = $data['userIds'];
+        $channelId = $data['channelId'];
+
+        if (!is_array($userIds)) {
+            $userIds = [$userIds];
+        }
 
         try {
             $group = new \Group($this->dbConn, $this->logger);
+            $groupId = $group->getGroupIdFromChannel($channelId);
             
             if (!$group->isGroupOwner($sender->id, $groupId)) {
                 throw new \WebSocketException(
@@ -125,15 +130,16 @@ class GroupHandler
                 );
             }
             
-            $group->validateFriendship($sender->id, $userId);
-            $channelId = $group->getGroupChannelId($groupId);
+            $validUserIds = [];
+            foreach ($userIds as $userId) {
+                $group->validateFriendship($sender->id, $userId);
+                $validUserIds[] = $userId;
+            }
             
             $channel = new \Channel($this->dbConn);
-            $channel->addUsersToChannel($channelId, [$userId]);
+            $channel->addUsersToChannel($channelId, $validUserIds);
             
-            $groupInfo = $group->getGroupInfo($groupId);
-            
-            $this->sendAddUserResponse($from, $userId, $groupId, $channelId, $groupInfo, $sender);
+            $this->sendAddUsersResponse($from, $validUserIds, $groupId, $channelId, $sender);
             
         } catch (\WebSocketException $e) {
             $this->errorHandler->handleException($from, $e, 'add_user_to_group');
@@ -144,66 +150,73 @@ class GroupHandler
                 'ADD_USER_TO_GROUP_FAILED',
                 $e->getStatusCode()
             );
-            $this->logger->error("Adding user to group failed: {$e->getMessage()}");
+            $this->logger->error("Adding users to group failed: {$e->getMessage()}");
         } catch (\Exception $e) {
             $this->errorHandler->handleException($from, $e, 'add_user_to_group');
         }
     }
     
-    private function sendAddUserResponse($from, $userId, $groupId, $channelId, $groupInfo, $sender)
+    private function sendAddUsersResponse($from, $userIds, $groupId, $channelId, $sender)
     {
-        ResponseHandlerService::sendSuccess($from, 'user_added_to_group', [
-            'userId' => $userId,
+        ResponseHandlerService::sendSuccess($from, 'users_added_to_group', [
+            'userIds' => $userIds,
             'groupId' => $groupId,
             'channelId' => $channelId
         ]);
         
-        $this->logger->info("User {$userId} added to group {$groupId} by user {$sender->id}");
-        
-        $notifyData = [
-            'channelId' => $channelId,
-            'groupId' => $groupId,
-            'groupName' => $groupInfo['name'],
-            'groupPicture' => $groupInfo['picture'],
-            'addedBy' => [
-                'id' => $sender->id,
-                'username' => $sender->username
-            ]
-        ];
-        
-        $this->notificationService->notifyClient($userId, 'added_to_group', $notifyData);
+        $this->logger->info("Users " . implode(', ', $userIds) . " added to group {$channelId} by user {$sender->id}");
         
         $group = new \Group($this->dbConn, $this->logger);
-        $members = $group->getMembersForNotification($channelId, $userId, $sender->id);
         
-        $memberNotifyData = [
-            'channelId' => $channelId,
-            'groupId' => $groupId,
-            'newMember' => [
-                'id' => $userId
-            ],
-            'addedBy' => [
-                'id' => $sender->id,
-                'username' => $sender->username
-            ]
-        ];
+        foreach ($userIds as $userId) {
+            $notifyData = [
+                'channelId' => $channelId,
+                'groupId' => $groupId,
+                'addedBy' => [
+                    'id' => $sender->id,
+                    'username' => $sender->username
+                ]
+            ];
+            
+            $this->notificationService->notifyClient($userId, 'added_to_group', $notifyData);
+        }
         
-        foreach ($members as $member) {
-            $this->notificationService->notifyClient($member['userID'], 'user_added_to_group', $memberNotifyData);
+        $members = $group->getGroupMembers($channelId);
+        $existingMembers = array_filter($members, function($member) use ($userIds, $sender) {
+            return !in_array($member['userID'], $userIds) && $member['userID'] != $sender->id;
+        });
+        
+        if (count($existingMembers) > 0) {
+            $memberNotifyData = [
+                'channelId' => $channelId,
+                'groupId' => $groupId,
+                'newMembers' => array_map(function($userId) {
+                    return ['id' => $userId];
+                }, $userIds),
+                'addedBy' => [
+                    'id' => $sender->id,
+                    'username' => $sender->username
+                ]
+            ];
+            
+            foreach ($existingMembers as $member) {
+                $this->notificationService->notifyClient($member['userID'], 'users_added_to_group', $memberNotifyData);
+            }
         }
     }
     
     public function handleLeaveGroup(ConnectionInterface $from, $data)
     {
-        if (!$this->errorHandler->validateRequest($from, $data, ['groupId'])) {
+        if (!$this->errorHandler->validateRequest($from, $data, ['channelId'])) {
             return;
         }
 
         $sender = $from->userData;
-        $groupId = $data['groupId'];
+        $channelId = $data['channelId'];
 
         try {
             $group = new \Group($this->dbConn, $this->logger);
+            $groupId = $group->getGroupIdFromChannel($channelId);
             
             if ($group->isGroupOwner($sender->id, $groupId)) {
                 throw new \WebSocketException(
@@ -213,7 +226,6 @@ class GroupHandler
                 );
             }
             
-            $channelId = $group->getGroupChannelId($groupId);
             $group->checkUserInGroup($sender->id, $channelId);
             
             $this->processUserRemoval($from, $sender->id, $groupId, $channelId, $group, true);
@@ -235,16 +247,17 @@ class GroupHandler
     
     public function handleRemoveUserFromGroup(ConnectionInterface $from, $data)
     {
-        if (!$this->errorHandler->validateRequest($from, $data, ['userId', 'groupId'])) {
+        if (!$this->errorHandler->validateRequest($from, $data, ['userId', 'channelId'])) {
             return;
         }
 
         $sender = $from->userData;
         $userId = $data['userId'];
-        $groupId = $data['groupId'];
+        $channelId = $data['channelId'];
 
         try {
             $group = new \Group($this->dbConn, $this->logger);
+            $groupId = $group->getGroupIdFromChannel($channelId);
             
             if (!$group->isGroupOwner($sender->id, $groupId)) {
                 throw new \WebSocketException(
@@ -262,7 +275,6 @@ class GroupHandler
                 );
             }
             
-            $channelId = $group->getGroupChannelId($groupId);
             $group->checkUserInGroup($userId, $channelId);
             
             $this->processUserRemoval($from, $userId, $groupId, $channelId, $group, false);
@@ -288,16 +300,14 @@ class GroupHandler
         
         $group->removeUserFromGroup($userId, $channelId);
         
-        $groupInfo = $group->getGroupInfo($groupId);
-        
         if ($isLeaving) {
-            $this->sendLeaveGroupResponse($from, $groupId, $channelId, $groupInfo, $sender);
+            $this->sendLeaveGroupResponse($from, $groupId, $channelId, $sender);
         } else {
-            $this->sendRemoveUserResponse($from, $userId, $groupId, $channelId, $groupInfo, $sender);
+            $this->sendRemoveUserResponse($from, $userId, $groupId, $channelId, $sender);
         }
     }
     
-    private function sendLeaveGroupResponse($from, $groupId, $channelId, $groupInfo, $sender)
+    private function sendLeaveGroupResponse($from, $groupId, $channelId, $sender)
     {
         ResponseHandlerService::sendSuccess($from, 'left_group', [
             'groupId' => $groupId,
@@ -323,7 +333,7 @@ class GroupHandler
         }
     }
     
-    private function sendRemoveUserResponse($from, $userId, $groupId, $channelId, $groupInfo, $sender)
+    private function sendRemoveUserResponse($from, $userId, $groupId, $channelId, $sender)
     {
         ResponseHandlerService::sendSuccess($from, 'user_removed_from_group', [
             'userId' => $userId,
@@ -336,7 +346,6 @@ class GroupHandler
         $notifyData = [
             'channelId' => $channelId,
             'groupId' => $groupId,
-            'groupName' => $groupInfo['name'],
             'removedBy' => [
                 'id' => $sender->id,
                 'username' => $sender->username
@@ -367,12 +376,12 @@ class GroupHandler
     
     public function handleUpdateGroupInfo(ConnectionInterface $from, $data)
     {
-        if (!$this->errorHandler->validateRequest($from, $data, ['groupId'])) {
+        if (!$this->errorHandler->validateRequest($from, $data, ['channelId'])) {
             return;
         }
 
         $sender = $from->userData;
-        $groupId = $data['groupId'];
+        $channelId = $data['channelId'];
         $groupName = isset($data['groupName']) ? $data['groupName'] : null;
         $groupPicture = isset($data['groupPicture']) ? $data['groupPicture'] : null;
 
@@ -389,6 +398,8 @@ class GroupHandler
         try {
             $group = new \Group($this->dbConn, $this->logger);
             
+            $groupId = $group->getGroupIdFromChannel($channelId);
+            
             if (!$group->isGroupOwner($sender->id, $groupId)) {
                 throw new \WebSocketException(
                     "Only the group owner can update group information",
@@ -396,8 +407,6 @@ class GroupHandler
                     403
                 );
             }
-            
-            $channelId = $group->getGroupChannelId($groupId);
             
             $channel = new \Channel($this->dbConn);
             $result = $channel->updateGroupInfo($groupId, $groupName, $groupPicture);

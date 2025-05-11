@@ -62,11 +62,11 @@ class Channel
             $sql = "INSERT INTO channel_list
                     SET
                         friendshipID = :friendshipID,
-                        groupID = :groupID";
+                        id = :id";
 
             $args = [
                 [':friendshipID', null],
-                [':groupID', $groupId]
+                [':id', $groupId]
             ];
 
             $results = DatabaseOperations::insertIntoDB($this->db, $sql, $args);
@@ -170,12 +170,12 @@ class Channel
     {
         try {
             $sql = "SELECT g.*, u.username, u.displayName, u.profilePicture 
-                    FROM group_chat g
+                    FROM group_info g
                     JOIN user u ON g.ownerID = u.userID
-                    WHERE g.groupID = :groupID";
+                    WHERE g.id = :id";
 
             $args = [
-                [':groupID', $groupId]
+                [':id', $groupId]
             ];
 
             $result = DatabaseOperations::fetchFromDB($this->db, $sql, $args);
@@ -195,7 +195,7 @@ class Channel
     {
         try {
             $updates = [];
-            $args = [[':groupID', $groupId]];
+            $args = [[':id', $groupId]];
             
             if ($name !== null) {
                 $updates[] = "name = :name";
@@ -211,7 +211,7 @@ class Channel
                 return true;
             }
             
-            $sql = "UPDATE group_chat SET " . implode(", ", $updates) . " WHERE groupID = :groupID";
+            $sql = "UPDATE group_info SET " . implode(", ", $updates) . " WHERE id = :id";
             
             $result = DatabaseOperations::updateDB($this->db, $sql, $args);
             
@@ -226,10 +226,10 @@ class Channel
     public function isGroupOwner($userId, $groupId)
     {
         try {
-            $sql = "SELECT ownerID FROM group_chat WHERE groupID = :groupID";
+            $sql = "SELECT ownerID FROM group_info WHERE id = :id";
             
             $args = [
-                [':groupID', $groupId]
+                [':id', $groupId]
             ];
             
             $result = DatabaseOperations::fetchFromDB($this->db, $sql, $args);

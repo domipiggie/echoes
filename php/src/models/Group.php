@@ -12,7 +12,7 @@ class Group
 
     public function isGroupOwner($userId, $groupId)
     {
-        $sql = "SELECT ownerID FROM group_list WHERE groupID = :groupID";
+        $sql = "SELECT ownerID FROM group_info WHERE id = :groupID";
         $args = [
             [':groupID', $groupId]
         ];
@@ -139,5 +139,61 @@ class Group
         }
         
         return $channelId;
+    }
+
+    public function getGroupIdFromChannel($channelId)
+    {
+        $sql = "SELECT groupID FROM channel_list WHERE channelID = :channelID";
+        $args = [
+            [':channelID', $channelId]
+        ];
+        
+        $result = \DatabaseOperations::fetchFromDB($this->db, $sql, $args);
+        
+        if (count($result) == 0) {
+            throw new \WebSocketException(
+                "Group not found for this channel",
+                "GROUP_NOT_FOUND",
+                404
+            );
+        }
+        
+        if ($result[0]['groupID'] === null) {
+            throw new \WebSocketException(
+                "This channel is not associated with a group",
+                "NOT_A_GROUP_CHANNEL",
+                400
+            );
+        }
+        
+        return $result[0]['groupID'];
+    }
+
+    public function setProfilePicture($profilePicture, $groupID, $dbConn)
+    {
+        try {
+            $query = "UPDATE group_info
+                    SET
+                        picture = :profilePicture
+                    WHERE
+                        id = :id";
+            
+            $args = [
+                [':profilePicture', $profilePicture],
+                [':id', $groupID]
+            ];
+            
+            $result = DatabaseOperations::updateDB($dbConn, $query, $args);
+            
+            if ($result > 0) {
+                return true;
+            }
+            
+            throw new ApiException('Failed to update profile picture', 500);
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to update profile picture: ' . $e->getMessage(), 500);
+        }
     }
 }
