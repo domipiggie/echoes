@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi } from 'vitest';
 import Chat from '../../components/Chat.vue';
+import { createPinia } from 'pinia';
 
 vi.mock('../../components/SideBar.vue', () => ({ default: { template: '<div class="mock-sidebar"></div>', name: 'SideBar' }}));
 vi.mock('../../components/ChatWindow.vue', () => ({ default: { template: '<div class="mock-chatwindow"></div>', name: 'ChatWindow' }}));
@@ -9,19 +10,12 @@ vi.mock('../../components/NewChatDialog.vue', () => ({ default: { template: '<di
 vi.mock('../../components/NewGroupDialog.vue', () => ({ default: { template: '<div class="mock-newgroupdialog"></div>', name: 'NewGroupDialog' }}));
 vi.mock('../../components/ProfileSettingsDialog.vue', () => ({ default: { template: '<div class="mock-profilesettingsdialog"></div>', name: 'ProfileSettingsDialog' }}));
 
-
 describe('Chat', () => {
   it('renders main layout and child component stubs', () => {
+    const pinia = createPinia();
     const wrapper = mount(Chat, {
       global: {
-        stubs: { 
-          SideBar: true,
-          ChatWindow: true,
-          ChatProfile: true,
-          NewChatDialog: true,
-          NewGroupDialog: true,
-          ProfileSettingsDialog: true,
-        }
+        plugins: [pinia]
       }
     });
     expect(wrapper.find('.chat-container').exists()).toBe(true);

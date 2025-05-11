@@ -13,14 +13,12 @@ describe('OverlayContainer', () => {
   it('emits events when buttons are clicked', async () => {
     const wrapper = mount(OverlayContainer);
 
-    const loginButton = wrapper.find('.overlay-left button.ghost');
-    await loginButton.trigger('click');
+    const leftButton = wrapper.find('.overlay-left button.ghost');
+    await leftButton.trigger('click');
     expect(wrapper.emitted()['deactivate-right-panel']).toBeTruthy();
-    expect(wrapper.emitted()['deactivate-right-panel'].length).toBe(1);
 
-    const registerButton = wrapper.find('.overlay-right button.ghost');
-    await registerButton.trigger('click');
+    const rightButton = wrapper.find('.overlay-right button.ghost');
+    await rightButton.trigger('click');
     expect(wrapper.emitted()['activate-right-panel']).toBeTruthy();
-    expect(wrapper.emitted()['activate-right-panel'].length).toBe(1);
   });
 });

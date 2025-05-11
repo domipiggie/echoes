@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ProfileSettingsDialog from '../../components/ProfileSettingsDialog.vue';
-import axios from 'axios'; 
+import axios from 'axios';
 
 vi.mock('../../store/UserdataStore', () => ({
   userdataStore: () => ({
@@ -23,11 +23,11 @@ describe('ProfileSettingsDialog', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    axios.get.mockResolvedValue({ data: {} }); 
+    axios.get.mockResolvedValue({ data: {} });
 
     wrapper = mount(ProfileSettingsDialog);
-    await wrapper.vm.$nextTick(); 
-    await wrapper.vm.$nextTick(); 
+    await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
   });
 
   it('renders form elements with initial placeholder data', () => {
@@ -47,19 +47,19 @@ describe('ProfileSettingsDialog', () => {
 
     await wrapper.find('input#username').setValue('UpdatedUser');
     await wrapper.find('textarea#bio').setValue('Updated Bio');
-    
+
     await wrapper.find('form').trigger('submit.prevent');
-    
+
     expect(axios.put).toHaveBeenCalled();
     const calledUrl = axios.put.mock.calls[0][0];
     const calledData = axios.put.mock.calls[0][1];
-    
+
     expect(calledUrl).toBe('http://localhost:3000/api/userInfo/testUserID');
     expect(calledData.get('username')).toBe('UpdatedUser');
     expect(calledData.get('bio')).toBe('Updated Bio');
     expect(wrapper.vm.successMessage).toBe('A profil adatok sikeresen frissítve!');
   });
-  
+
   it('handles image upload and updates preview', async () => {
     const file = new File(['(⌐□_□)'], 'chucknorris.png', { type: 'image/png' });
     const mockCreateObjectURL = vi.fn(() => 'blob:http://localhost/testimage');
@@ -67,13 +67,13 @@ describe('ProfileSettingsDialog', () => {
 
     const fileInput = wrapper.find('input[type="file"]');
     await wrapper.vm.handleImageUpload({ target: { files: [file] } });
-    
+
     expect(wrapper.vm.profileImage).toBe(file);
     expect(wrapper.vm.profileImageUrl).toBe('blob:http://localhost/testimage');
     expect(mockCreateObjectURL).toHaveBeenCalledWith(file);
     expect(wrapper.find('img.w-32.h-32').attributes('src')).toBe('blob:http://localhost/testimage');
-    
-    global.URL.createObjectURL = undefined; 
+
+    global.URL.createObjectURL = undefined;
   });
 
   it('shows error message if saveUserData fails', async () => {

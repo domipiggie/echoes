@@ -10,7 +10,7 @@ describe('AppearanceSelector', () => {
 
   it('emits theme-changed event when a theme button is clicked', async () => {
     const wrapper = mount(AppearanceSelector);
-    const themeButtons = wrapper.findAll('.theme-button'); 
+    const themeButtons = wrapper.findAll('.theme-button');
 
     if (themeButtons.length > 0) {
       await themeButtons[0].trigger('click');

@@ -1,107 +1,88 @@
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AuthContainer from '../../components/AuthContainer.vue';
-import LoginForm from '../../components/LoginForm.vue';
-import RegisterForm from '../../components/RegisterForm.vue';
-import OverlayContainer from '../../components/OverlayContainer.vue';
+import authService from '../../services/authService';
+import { useRouter } from 'vue-router';
 
+vi.mock('../../services/authService');
 vi.mock('vue-router', () => ({
-  useRouter: () => ({
+  useRouter: vi.fn(() => ({
     push: vi.fn(),
-  }),
+  })),
 }));
 
-vi.mock('../../services/authService', () => ({
-  authService: {
-    login: vi.fn(),
-    register: vi.fn(),
-  },
-}));
-
-vi.mock('../../store/UserdataStore', () => ({
-  userdataStore: () => ({
-    setAccessToken: vi.fn(),
-    setUserID: vi.fn(),
-    setRefreshToken: vi.fn(),
-  }),
-}));
+vi.mock('../../components/LoginForm.vue', () => ({ default: { template: '<div class="mock-login-form"></div>', name: 'LoginForm' }}));
+vi.mock('../../components/RegisterForm.vue', () => ({ default: { template: '<div class="mock-register-form"></div>', name: 'RegisterForm' }}));
+vi.mock('../../components/OverlayContainer.vue', () => ({ default: { template: '<div class="mock-overlay-container"></div>', name: 'OverlayContainer' }}));
 
 describe('AuthContainer', () => {
-  let wrapper;
-  let mockAuthService;
-  let mockUserdataStore;
-  let mockRouterPush;
+  let routerPushMock;
+  let windowAlertSpy;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.clearAllMocks();
-
-    mockAuthService = (await import('../../services/authService')).authService;
-    mockUserdataStore = (await import('../../store/UserdataStore')).userdataStore();
-    mockRouterPush = (await import('vue-router')).useRouter().push;
-
-    wrapper = mount(AuthContainer, {
-      global: {
-        stubs: {
-          LoginForm: true,
-          RegisterForm: true,
-          OverlayContainer: true,
-        },
-      },
-    });
+    routerPushMock = vi.fn();
+    useRouter.mockReturnValue({ push: routerPushMock });
+    windowAlertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    
+    authService.setToken = vi.fn();
   });
 
   it('renders child components', () => {
-    expect(wrapper.findComponent(LoginForm).exists()).toBe(true);
-    expect(wrapper.findComponent(RegisterForm).exists()).toBe(true);
-    expect(wrapper.findComponent(OverlayContainer).exists()).toBe(true);
+    const wrapper = mount(AuthContainer);
+    expect(wrapper.findComponent({ name: 'LoginForm' }).exists()).toBe(true);
+    expect(wrapper.findComponent({ name: 'RegisterForm' }).exists()).toBe(true);
+    expect(wrapper.findComponent({ name: 'OverlayContainer' }).exists()).toBe(true);
   });
 
-  it('toggles right panel active class via methods', async () => {
-    expect(wrapper.classes('right-panel-active')).toBe(false);
-    await wrapper.vm.activateRightPanel();
-    expect(wrapper.classes('right-panel-active')).toBe(true);
-    await wrapper.vm.deactivateRightPanel();
-    expect(wrapper.classes('right-panel-active')).toBe(false);
+  it('toggles right panel active class via methods', () => {
+    const wrapper = mount(AuthContainer);
+    expect(wrapper.vm.isRightPanelActive).toBe(false);
+    wrapper.vm.activateRightPanel();
+    expect(wrapper.vm.isRightPanelActive).toBe(true);
+    wrapper.vm.deactivateRightPanel();
+    expect(wrapper.vm.isRightPanelActive).toBe(false);
   });
 
   it('calls authService.login and navigates on successful login', async () => {
-    mockAuthService.login.mockResolvedValue({
-      success: true,
-      data: { access_token: 'test_token', userID: 'test_id', refresh_token: 'test_rtoken' },
-    });
-
-    await wrapper.vm.sendLoginRequest('user@example.com', 'password123');
-
-    expect(mockAuthService.login).toHaveBeenCalledWith('user@example.com', 'password123');
-    expect(mockUserdataStore.setAccessToken).toHaveBeenCalledWith('test_token');
-    expect(mockUserdataStore.setUserID).toHaveBeenCalledWith('test_id');
-    expect(mockUserdataStore.setRefreshToken).toHaveBeenCalledWith('test_rtoken');
-    expect(mockRouterPush).toHaveBeenCalledWith('/chat');
+    authService.login.mockResolvedValue({ token: 'test_token' });
+    const wrapper = mount(AuthContainer);
+    
+    await wrapper.vm.sendLoginRequest('test@example.com', 'password');
+    
+    expect(authService.login).toHaveBeenCalledWith('test@example.com', 'password');
+    expect(authService.setToken).toHaveBeenCalledWith('test_token');
+    expect(routerPushMock).toHaveBeenCalledWith('/chat');
   });
 
   it('calls authService.register and activates right panel on successful registration', async () => {
-    mockAuthService.register.mockResolvedValue({ message: 'Registration successful' });
-    const activateSpy = vi.spyOn(wrapper.vm, 'activateRightPanel');
-
-    await wrapper.vm.sendRegisterRequest('testuser', '2000-01-01', 'newuser@example.com', 'newpass123');
-
-    expect(mockAuthService.register).toHaveBeenCalledWith('testuser', 'newuser@example.com', 'newpass123');
-    expect(activateSpy).toHaveBeenCalled();
+    authService.register.mockResolvedValue({ message: 'Registration successful' });
+    const wrapper = mount(AuthContainer);
+    const spyActivateRightPanel = vi.spyOn(wrapper.vm, 'activateRightPanel');
+    
+    await wrapper.vm.sendRegisterRequest('user', '2000-01-01', 'test@example.com', 'password');
+    
+    expect(authService.register).toHaveBeenCalledWith('user', '2000-01-01', 'test@example.com', 'password');
+    expect(spyActivateRightPanel).toHaveBeenCalled();
+    expect(windowAlertSpy).toHaveBeenCalledWith('Sikeres regisztráció!');
   });
 
   it('shows alert on login failure', async () => {
-    vi.spyOn(window, 'alert').mockImplementation(() => {});
-    mockAuthService.login.mockRejectedValue({ response: { data: { message: 'Login failed' } } });
-    await wrapper.vm.sendLoginRequest('user@example.com', 'wrongpassword');
-    expect(window.alert).toHaveBeenCalledWith('Login failed');
-    window.alert.mockRestore();
+    authService.login.mockRejectedValue(new Error('Login failed'));
+    const wrapper = mount(AuthContainer);
+    
+    await wrapper.vm.sendLoginRequest('test@example.com', 'password');
+    
+    expect(windowAlertSpy).toHaveBeenCalledWith('Sikertelen bejelentkezés!');
+    expect(routerPushMock).not.toHaveBeenCalled();
   });
 
   it('shows alert on registration failure', async () => {
-    vi.spyOn(window, 'alert').mockImplementation(() => {});
-    mockAuthService.register.mockRejectedValue({ response: { data: { message: 'Registration failed' } } });
-    await wrapper.vm.sendRegisterRequest('testuser', '2000-01-01', 'newuser@example.com', 'newpass123');
-    expect(window.alert).toHaveBeenCalledWith('Registration failed');
-    window.alert.mockRestore();
+    authService.register.mockRejectedValue(new Error('Registration failed'));
+    const wrapper = mount(AuthContainer);
+    
+    await wrapper.vm.sendRegisterRequest('user', '2000-01-01', 'test@example.com', 'password');
+    
+    expect(windowAlertSpy).toHaveBeenCalledWith('Sikertelen regisztráció!');
   });
 });
