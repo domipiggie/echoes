@@ -13,7 +13,7 @@ export const userService = {
   
   async getUserByID(id) {
     try {
-      const response = await apiService.get(`/userInfo/id/${id.trim()}`);
+      const response = await apiService.get(`/userInfo/id/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching user by id:', error);

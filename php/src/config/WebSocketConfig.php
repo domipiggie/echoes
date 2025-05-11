@@ -5,7 +5,7 @@ namespace Config;
 class WebSocketConfig
 {
     const PORT = 8080;
-    const SECURE_PORT = 8443;
+    const SECURE_PORT = 8080;
     const HOST = '0.0.0.0';
 
     const SSL_CERT_PATH = '';
