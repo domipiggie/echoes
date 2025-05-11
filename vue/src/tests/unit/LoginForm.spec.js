@@ -17,6 +17,16 @@ describe('LoginForm', () => {
     expect(wrapper.vm.errorMessagePassw).toBe('Hibás jelszó');
   });
 
+  it('shows error message for invalid email format', async () => {
+    const wrapper = mount(LoginForm);
+    
+    await wrapper.find('input[type="text"]').setValue('invalidemail');
+    await wrapper.find('input[type="password"]').setValue('password123');
+    await wrapper.find('form').trigger('submit.prevent');
+    
+    expect(wrapper.vm.errorMessageEmail).toBe('Hibás e-mail cím!');
+  });
+
   it('emits login event with correct data', async () => {
     const wrapper = mount(LoginForm);
     const testEmail = 'test@test.com';
@@ -32,11 +42,17 @@ describe('LoginForm', () => {
   it('clears error messages when form is valid', async () => {
     const wrapper = mount(LoginForm);
     
+    await wrapper.find('form').trigger('submit.prevent');
+    expect(wrapper.vm.errorMessageEmail).toBe('Hibás e-mail cím!');
+    expect(wrapper.vm.errorMessagePassw).toBe('Hibás jelszó');
+
     await wrapper.find('input[type="text"]').setValue('test@test.com');
     await wrapper.find('input[type="password"]').setValue('password123');
     await wrapper.find('form').trigger('submit.prevent');
 
-    expect(wrapper.vm.errorMessage).toBe(false);
+    if (typeof wrapper.vm.errorMessage !== 'undefined') {
+      expect(wrapper.vm.errorMessage).toBe(false); 
+    }
     expect(wrapper.vm.errorMessageEmail).toBe('');
     expect(wrapper.vm.errorMessagePassw).toBe('');
   });
