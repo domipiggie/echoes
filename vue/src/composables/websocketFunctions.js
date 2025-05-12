@@ -62,4 +62,16 @@ const handleMessageUpdate = (data) => {
     }
 }
 
-export { handleNewMessage, handleDeleteMessage, isSuccess, handleOnFriendAdded, handleGroupCreated, handleMessageUpdate };
+const handleGroupDeleted = (data) => {
+    const channelStore = useChannelStore();
+    const messageStore = useMessageStore();
+    
+    if (data.channelId === messageStore.getCurrentChannelId) {
+        messageStore.setCurrentChannelId(null);
+        messageStore.setCurrentChannelName('');
+    }
+    
+    channelStore.fetchAllChannels();
+}
+
+export { handleNewMessage, handleDeleteMessage, isSuccess, handleOnFriendAdded, handleGroupCreated, handleMessageUpdate, handleGroupDeleted };

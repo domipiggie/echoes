@@ -10,7 +10,7 @@ import { useMessageStore } from '../store/MessageStore';
 import { useWebSocketStore } from '../store/WebSocketStore';
 import axios from 'axios';
 
-import { handleNewMessage, handleDeleteMessage, handleOnFriendAdded, handleGroupCreated, handleMessageUpdate } from '../composables/websocketFunctions.js';
+import { handleNewMessage, handleDeleteMessage, handleOnFriendAdded, handleGroupCreated, handleMessageUpdate, handleGroupDeleted } from '../composables/websocketFunctions.js';
 
 const userStore = userdataStore();
 const friendshipStore = useFriendshipStore();
@@ -34,12 +34,13 @@ onMounted(async () => {
     if (userStore.getAccessToken() != null) {
       await userStore.fetchUserInfo();
       webSocketStore.connect();
-
+      
       webSocketStore.registerHandler('new_message', handleNewMessage);
       webSocketStore.registerHandler('message_deleted', handleDeleteMessage);
       webSocketStore.registerHandler('friend_add', handleOnFriendAdded);
       webSocketStore.registerHandler('group_created', handleGroupCreated);
       webSocketStore.registerHandler('message_updated', handleMessageUpdate);
+      webSocketStore.registerHandler('group_deleted', handleGroupDeleted);
     }
   } catch (error) {
     console.error('Failed to load channels:', error);
@@ -54,6 +55,7 @@ onUnmounted(() => {
   webSocketStore.unregisterHandler('friend_add');
   webSocketStore.unregisterHandler('group_created');
   webSocketStore.unregisterHandler('message_updated');
+  webSocketStore.unregisterHandler('group_deleted');
   webSocketStore.disconnect();
 });
 

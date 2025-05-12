@@ -23,6 +23,18 @@ const removeUserFromGroup = (userId) => {
         channelStore.fetchGroupChannels();
     }
 }
+
+const transferOwnership = (userId) => {
+    if (webSocketStore.isConnected) {
+        console.log("Transferring ownership");
+        webSocketStore.send({
+            type: 'group_transfer_ownership',
+            channelId: messageStore.getCurrentChannelId,
+            newOwnerId: userId
+        });
+        channelStore.fetchGroupChannels();
+    }
+}
 </script>
 
 <template>
@@ -49,6 +61,12 @@ const removeUserFromGroup = (userId) => {
                         </div>
                         <div class="friend-info">
                             <div class="friend-name">{{ user.getUserName() }}</div>
+                        </div>
+                        <div class="selection-indicator" @click="transferOwnership(user.getUserID())" v-if="user.getUserID() != userStore.getUserID() && userStore.getUserID() == channelStore.getGroupChannelById(messageStore.getCurrentChannelId).getOwnerID()">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="#FFD700" stroke="#FFD700" stroke-width="1">
+                                <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5Z M5 20H19V18H5V20Z"/>
+                            </svg>
                         </div>
                         <div class="selection-indicator" @click="removeUserFromGroup(user.getUserID())" v-if="user.getUserID() != userStore.getUserID() && userStore.getUserID() == channelStore.getGroupChannelById(messageStore.getCurrentChannelId).getOwnerID()">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"

@@ -74,8 +74,13 @@ class MessageHandler
             case 'group_update_info':
                 $this->groupHandler->handleUpdateGroupInfo($from, $data);
                 break;
+            case 'group_transfer_ownership':
+                $this->groupHandler->handleTransferOwnership($from, $data);
+                break;
+            case 'group_delete':
+                $this->groupHandler->handleDeleteGroup($from, $data);
+                break;
     
-
             default:
                 $this->logger->debug("Received unknown message type '{$data['type']}' from connection {$from->resourceId}");
                 break;

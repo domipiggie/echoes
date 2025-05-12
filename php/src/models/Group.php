@@ -196,4 +196,74 @@ class Group
             throw new ApiException('Failed to update profile picture: ' . $e->getMessage(), 500);
         }
     }
+
+    public function transferOwnership($groupId, $newOwnerId)
+    {
+        try {
+            $sql = "UPDATE group_info SET ownerID = :newOwnerId WHERE id = :groupId";
+            $args = [
+                [':newOwnerId', $newOwnerId],
+                [':groupId', $groupId]
+            ];
+            
+            $result = \DatabaseOperations::updateDB($this->db, $sql, $args);
+            
+            if ($result <= 0) {
+                throw new \WebSocketException(
+                    "Failed to transfer group ownership",
+                    "TRANSFER_OWNERSHIP_FAILED",
+                    500
+                );
+            }
+            
+            return true;
+        } catch (\Exception $e) {
+            throw new \WebSocketException(
+                "Failed to transfer group ownership: " . $e->getMessage(),
+                "TRANSFER_OWNERSHIP_FAILED",
+                500
+            );
+        }
+    }
+    
+    public function deleteGroup($groupId, $channelId)
+    {
+        try {
+            $this->db->beginTransaction();
+            
+            $sql = "DELETE FROM messages WHERE channelID = :channelID";
+            $args = [
+                [':channelID', $channelId]
+            ];
+            \DatabaseOperations::updateDB($this->db, $sql, $args);
+            
+            $sql = "DELETE FROM channel_access WHERE channelID = :channelID";
+            $args = [
+                [':channelID', $channelId]
+            ];
+            \DatabaseOperations::updateDB($this->db, $sql, $args);
+            
+            $sql = "DELETE FROM channel_list WHERE channelID = :channelID";
+            $args = [
+                [':channelID', $channelId]
+            ];
+            \DatabaseOperations::updateDB($this->db, $sql, $args);
+            
+            $sql = "DELETE FROM group_info WHERE id = :groupID";
+            $args = [
+                [':groupID', $groupId]
+            ];
+            \DatabaseOperations::updateDB($this->db, $sql, $args);
+            
+            $this->db->commit();
+            return true;
+        } catch (\Exception $e) {
+            $this->db->rollBack();
+            throw new \WebSocketException(
+                "Failed to delete group: " . $e->getMessage(),
+                "DELETE_GROUP_FAILED",
+                500
+            );
+        }
+    }
 }

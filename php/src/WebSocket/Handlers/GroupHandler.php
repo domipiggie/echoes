@@ -479,4 +479,162 @@ class GroupHandler
             }
         }
     }
+    
+    public function handleTransferOwnership(ConnectionInterface $from, $data)
+    {
+        if (!$this->errorHandler->validateRequest($from, $data, ['channelId', 'newOwnerId'])) {
+            return;
+        }
+
+        $sender = $from->userData;
+        $channelId = $data['channelId'];
+        $newOwnerId = $data['newOwnerId'];
+
+        try {
+            $group = new \Group($this->dbConn, $this->logger);
+            $groupId = $group->getGroupIdFromChannel($channelId);
+            
+            if (!$group->isGroupOwner($sender->id, $groupId)) {
+                throw new \WebSocketException(
+                    "Only the group owner can transfer ownership",
+                    "NOT_GROUP_OWNER",
+                    403
+                );
+            }
+            
+            $group->checkUserInGroup($newOwnerId, $channelId);
+            
+            $group->transferOwnership($groupId, $newOwnerId);
+            
+            $this->sendTransferOwnershipResponse($from, $groupId, $channelId, $newOwnerId, $sender);
+            
+        } catch (\WebSocketException $e) {
+            $this->errorHandler->handleException($from, $e, 'transfer_ownership');
+        } catch (\ApiException $e) {
+            $this->errorHandler->sendError(
+                $from,
+                $e->getMessage(),
+                'TRANSFER_OWNERSHIP_FAILED',
+                $e->getStatusCode()
+            );
+            $this->logger->error("Transferring group ownership failed: {$e->getMessage()}");
+        } catch (\Exception $e) {
+            $this->errorHandler->handleException($from, $e, 'transfer_ownership');
+        }
+    }
+    
+    private function sendTransferOwnershipResponse($from, $groupId, $channelId, $newOwnerId, $sender)
+    {
+        ResponseHandlerService::sendSuccess($from, 'ownership_transferred', [
+            'groupId' => $groupId,
+            'channelId' => $channelId,
+            'newOwnerId' => $newOwnerId
+        ]);
+        
+        $this->logger->info("Group {$groupId} ownership transferred from user {$sender->id} to user {$newOwnerId}");
+        
+        $user = new \User($this->dbConn);
+        $newOwnerInfo = $user->loadFromID($newOwnerId);
+        $newOwnerUsername = $newOwnerInfo ? $newOwnerInfo['username'] : 'Unknown';
+        
+        $notifyData = [
+            'channelId' => $channelId,
+            'groupId' => $groupId,
+            'previousOwner' => [
+                'id' => $sender->id,
+                'username' => $sender->username
+            ]
+        ];
+        
+        $this->notificationService->notifyClient($newOwnerId, 'group_ownership_received', $notifyData);
+        
+        $group = new \Group($this->dbConn, $this->logger);
+        $members = $group->getGroupMembers($channelId);
+        
+        $memberNotifyData = [
+            'channelId' => $channelId,
+            'groupId' => $groupId,
+            'previousOwner' => [
+                'id' => $sender->id,
+                'username' => $sender->username
+            ],
+            'newOwner' => [
+                'id' => $newOwnerId,
+                'username' => $newOwnerUsername
+            ]
+        ];
+        
+        foreach ($members as $member) {
+            if ($member['userID'] != $sender->id && $member['userID'] != $newOwnerId) {
+                $this->notificationService->notifyClient($member['userID'], 'group_ownership_transferred', $memberNotifyData);
+            }
+        }
+    }
+    
+    public function handleDeleteGroup(ConnectionInterface $from, $data)
+    {
+        if (!$this->errorHandler->validateRequest($from, $data, ['channelId'])) {
+            return;
+        }
+
+        $sender = $from->userData;
+        $channelId = $data['channelId'];
+
+        try {
+            $group = new \Group($this->dbConn, $this->logger);
+            $groupId = $group->getGroupIdFromChannel($channelId);
+            
+            if (!$group->isGroupOwner($sender->id, $groupId)) {
+                throw new \WebSocketException(
+                    "Only the group owner can delete the group",
+                    "NOT_GROUP_OWNER",
+                    403
+                );
+            }
+            
+            $members = $group->getGroupMembers($channelId);
+            
+            $group->deleteGroup($groupId, $channelId);
+            
+            $this->sendGroupDeletionResponse($from, $groupId, $channelId, $sender, $members);
+            
+        } catch (\WebSocketException $e) {
+            $this->errorHandler->handleException($from, $e, 'delete_group');
+        } catch (\ApiException $e) {
+            $this->errorHandler->sendError(
+                $from,
+                $e->getMessage(),
+                'DELETE_GROUP_FAILED',
+                $e->getStatusCode()
+            );
+            $this->logger->error("Deleting group failed: {$e->getMessage()}");
+        } catch (\Exception $e) {
+            $this->errorHandler->handleException($from, $e, 'delete_group');
+        }
+    }
+    
+    private function sendGroupDeletionResponse($from, $groupId, $channelId, $sender, $members)
+    {
+        ResponseHandlerService::sendSuccess($from, 'group_deleted', [
+            'groupId' => $groupId,
+            'channelId' => $channelId
+        ]);
+        
+        $this->logger->info("Group {$groupId} deleted by user {$sender->id}");
+        
+        $notifyData = [
+            'channelId' => $channelId,
+            'groupId' => $groupId,
+            'deletedBy' => [
+                'id' => $sender->id,
+                'username' => $sender->username
+            ]
+        ];
+        
+        foreach ($members as $member) {
+            if ($member['userID'] != $sender->id) {
+                $this->notificationService->notifyClient($member['userID'], 'group_deleted', $notifyData);
+            }
+        }
+    }
 }

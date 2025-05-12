@@ -80,6 +80,16 @@ const leaveGroup = () => {
   }
 };
 
+const deleteGroup = () => {
+    if (webSocketStore.isConnected && confirm('Biztosan törölni szeretnéd ezt a csoportot? Ez a művelet nem visszavonható.')) {
+        console.log("Deleting group");
+        webSocketStore.send({
+            type: 'group_delete',
+            channelId: messageStore.getCurrentChannelId
+        });
+    }
+}
+
 const profilePicture = computed(() => {
   if (messageStore.getCurrentChannelId == null) return null;
   if (channelStore.getFriendChannelById(messageStore.getCurrentChannelId)) {
@@ -171,11 +181,19 @@ const profilePicture = computed(() => {
         </div>
       </div>
 
-      <button class="profile-button" v-if="channelStore.getGroupChannelById(messageStore.getCurrentChannelId)"
-        @click="leaveGroup">
-        <span class="button-icon">Aa</span>
-        Csoport elhagyása
-      </button>
+
+      <div class="profile-section" v-if="channelStore.getGroupChannelById(messageStore.getCurrentChannelId)">
+        <button class="profile-button"
+          v-if="channelStore.getGroupChannelById(messageStore.getCurrentChannelId)?.getOwnerID() == userStore.getUserID()"
+          @click="deleteGroup">
+          <span class="button-icon">Aa</span>
+          Csoport törlése
+        </button>
+        <button class="profile-button" @click="leaveGroup">
+          <span class="button-icon">Aa</span>
+          Csoport elhagyása
+        </button>
+      </div>
 
     </div>
 
