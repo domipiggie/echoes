@@ -8,6 +8,7 @@ import User from '../classes/User';
 
 const handleNewMessage = (data) => {
     const messageStore = useMessageStore();
+    const channelStore = useChannelStore();
     console.log(data.message.timestamp);
     if (data.message.channelId === messageStore.getCurrentChannelId) {
         const message = new Message(
@@ -25,6 +26,7 @@ const handleNewMessage = (data) => {
             data.message.replyTo
         );
         messageStore.addMessage(message);
+        channelStore.updateLastMessage(data.message.sender.username, data.message.content, data.message.channelId);
     }
 };
 

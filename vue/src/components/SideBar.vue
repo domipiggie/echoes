@@ -243,7 +243,7 @@ onUnmounted(() => {
             <div class="chat-name">{{ userStore.getUserID() == chat.getUser1().getUserID() ?
               chat.getUser2().getUserName() : chat.getUser1().getUserName() }}</div>
             <div class="last-seen">{{ }}</div>
-            <div class="last-message">{{ chat.lastMessage || 'Még nincs üzenet' }}</div>
+            <div class="last-message">{{ chat.getLastMessageFormat() || 'Még nincs üzenet' }}</div>
           </div>
         </div>
       </div>
@@ -273,7 +273,7 @@ onUnmounted(() => {
           </div>
           <div class="chat-info">
             <div class="chat-name">{{ chat.getName() }}</div>
-            <div class="last-message">{{ chat.lastMessage || 'Még nincs üzenet' }}</div>
+            <div class="last-message">{{ chat.getLastMessageFormat() || 'Még nincs üzenet' }}</div>
           </div>
         </div>
       </div>

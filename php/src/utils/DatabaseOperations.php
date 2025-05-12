@@ -20,6 +20,15 @@ class DatabaseOperations
             }
         }
     }
+
+    private static function sanitize($args)
+    {
+        $newArgs = [];
+        foreach ($args as $arg) {
+            $newArgs[] = [$arg[0], htmlspecialchars($arg[1])];
+        }
+        return $newArgs;
+    }
     
     public static function fetchFromDB($db, $sql, $args = [])
     {
@@ -27,7 +36,7 @@ class DatabaseOperations
             $conn = ($db instanceof DatabaseConnectionManager) ? $db->getConnection() : $db;
             $stmt = $conn->prepare($sql);
             
-            foreach ($args as $arg) {
+            foreach (self::sanitize($args) as $arg) {
                 $stmt->bindParam($arg[0], $arg[1]);
             }
             
@@ -42,7 +51,7 @@ class DatabaseOperations
             $conn = ($db instanceof DatabaseConnectionManager) ? $db->getConnection() : $db;
             $stmt = $conn->prepare($sql);
             
-            foreach ($args as $arg) {
+            foreach (self::sanitize($args) as $arg) {
                 $stmt->bindParam($arg[0], $arg[1]);
             }
             
@@ -60,7 +69,7 @@ class DatabaseOperations
             $conn = ($db instanceof DatabaseConnectionManager) ? $db->getConnection() : $db;
             $stmt = $conn->prepare($sql);
             
-            foreach ($args as $arg) {
+            foreach (self::sanitize($args) as $arg) {
                 $stmt->bindParam($arg[0], $arg[1]);
             }
             

@@ -48,7 +48,9 @@ class Userinfo
 
             $sql = "SELECT cl.channelID, f.user1ID, f.user2ID, u1.username as user1_username, u1.displayName as user1_displayName,
                         u1.profilePicture as user1_profilePicture, u2.username as user2_username, u2.displayName as user2_displayName,
-                        u2.profilePicture as user2_profilePicture FROM `channel_list` cl
+                        u2.profilePicture as user2_profilePicture, m.content, m.userID as lastMessageUserID,
+                        u3.username as lastMessageUsername
+                    FROM `channel_list` cl
                     INNER JOIN
                         `friendship` f
                     ON
@@ -65,6 +67,20 @@ class Userinfo
                         `user` u2
                     ON
                         f.`user2ID` = u2.`userID`
+                    LEFT JOIN
+                        (SELECT m1.* 
+                         FROM message m1
+                         INNER JOIN (
+                             SELECT channelID, MAX(sent_at) as sent_at 
+                             FROM message 
+                             GROUP BY channelID
+                         ) m2 ON m1.channelID = m2.channelID AND m1.sent_at = m2.sent_at) m
+                    ON
+                        cl.channelID = m.channelID
+                    LEFT JOIN
+                        `user` u3
+                    ON
+                        m.userID = u3.userID
                     WHERE
                         (f.`user1ID` = :userID OR f.`user2ID` = :userID)
                         AND fs.`status` = 1";
@@ -89,7 +105,10 @@ class Userinfo
                         "username" => $row['user2_username'],
                         "displayName" => $row['user2_displayName'],
                         "profilePicture" => $row['user2_profilePicture']
-                    )
+                    ),
+                    "lastMessage" => $row['content'],
+                    "lastMessageUserID" => $row['lastMessageUserID'],
+                    "lastMessageUsername" => $row['lastMessageUsername']
                 );
             }
             return $channels;
@@ -107,7 +126,8 @@ class Userinfo
             $channelsMap = [];
 
             $sql = "SELECT ca.channelID, ca.userID, u.username, u.displayName, u.profilePicture, 
-                    cl.groupID, gi.name as groupName, gi.picture as groupPicture, gi.ownerID as groupOwnerID
+                    cl.groupID, gi.name as groupName, gi.picture as groupPicture, gi.ownerID as groupOwnerID,
+                    m.content, m.userID as lastMessageUserID, u2.username as lastMessageUsername
                     FROM channel_access ca
                     INNER JOIN
                         user u
@@ -121,6 +141,20 @@ class Userinfo
                         group_info gi
                     ON
                         cl.groupID = gi.id
+                    LEFT JOIN
+                        (SELECT m1.* 
+                         FROM message m1
+                         INNER JOIN (
+                             SELECT channelID, MAX(sent_at) as sent_at 
+                             FROM message 
+                             GROUP BY channelID
+                         ) m2 ON m1.channelID = m2.channelID AND m1.sent_at = m2.sent_at) m
+                    ON
+                        ca.channelID = m.channelID
+                    LEFT JOIN
+                        user u2
+                    ON
+                        m.userID = u2.userID
                     WHERE 
                         ca.channelID IN (
                             SELECT cl.channelID FROM channel_list cl
@@ -154,6 +188,9 @@ class Userinfo
                         "groupName" => $row['groupName'],
                         "groupPicture" => $row['groupPicture'],
                         "groupOwnerID" => $row['groupOwnerID'],
+                        "lastMessage" => $row['content'],
+                        "lastMessageUserID" => $row['lastMessageUserID'],
+                        "lastMessageUsername" => $row['lastMessageUsername'],
                         "users" => []
                     ];
                     $channels[] = &$channelsMap[$channelID];
