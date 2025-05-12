@@ -90,7 +90,7 @@ const emit = defineEmits([
         <!-- Image and GIF handling -->
         <img v-if="message.getType() === 'gif' || message.getType() === 'image'" 
              :src="message.getContent()" 
-             class="message-gif" />
+             class="message-gif" alt="asd" />
         
         <!-- Video handling -->
         <div v-else-if="message.getType() === 'video'" class="video-container">

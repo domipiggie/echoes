@@ -122,9 +122,9 @@ class File
                 [':userID', $userID]
             ];
 
-            $result = DatabaseOperations::fetchFromDB($this->dbConn, $query, $args);
+            $result = DatabaseOperations::updateDB($this->dbConn, $query, $args);
             
-            if ($result && $result->rowCount() > 0) {
+            if ($result > 0) {
                 return true;
             }
             

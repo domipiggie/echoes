@@ -4,11 +4,12 @@ import { userdataStore } from '../store/UserdataStore';
 import { useChannelStore } from '../store/ChannelStore';
 import { useFriendshipStore } from '../store/FriendshipStore';
 import { useWebSocketStore } from '../store/WebSocketStore';
+import { useFileStore } from '../store/FileStore.js';
 import { useRouter } from 'vue-router';
 import NewChatDialog from './NewChatDialog.vue';
 import NewGroupDialog from './NewGroupDialog.vue';
+import FilesModal from './FilesModal.vue';
 import ProfileSettingsDialog from './ProfileSettingsDialog.vue';
-import { fileService } from '../services/fileService';
 import { API_CONFIG } from '../config/api';
 
 const router = useRouter();
@@ -17,15 +18,15 @@ const userStore = userdataStore();
 const channelStore = useChannelStore();
 const friendStore = useFriendshipStore();
 const webSocketStore = useWebSocketStore();
+const fileStore = useFileStore();
 
 const emit = defineEmits(['select-chat']);
 
 // Beállítások modal kezelése
 const showSettingsModal = ref(false);
 const showProfileSettingsModal = ref(false);
+const showFilesModal = ref(false);
 const darkMode = ref(false);
-const storageUsed = ref(0);
-const storageText = ref("");
 
 // Dark mode kapcsoló
 const toggleDarkMode = () => {
@@ -43,6 +44,12 @@ const openProfileSettings = () => {
   showProfileSettingsModal.value = true;
   showSettingsModal.value = false;
 };
+
+const toggleFilesModal = () => {
+  showSettingsModal.value = !showSettingsModal.value;
+  showFilesModal.value = !showFilesModal.value;
+  fileStore.fetchUsedSpace();
+}
 
 // Kijelentkezés függvény
 const logout = () => {
@@ -119,17 +126,6 @@ const reloadFriendships = async () => {
   }
 };
 
-const loadStorageUsage = async () => {
-  try {
-    const response = await fileService.getUsedSpace();
-
-    storageUsed.value = response.data.total_size_bytes / 1024 / 1024 / 10;
-    storageText.value = response.data.total_size_formatted;
-  } catch (error) {
-    console.error('Failed to fetch storage usage:', error);
-  }
-};
-
 onMounted(() => {
   const savedDarkMode = localStorage.getItem('darkMode');
   if (savedDarkMode === 'true') {
@@ -143,8 +139,6 @@ onMounted(() => {
   webSocketStore.registerHandler("friend_request_denied", reloadFriendships);
   webSocketStore.registerHandler("friend_deny", reloadFriendships);
   webSocketStore.registerHandler("friend_request_recieved", reloadFriendships);
-
-  loadStorageUsage();
 });
 
 onUnmounted(() => {
@@ -166,7 +160,7 @@ onUnmounted(() => {
                 d="M19,3H5C3.89,3,3,3.89,3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M17,13H13V17H11V13H7V11H11V7H13V11H17V13Z" />
             </svg>
           </button>
-          <button class="action-btn" @click="showSettingsModal = true">
+          <button class="action-btn" @click="showSettingsModal = true; fileStore.fetchUsedSpace();">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
               <path fill="currentColor"
                 d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" />
@@ -379,6 +373,7 @@ onUnmounted(() => {
       @open-group-dialog="showNewGroupDialog = true" />
     <!-- New Group Dialog -->
     <NewGroupDialog v-if="showNewGroupDialog" @close="showNewGroupDialog = false" @group-created="handleGroupCreated" />
+    <FilesModal v-if="showFilesModal" @close="toggleFilesModal" />
 
     <!-- Beállítások Modal -->
     <div v-if="showSettingsModal" class="settings-modal-overlay" @click="showSettingsModal = false">
@@ -429,7 +424,7 @@ onUnmounted(() => {
           </div>
 
           <!-- Tárhely mutató -->
-          <div class="settings-item">
+          <div class="settings-item" @click="toggleFilesModal">
             <div class="settings-item-label">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2">
@@ -441,9 +436,9 @@ onUnmounted(() => {
             </div>
             <div class="storage-info">
               <div class="storage-bar">
-                <div class="storage-used" :style="{ width: `${storageUsed}%` }"></div>
+                <div class="storage-used" :style="{ width: `${fileStore.getUsedSpace / 1024 / 1024 / 10}%` }"></div>
               </div>
-              <span>{{ storageText }} / 1000 MB</span>
+              <span>{{ fileStore.getUsedFormatted }} / 1000 MB</span>
             </div>
           </div>
 

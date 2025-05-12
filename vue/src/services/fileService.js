@@ -1,17 +1,10 @@
 import { apiService } from './apiService.js';
-import { userdataStore } from '../store/UserdataStore.js';
 import { useMessageStore } from '../store/MessageStore.js';
-
-const userStore = userdataStore();
-const messageStore = useMessageStore();
 
 export const fileService = {
   async uploadFile(file) {
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await apiService.post('/files', formData, {
+      const response = await apiService.post('/files', file, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -44,6 +37,7 @@ export const fileService = {
 
   async uploadGroupProfile(file) {
     try {
+      const messageStore = useMessageStore();
       const formData = new FormData();
       formData.append('file', file);
 
@@ -67,6 +61,24 @@ export const fileService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching used space:', error);
+      throw error;
+    }
+  },
+  async getFiles() {
+    try {
+      const response = await apiService.get('/files');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching files:', error);
+      throw error;
+    }
+  },
+  async deleteFile(fileID) {
+    try {
+      const response = await apiService.delete(`/files/${fileID}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting file:', error);
       throw error;
     }
   }
