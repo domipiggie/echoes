@@ -45,7 +45,7 @@ onMounted(async () => {
       //messages
       webSocketStore.registerHandler('new_message', handleNewMessage);
       webSocketStore.registerHandler('message_deleted', handleDeleteMessage);
-      webSocketStore.registerHandler('message_updated', handleMessageUpdate);
+      webSocketStore.registerHandler('message_edited', handleMessageUpdate);
 
       //groups
       webSocketStore.registerHandler('group_created', handleGroupCreated);
@@ -63,6 +63,7 @@ onMounted(async () => {
 
       webSocketStore.registerHandler('chatmessage_sent', function () { })
       webSocketStore.registerHandler('chatmessage_deleted', function () { })
+      webSocketStore.registerHandler('chatmessage_edited', function () { })
       webSocketStore.registerHandler('ownership_transferred', function () { })
     }
   } catch (error) {

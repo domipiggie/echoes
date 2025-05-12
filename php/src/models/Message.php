@@ -229,7 +229,7 @@ class Message
             }
 
             $sql = "UPDATE " . $this->table_name . " 
-                    SET content = :content, edited_at = NOW()
+                    SET content = :content
                     WHERE messageID = :messageId AND userID = :userId";
 
             $args = [
