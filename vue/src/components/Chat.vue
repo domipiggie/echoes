@@ -34,7 +34,7 @@ onMounted(async () => {
     if (userStore.getAccessToken() != null) {
       await userStore.fetchUserInfo();
       webSocketStore.connect();
-      
+
       // friendships
       webSocketStore.registerHandler('friend_add', handleOnFriendAdded);
       webSocketStore.registerHandler('friend_accept', handleOnFriendChange);
@@ -61,9 +61,9 @@ onMounted(async () => {
       webSocketStore.registerHandler('group_ownership_transferred', onGroupChange);
       webSocketStore.registerHandler('group_ownership_received', onGroupChange);
 
-      webSocketStore.registerHandler('chatmessage_sent', function(){})
-      webSocketStore.registerHandler('chatmessage_deleted', function(){})
-      webSocketStore.registerHandler('ownership_transferred', function(){})
+      webSocketStore.registerHandler('chatmessage_sent', function () { })
+      webSocketStore.registerHandler('chatmessage_deleted', function () { })
+      webSocketStore.registerHandler('ownership_transferred', function () { })
     }
   } catch (error) {
     console.error('Failed to load channels:', error);
@@ -73,12 +73,34 @@ onMounted(async () => {
 onUnmounted(() => {
   window.removeEventListener('resize', checkScreenSize);
 
-  webSocketStore.unregisterHandler('new_message');
-  webSocketStore.unregisterHandler('message_deleted');
-  webSocketStore.unregisterHandler('friend_add');
+  webSocketStore.unregisterHandler('friend_add', handleOnFriendAdded);
+  webSocketStore.unregisterHandler('friend_accept', handleOnFriendChange);
+  webSocketStore.unregisterHandler('friend_request_accepted', handleOnFriendChange);
+  webSocketStore.unregisterHandler('friend_removed', handleFriendRemoved);
+  webSocketStore.unregisterHandler('friend_remove', handleFriendRemove);
+
+  //messages
+  webSocketStore.unregisterHandler('new_message', handleNewMessage);
+  webSocketStore.unregisterHandler('message_deleted', handleDeleteMessage);
+  webSocketStore.unregisterHandler('message_updated', handleMessageUpdate);
+
+  //groups
   webSocketStore.unregisterHandler('group_created');
-  webSocketStore.unregisterHandler('message_updated');
+  webSocketStore.unregisterHandler('group_channel_created');
   webSocketStore.unregisterHandler('group_deleted');
+  webSocketStore.unregisterHandler('removed_from_group');
+  webSocketStore.unregisterHandler('user_removed_from_group');
+  webSocketStore.unregisterHandler('added_to_group');
+  webSocketStore.unregisterHandler('users_added_to_group');
+  webSocketStore.unregisterHandler('left_group');
+  webSocketStore.unregisterHandler('user_left_group');
+  webSocketStore.unregisterHandler('group_info_updated');
+  webSocketStore.unregisterHandler('group_ownership_transferred');
+  webSocketStore.unregisterHandler('group_ownership_received');
+
+  webSocketStore.unregisterHandler('chatmessage_sent')
+  webSocketStore.unregisterHandler('chatmessage_deleted')
+  webSocketStore.unregisterHandler('ownership_transferred')
   webSocketStore.disconnect();
 });
 
@@ -176,8 +198,8 @@ const updateMessage = async (updatedMessage) => {
 const handleFileUpload = async (fileData) => {
   try {
     const response = await axios.post(
-      `${API_CONFIG.BASE_URL}/files`, 
-      fileData, 
+      `${API_CONFIG.BASE_URL}/files`,
+      fileData,
       {
         headers: {
           'Content-Type': 'multipart/form-data',
