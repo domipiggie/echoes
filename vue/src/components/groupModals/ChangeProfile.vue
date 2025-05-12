@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue';
 import { userdataStore } from '../../store/UserdataStore';
 import { useMessageStore } from '../../store/MessageStore';
 import { useChannelStore } from '../../store/ChannelStore';
-import axios from 'axios';
+import { fileService } from '../../services/fileService.js';
 import { API_CONFIG } from '../../config/api.js';
 
 const emit = defineEmits(['close']);
@@ -33,7 +33,7 @@ const saveProfilePicture = async () => {
   try {
     isLoading.value = true;
     errorMessage.value = '';
-    
+
     // Check if there's a profile image to upload
     if (!profileImage.value) {
       successMessage.value = 'Nincs új kép kiválasztva.';
@@ -43,40 +43,18 @@ const saveProfilePicture = async () => {
       isLoading.value = false;
       return;
     }
-    
-    const formData = new FormData();
-    formData.append('file', profileImage.value);
-    
+
     console.log('Uploading profile picture...');
-    
-    const response = await axios.post(`${API_CONFIG.BASE_URL}/pfp/group/${messageStore.getCurrentChannelId}`, formData, {
-      headers: { 
-        'Authorization': `Bearer ${userStore.getAccessToken()}`,
-      }
-    });
-    
+
+    const response = await fileService.uploadGroupProfile(profileImage.value)
+
     console.log('Upload response:', response);
-    
-    // More flexible success condition
-    if (response.status >= 200 && response.status < 300) {
-      // If the response includes a profile image URL, use it
-      if (response.data && response.data.profilePicture) {
-        profileImageUrl.value = API_CONFIG.BASE_URL + response.data.profilePicture;
-      } else if (response.data && response.data.data && response.data.data.profilePicture) {
-        profileImageUrl.value = API_CONFIG.BASE_URL + response.data.data.profilePicture;
-      } else {
-        // Refresh the profile image by forcing a reload from the server
-        await loadUserData();
-      }
-      
-      // Display success message
-      successMessage.value = 'A profil adatok sikeresen frissítve!';
-      setTimeout(() => {
-        successMessage.value = '';
-      }, 3000);
-    } else {
-      throw new Error('Server returned an unsuccessful status code');
-    }
+
+    profileImageUrl.value = API_CONFIG.BASE_URL + response.profilePicture;
+    successMessage.value = 'A profil adatok sikeresen frissítve!';
+    setTimeout(() => {
+      successMessage.value = '';
+    }, 3000);
   } catch (error) {
     console.error('Hiba a felhasználói adatok mentésekor:', error);
     errorMessage.value = 'Nem sikerült menteni a felhasználói adatokat.';
@@ -134,7 +112,8 @@ onMounted(async () => {
                     <circle cx="12" cy="13" r="4"></circle>
                   </svg>
                 </label>
-                <input type="file" id="profile-image-upload" accept="image/*" @change="handleImageUpload" class="profile-image-upload" />
+                <input type="file" id="profile-image-upload" accept="image/*" @change="handleImageUpload"
+                  class="profile-image-upload" />
               </div>
             </div>
           </div>
@@ -403,13 +382,25 @@ textarea.form-control {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes slide-up {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 /* Dark mode támogatás */
@@ -424,25 +415,25 @@ textarea.form-control {
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
     border: none;
   }
-  
+
   .profile-settings-header {
     background: #1a1a27;
     border-bottom: 1px solid rgba(0, 0, 0, 0.2);
     color: #e0e0e0;
   }
-  
+
   .profile-settings-header h2 {
     color: #6366f1;
   }
-  
+
   .close-button {
     color: #6366f1;
   }
-  
+
   .close-button:hover {
     background-color: rgba(99, 102, 241, 0.1);
   }
-  
+
   .profile-settings-content {
     background-color: #121220;
   }
@@ -450,29 +441,29 @@ textarea.form-control {
   .profile-image-placeholder {
     background-color: #6366f1;
   }
-  
+
   label {
     color: #e0e0e0;
   }
-  
+
   .form-control {
     background-color: #27293d;
     border-color: #2d2d44;
     color: #e0e0e0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
-  
+
   .form-control:focus {
     border-color: #6366f1;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
   }
-  
+
   .cancel-button {
     background-color: #27293d;
     border-color: #2d2d44;
     color: #e0e0e0;
   }
-  
+
   .cancel-button:hover {
     background-color: #2d2d44;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -490,12 +481,12 @@ textarea.form-control {
   .save-button:disabled {
     background-color: rgba(99, 102, 241, 0.5);
   }
-  
+
   .error-message {
     background-color: rgba(239, 68, 68, 0.2);
     color: #fca5a5;
   }
-  
+
   .success-message {
     background-color: rgba(34, 197, 94, 0.2);
     color: #86efac;

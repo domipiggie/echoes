@@ -87,6 +87,8 @@ export const useWebSocketStore = defineStore('websocket', () => {
       
       if (data.type && messageHandlers.value.has(data.type)) {
         messageHandlers.value.get(data.type)(data);
+      } else {
+        alert('Unknown message type received: ' + data.type);
       }
       
       if (data.type) {

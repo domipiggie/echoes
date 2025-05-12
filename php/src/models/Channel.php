@@ -62,7 +62,7 @@ class Channel
             $sql = "INSERT INTO channel_list
                     SET
                         friendshipID = :friendshipID,
-                        id = :id";
+                        groupID = :id";
 
             $args = [
                 [':friendshipID', null],

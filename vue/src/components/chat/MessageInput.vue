@@ -2,8 +2,6 @@
 import { ref, watch } from 'vue';
 import GifPicker from '../GifPicker.vue';
 
-
-
 const props = defineProps({
   replyingTo: Object,
   editingMessage: Object

@@ -11,6 +11,8 @@ import { useChannelStore } from '../store/ChannelStore';
 import { userdataStore } from '../store/UserdataStore';
 import { useWebSocketStore } from '../store/WebSocketStore';
 import { API_CONFIG } from '../config/api';
+import { useAlertStore } from '../../store/AlertStore.js';
+import Alert from '../../classes/Alert';
 
 const emit = defineEmits(['close', 'update:showProfile']);
 
@@ -18,6 +20,7 @@ const messageStore = useMessageStore();
 const channelStore = useChannelStore();
 const webSocketStore = useWebSocketStore();
 const userStore = userdataStore();
+const alertStore = useAlertStore();
 const activeTab = ref('appearance'); // Alapértelmezetten a megjelenés fül legyen aktív
 const showAppearanceSelector = ref(false); // Hiányzó ref
 const showUserList = ref(false);
@@ -72,6 +75,14 @@ const mediaMessagesData = computed(() => {
 });
 
 const leaveGroup = () => {
+  alertStore.addAlert(new Alert(
+    'Megerősítés',
+    'Biztosan el szeretnéd hagyni ezt a csoportot?',
+    'confitm',
+    () => leaveGroupCallback()
+  ))
+}
+const leaveGroupCallback = () => {
   if (webSocketStore.isConnected) {
     webSocketStore.send({
       type: 'group_leave',
@@ -81,7 +92,15 @@ const leaveGroup = () => {
 };
 
 const deleteGroup = () => {
-    if (webSocketStore.isConnected && confirm('Biztosan törölni szeretnéd ezt a csoportot? Ez a művelet nem visszavonható.')) {
+  alertStore.addAlert(new Alert(
+    'Megerősítés',
+    'Biztosan törölni szeretnéd ezt a csoportot? Ez a művelet nem visszavonható.',
+    'confitm',
+    () => deleteGroupCallback()
+  ))
+}
+const deleteGroupCallback = () => {
+    if (webSocketStore.isConnected) {
         console.log("Deleting group");
         webSocketStore.send({
             type: 'group_delete',
@@ -91,6 +110,14 @@ const deleteGroup = () => {
 }
 
 const deleteFriend = () => {
+  alertStore.addAlert(new Alert(
+    'Megerősítés',
+    'Biztosan törölni szeretnéd ezt a barátot?',
+    'confitm',
+    () => deleteFriendCallback()
+  ))
+}
+const deleteFriendCallback = () => {
   if (webSocketStore.isConnected) {
     const channel = channelStore.getFriendChannelById(messageStore.getCurrentChannelId);
     const recipient_id = channel.getUser1().getUserID() == userStore.getUserID()? channel.getUser2().getUserID() : channel.getUser1().getUserID();

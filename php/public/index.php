@@ -111,6 +111,8 @@ try {
             if (!isset($uri[2])) {
                 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $fileController->handleUploadFile();
+                } else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+                    $fileController->handleGetUserFiles();
                 } else {
                     throw new ApiException('Invalid method', 405);
                 }

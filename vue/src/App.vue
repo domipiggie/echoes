@@ -1,20 +1,15 @@
 <script setup>
 import AuthContainer from './components/AuthContainer.vue'
 import Chat from './components/Chat.vue'
+import AlertBox from './components/AlertBox.vue';
+import { useAlertStore } from './store/AlertStore';
+
+const alertStore = useAlertStore();
 </script>
 
 <template>
-<!--<div class="app-container">
-    <div class="floating-container">
-      <Chat />
-    </div>
-  </div>-->
-
-  <!--<div class="auth-wrapper">
-    <AuthContainer />
-  </div>-->
-
-    <router-view />
+  <AlertBox v-for="alert in alertStore.getAlerts" :alert="alert" @close="alertStore.removeAlert(alert)"/>
+  <router-view />
 </template>
 
 <style>

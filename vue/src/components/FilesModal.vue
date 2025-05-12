@@ -1,68 +1,47 @@
 <script setup>
-import { useMessageStore } from '../../store/messageStore.js';
-import { useChannelStore } from '../../store/channelStore.js';
-import { userdataStore } from '../../store/UserdataStore.js';
-import { useWebSocketStore } from '../../store/WebSocketStore.js';
-import { API_CONFIG } from '../../config/api.js';
+import { onMounted, ref } from 'vue';
+import { useFileStore } from '../store/FileStore';
+import { API_CONFIG } from '../config/api';
+import { fileService } from '../services/fileService';
 import { useAlertStore } from '../../store/AlertStore.js';
 import Alert from '../../classes/Alert';
 
-const messageStore = useMessageStore();
-const channelStore = useChannelStore();
-const webSocketStore = useWebSocketStore();
-const userStore = userdataStore();
+const fileStore = useFileStore();
 const alertStore = useAlertStore();
-
 const emit = defineEmits(['close']);
+const isDeleting = ref(false);
 
-const removeUserFromGroup = (userId) => {
+onMounted(() => {
+    fileStore.fetchFiles();
+});
+
+const deleteFile = (fileId) => {
     alertStore.addAlert(new Alert(
         'Megerősítés',
-        'Biztosan el akarod távolítani ezt a felhasználót a csoportból?',
+        'Biztosan el szeretnéd távolítani ezt a fájlt?',
         'confirm',
-        () => removeUserFromGroupCallback(userId)
-    ))
+        () => deleteFileCallback(fileId)
+    ));
 }
-
-const transferOwnership = (userId) => {
-    alertStore.addAlert(new Alert(
-        'Megerősítés',
-        'Biztosan át szeretnéd adni a csoport tulajdonát?',
-        'confirm',
-        () => transferOwnershipCallback(userId)
-    ))
-}
-
-const removeUserFromGroupCallback = (userId) => {
-    if (webSocketStore.isConnected) {
-        console.log("Removing user from group");
-        webSocketStore.send({
-            type: 'group_remove_user',
-            channelId: messageStore.getCurrentChannelId,
-            userId: userId
-        });
-        channelStore.fetchGroupChannels();
+const deleteFileCallback = async (fileId) => {
+    try {
+        isDeleting.value = true;
+        await fileService.deleteFile(fileId);
+        fileStore.removeFileByID(fileId);
+    } catch (error) {
+        console.error('Error deleting file:', error);
+        alert('Failed to delete file. Please try again.');
+    } finally {
+        isDeleting.value = false;
     }
-}
-
-const transferOwnershipCallback = (userId) => {
-    if (webSocketStore.isConnected) {
-        console.log("Transferring ownership");
-        webSocketStore.send({
-            type: 'group_transfer_ownership',
-            channelId: messageStore.getCurrentChannelId,
-            newOwnerId: userId
-        });
-        channelStore.fetchGroupChannels();
-    }
-}
+};
 </script>
 
 <template>
     <div class="new-group-overlay" @click.self="emit('close')">
         <div class="new-group-dialog">
             <div class="dialog-header">
-                <h2>Csoporttagok</h2>
+                <h2>Feltöltött fileok</h2>
                 <button class="close-button" @click="emit('close')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2">
@@ -74,22 +53,18 @@ const transferOwnershipCallback = (userId) => {
 
             <div class="friends-list-container">
                 <div class="friends-list">
-                    <div v-for="user in channelStore.getGroupChannelById(messageStore.getCurrentChannelId).getUsers()"
+                    <div v-for="file in fileStore.getFiles"
                         class="friend-item">
                         <div class="friend-avatar">
-                            <img v-if="user.getProfilePicture()" :src="API_CONFIG.BASE_URL + user.getProfilePicture()" alt="Profilkép" class="avatar-circle" />
-                            <span v-else>{{ user.getUserName().charAt(0).toUpperCase() }}</span>
+                            <a :href="API_CONFIG.BASE_URL + '/files/' + file.getUniqueName()" target="_blank">
+                                <img :src="API_CONFIG.BASE_URL + '/files/' + file.getUniqueName()"/>
+                            </a>
                         </div>
                         <div class="friend-info">
-                            <div class="friend-name">{{ user.getUserName() }}</div>
+                            <div class="friend-name">{{ file.getFileName() }}</div>
+                            <span>{{ fileStore.formatFileSize(file.getSize()) }}</span>
                         </div>
-                        <div class="selection-indicator" @click="transferOwnership(user.getUserID())" v-if="user.getUserID() != userStore.getUserID() && userStore.getUserID() == channelStore.getGroupChannelById(messageStore.getCurrentChannelId).getOwnerID()">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                fill="#FFD700" stroke="#FFD700" stroke-width="1">
-                                <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5Z M5 20H19V18H5V20Z"/>
-                            </svg>
-                        </div>
-                        <div class="selection-indicator" @click="removeUserFromGroup(user.getUserID())" v-if="user.getUserID() != userStore.getUserID() && userStore.getUserID() == channelStore.getGroupChannelById(messageStore.getCurrentChannelId).getOwnerID()">
+                        <div class="selection-indicator" @click="deleteFile(file.getFileID())" :class="{ 'disabled': isDeleting }">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                 fill="none" stroke="#FF0000" stroke-width="2">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -104,7 +79,7 @@ const transferOwnershipCallback = (userId) => {
 </template>
 
 <style lang="scss" scoped>
-@import '../../styles/chat/Avatar.scss';
+@import '../styles/chat/Avatar.scss';
 
 .new-group-overlay {
     position: fixed;
@@ -123,8 +98,9 @@ const transferOwnershipCallback = (userId) => {
     background: white;
     border-radius: 12px;
     padding: 24px;
-    width: 450px;
-    max-width: 90%;
+    width: 65vw;
+    min-width: 350px;
+    max-width: 600px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     max-height: 80vh;
     display: flex;
@@ -156,7 +132,7 @@ h2 {
 .close-button {
     width: 32px;
     height: 32px;
-    border-radius: 50%;
+    border-radius: 10%;
     background: #f0f2f5;
     color: #484a6a;
     border: none;
@@ -229,7 +205,7 @@ h3 {
 }
 
 .friends-list {
-    max-height: 300px;
+    max-height: 65vh;
     overflow-y: auto;
     border: 1px solid #e6e8f0;
     border-radius: 8px;
@@ -275,7 +251,8 @@ h3 {
 .friend-avatar {
     width: 40px;
     height: 40px;
-    border-radius: 50%;
+    min-width: 40px;
+    border-radius: 10%;
     background-color: #7078e6;
     color: white;
     display: flex;
@@ -283,19 +260,44 @@ h3 {
     justify-content: center;
     font-weight: bold;
     margin-right: 12px;
+    overflow: hidden;
 
     .dark-mode & {
         background-color: #5a62d3;
     }
+
+    a {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.friend-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .friend-info {
     flex-grow: 1;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .friend-name {
     font-weight: 500;
     color: #484a6a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100% - 10px);
 
     .dark-mode & {
         color: #e0e0e0;
@@ -311,125 +313,53 @@ h3 {
     align-items: center;
     justify-content: center;
     color: white;
+    flex-shrink: 0;
+    margin-left: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background-color: rgba(255, 0, 0, 0.1);
+        transform: scale(1.1);
+    }
+
+    &.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 
     .dark-mode & {
         border-color: #3a3a4f;
     }
 }
 
-.friend-item.selected .selection-indicator {
+.friend-avatar {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
     background-color: #7078e6;
-    border-color: #7078e6;
-}
-
-.no-friends-message {
-    padding: 20px;
-    text-align: center;
-    color: #6b7280;
-    font-style: italic;
-
-    .dark-mode & {
-        color: #8a8a9a;
-    }
-}
-
-.error-message {
-    color: #e53e3e;
-    font-size: 14px;
-    margin-bottom: 20px;
-
-    .dark-mode & {
-        color: #ff6b6b;
-    }
-}
-
-.button-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.cancel-button,
-.create-button {
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: none;
-    position: relative;
-    overflow: hidden;
-}
-
-.cancel-button {
-    background: #f0f2f5;
-    color: #484a6a;
-
-    .dark-mode & {
-        background: #2a2a3d;
-        color: #e0e0e0;
-    }
-}
-
-.cancel-button:hover {
-    background: #e4e6eb;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-
-    .dark-mode & {
-        background: #333345;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    }
-}
-
-.create-button {
-    background: #7078e6;
     color: white;
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 12px;
+    overflow: hidden;
 
     .dark-mode & {
-        background: #5a62d3;
+        background-color: #5a62d3;
     }
-}
 
-.create-button:hover {
-    background: #5a62d3;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(112, 120, 230, 0.4);
-
-    .dark-mode & {
-        background: #4e55df;
-        box-shadow: 0 4px 12px rgba(112, 120, 230, 0.5);
+    a {
+        display: block;
+        width: 100%;
+        height: 100%;
     }
-}
 
-.create-button:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-.loading-spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top-color: white;
-    animation: spin 1s linear infinite;
-
-    .dark-mode & {
-        border: 2px solid rgba(255, 255, 255, 0.2);
-        border-top-color: white;
-    }
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 }
 </style>

@@ -231,7 +231,7 @@ class Group
         try {
             $this->db->beginTransaction();
             
-            $sql = "DELETE FROM messages WHERE channelID = :channelID";
+            $sql = "DELETE FROM message WHERE channelID = :channelID";
             $args = [
                 [':channelID', $channelId]
             ];
