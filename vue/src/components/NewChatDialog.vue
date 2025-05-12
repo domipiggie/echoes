@@ -1,27 +1,42 @@
 <script setup>
 import { ref, defineEmits } from 'vue';
 import { userdataStore } from '../store/UserdataStore';
-import friendService from '../services/friendService';
+import { useWebSocketStore } from '../store/WebSocketStore';
+import { userService } from '../services/userService';
+import { useFriendshipStore } from '../store/FriendshipStore.js';
 
-const emit = defineEmits(['close', 'chat-created']);
+const emit = defineEmits(['close', 'chat-created', 'open-group-dialog']);
 const userStore = userdataStore();
+const friendshipStore = useFriendshipStore();
+const webSocketStore = useWebSocketStore();
 const username = ref('');
 const isLoading = ref(false);
 const errorMessage = ref('');
+
 
 const createChat = async () => {
   if (!username.value.trim()) {
     errorMessage.value = 'Kérlek adj meg egy felhasználónevet!';
     return;
   }
-
-  isLoading.value = true;
-  errorMessage.value = '';
-
   try {
-    const response = await friendService.sendFriendRequest(username.value);
-    console.log('Friend request sent:', response);
-    emit('chat-created', response);
+    const userData = await userService.getUserByUsername(username.value);
+    
+    if (!userData.success) {
+      console.log(userData)
+      errorMessage.value = 'Nem található felhasználó ezzel a névvel.';
+      return;
+    }
+    
+    const recipientId = userData.data.userID;
+    
+    if (webSocketStore.getIsConnected) {
+      webSocketStore.send({
+        type: 'friend_add',
+        recipient_id: recipientId
+      });
+    }
+
     emit('close');
   } catch (error) {
     console.error('Error sending friend request:', error);
@@ -34,12 +49,27 @@ const createChat = async () => {
     isLoading.value = false;
   }
 };
+
+const openGroupCreation = () => {
+  emit('open-group-dialog');
+  emit('close');
+};
 </script>
 
 <template>
   <div class="new-chat-overlay" @click.self="emit('close')">
     <div class="new-chat-dialog">
-      <h2>Új beszélgetés</h2>
+      <div class="dialog-header">
+        <h2>Új beszélgetés</h2>
+        <button class="group-button" @click="openGroupCreation">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </button>
+      </div>
 
       <div class="input-container">
         <div class="search-icon">
@@ -91,12 +121,93 @@ const createChat = async () => {
   /* Increased from 400px to 450px */
   max-width: 90%;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  
+  .dark-mode & {
+    background: #1e1e2d;
+    color: #e0e0e0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
 }
 
 h2 {
   color: #484a6a;
-  margin: 0 0 20px 0;
+  margin: 0;
   text-align: center;
+  flex-grow: 1;
+  
+  .dark-mode & {
+    color: #e0e0e0;
+  }
+}
+
+.group-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #7078e6;
+  color: white;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  box-shadow: 0 2px 5px rgba(112, 120, 230, 0.3);
+  padding: 0;
+  margin: 0;
+  flex-shrink: 0;
+  
+  .dark-mode & {
+    background: #5a62d3;
+    box-shadow: 0 2px 5px rgba(112, 120, 230, 0.4);
+  }
+}
+
+.group-button svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.group-button:hover {
+  background: #5a62d3;
+  transform: translateY(-50%) scale(1.03);
+  box-shadow: 0 3px 6px rgba(112, 120, 230, 0.3);
+  
+  .dark-mode & {
+    background: #4e55df;
+    box-shadow: 0 3px 6px rgba(112, 120, 230, 0.5);
+  }
+}
+
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #7078e6;
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  .dark-mode & {
+    background: #5a62d3;
+  }
 }
 
 .input-container {
@@ -112,6 +223,11 @@ h2 {
   color: #4a50a1;
   transition: all 0.2s ease;
   background: #f8f9fc;
+  
+  .dark-mode & {
+    color: #7078e6;
+    background: #2a2a3d;
+  }
 }
 
 input {
@@ -123,11 +239,26 @@ input {
   outline: none;
   transition: all 0.2s ease;
   background: #f8f9fc;
+  
+  .dark-mode & {
+    background: #2a2a3d;
+    border-color: #3a3a4f;
+    color: #e0e0e0;
+    
+    &::placeholder {
+      color: #8a8a9a;
+    }
+  }
 }
 
 input:focus {
   border-color: #7078e6;
   box-shadow: 0 0 0 3px rgba(112, 120, 230, 0.2);
+  
+  .dark-mode & {
+    border-color: #7078e6;
+    box-shadow: 0 0 0 3px rgba(112, 120, 230, 0.3);
+  }
 }
 
 input:focus+.search-icon {
@@ -138,6 +269,10 @@ input:focus+.search-icon {
   color: #e53e3e;
   font-size: 14px;
   margin-bottom: 20px;
+  
+  .dark-mode & {
+    color: #ff6b6b;
+  }
 }
 
 .button-container {
@@ -162,12 +297,22 @@ input:focus+.search-icon {
 .cancel-button {
   background: #f0f2f5;
   color: #484a6a;
+  
+  .dark-mode & {
+    background: #2a2a3d;
+    color: #e0e0e0;
+  }
 }
 
 .cancel-button:hover {
   background: #e4e6eb;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  
+  .dark-mode & {
+    background: #333345;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
 }
 
 .create-button {
@@ -176,12 +321,21 @@ input:focus+.search-icon {
   display: flex;
   align-items: center;
   gap: 8px;
+  
+  .dark-mode & {
+    background: #5a62d3;
+  }
 }
 
 .create-button:hover {
   background: #5a62d3;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(112, 120, 230, 0.4);
+  
+  .dark-mode & {
+    background: #4e55df;
+    box-shadow: 0 4px 12px rgba(112, 120, 230, 0.5);
+  }
 }
 
 .create-button:active,
@@ -193,10 +347,18 @@ input:focus+.search-icon {
 
 .create-button:active {
   background: #4e55df;
+  
+  .dark-mode & {
+    background: #4248c5;
+  }
 }
 
 .cancel-button:active {
   background: #dcdfe6;
+  
+  .dark-mode & {
+    background: #252536;
+  }
 }
 
 .cancel-button::before,
@@ -231,6 +393,11 @@ input:focus+.search-icon {
   border-radius: 50%;
   border-top-color: white;
   animation: spin 1s linear infinite;
+  
+  .dark-mode & {
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-top-color: white;
+  }
 }
 
 @keyframes spin {

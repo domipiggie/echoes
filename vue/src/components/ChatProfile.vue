@@ -1,42 +1,41 @@
 <script setup>
-import { ref, defineProps, defineEmits, watch, computed } from 'vue';
+import { ref, computed } from 'vue';
 // Hiányzó AppearanceSelector komponens importja
 import AppearanceSelector from './AppearanceSelector.vue';
+import UserList from './groupModals/UserList.vue';
+import AddUser from './groupModals/AddUser.vue';
+import ChangeName from './groupModals/ChangeName.vue';
+import ChangeProfile from './groupModals/ChangeProfile.vue';
+import { useMessageStore } from '../store/MessageStore';
+import { useChannelStore } from '../store/ChannelStore';
+import { userdataStore } from '../store/UserdataStore';
+import { useWebSocketStore } from '../store/WebSocketStore';
+import { API_CONFIG } from '../config/api';
+import { useAlertStore } from '../store/AlertStore.js';
+import Alert from '../classes/Alert';
 
-const props = defineProps({
-  currentChat: {
-    type: Object,
-    required: true
-  },
-  messages: {
-    type: Array,
-    required: true
-  },
-  // Adjuk hozzá a currentTheme prop-ot
-  currentTheme: {
-    type: String,
-    default: 'messenger'
-  }
-});
+const emit = defineEmits(['close', 'update:showProfile']);
 
-const emit = defineEmits(['change-theme', 'update:showProfile']);
-
+const messageStore = useMessageStore();
+const channelStore = useChannelStore();
+const webSocketStore = useWebSocketStore();
+const userStore = userdataStore();
+const alertStore = useAlertStore();
 const activeTab = ref('appearance'); // Alapértelmezetten a megjelenés fül legyen aktív
 const showAppearanceSelector = ref(false); // Hiányzó ref
+const showUserList = ref(false);
+const showAddUser = ref(false);
+const showChangeName = ref(false);
+const showChangeProfile = ref(false);
 
-// Téma váltás kezelése
-const changeTheme = (theme) => {
-  emit('change-theme', theme);
-};
-
-// Hiányzó closeProfile metódus
+// Javított closeProfile metódus
 const closeProfile = () => {
+  emit('close');
   emit('update:showProfile', false);
 };
 
 // Hiányzó handleThemeSelect metódus
 const handleThemeSelect = (theme) => {
-  changeTheme(theme);
   showAppearanceSelector.value = false;
 };
 
@@ -58,11 +57,7 @@ const getVideoThumbnail = (videoUrl) => {
 
 // Update mediaMessages computed property
 const mediaMessages = computed(() => {
-  if (!props.messages || !Array.isArray(props.messages)) {
-    return [];
-  }
-
-  return props.messages
+  return messageStore.getMessages
     .filter(msg => {
       return msg && msg.type && (
         msg.type === 'image' ||
@@ -78,6 +73,72 @@ const mediaMessages = computed(() => {
 const mediaMessagesData = computed(() => {
   return mediaMessages.value;
 });
+
+const leaveGroup = () => {
+  alertStore.addAlert(new Alert(
+    'Megerősítés',
+    'Biztosan el szeretnéd hagyni ezt a csoportot?',
+    'confirm',
+    () => leaveGroupCallback()
+  ))
+}
+const leaveGroupCallback = () => {
+  if (webSocketStore.isConnected) {
+    webSocketStore.send({
+      type: 'group_leave',
+      channelId: messageStore.getCurrentChannelId,
+    });
+  }
+};
+
+const deleteGroup = () => {
+  alertStore.addAlert(new Alert(
+    'Megerősítés',
+    'Biztosan törölni szeretnéd ezt a csoportot? Ez a művelet nem visszavonható.',
+    'confirm',
+    () => deleteGroupCallback()
+  ))
+}
+const deleteGroupCallback = () => {
+    if (webSocketStore.isConnected) {
+        console.log("Deleting group");
+        webSocketStore.send({
+            type: 'group_delete',
+            channelId: messageStore.getCurrentChannelId
+        });
+    }
+}
+
+const deleteFriend = () => {
+  alertStore.addAlert(new Alert(
+    'Megerősítés',
+    'Biztosan törölni szeretnéd ezt a barátot?',
+    'confirm',
+    () => deleteFriendCallback()
+  ))
+}
+const deleteFriendCallback = () => {
+  if (webSocketStore.isConnected) {
+    const channel = channelStore.getFriendChannelById(messageStore.getCurrentChannelId);
+    const recipient_id = channel.getUser1().getUserID() == userStore.getUserID()? channel.getUser2().getUserID() : channel.getUser1().getUserID();
+    webSocketStore.send({
+      type: 'friend_remove',
+      recipient_id: recipient_id
+    });
+  }
+};
+
+const profilePicture = computed(() => {
+  if (messageStore.getCurrentChannelId == null) return null;
+  if (channelStore.getFriendChannelById(messageStore.getCurrentChannelId)) {
+    const channel = channelStore.getFriendChannelById(messageStore.getCurrentChannelId);
+    const pfp = channel.getUser1().getUserID() == userStore.getUserID() ? channel.getUser2().getProfilePicture() : channel.getUser1().getProfilePicture();
+    return pfp;
+  } else {
+    const channel = channelStore.getGroupChannelById(messageStore.getCurrentChannelId);
+    return channel.getPicture();
+  }
+})
 </script>
 
 <template>
@@ -91,25 +152,36 @@ const mediaMessagesData = computed(() => {
       </button>
       <div class="profile-header">
         <div class="profile-image">
-          <img src="" alt="" />
+          <img v-if="profilePicture" :src="API_CONFIG.BASE_URL + profilePicture" alt="Profilkép"
+            class="avatar-circle" />
+          <span v-else class="avatar-circle">{{ messageStore.getCurrentChannelName.charAt(0).toUpperCase() }}</span>
         </div>
-        <h2>{{ currentChat.name }}</h2>
-        <div class="last-seen">Elérhető volt: {{ currentChat.lastSeen }}</div>
+        <h2>{{ messageStore.getCurrentChannelName }}</h2>
+        <div class="last-seen">Elérhető volt: {{ }}soha</div>
       </div>
 
-      <div class="profile-section">
+      <div class="profile-section" v-if="channelStore.getGroupChannelById(messageStore.getCurrentChannelId)">
         <h3>Chat testreszabása</h3>
-        <button class="profile-button" @click="showAppearanceSelector = true">
-          <span class="button-icon"></span>
-          Téma megváltoztatása
-        </button>
-        <button class="profile-button">
+        <div
+          v-if="channelStore.getGroupChannelById(messageStore.getCurrentChannelId)?.getOwnerID() == userStore.getUserID()">
+          <button class="profile-button" @click="showChangeName = true">
+            <span class="button-icon">Aa</span>
+            Csoport név módosítása
+          </button>
+
+          <button class="profile-button" @click="showChangeProfile = true">
+            <span class="button-icon">Aa</span>
+            Csoport profilkép módosítása
+          </button>
+
+          <button class="profile-button" @click="showAddUser = true">
+            <span class="button-icon">Aa</span>
+            Új csoporttag felvétele
+          </button>
+        </div>
+        <button class="profile-button" @click="showUserList = true">
           <span class="button-icon">Aa</span>
-          Hangulatjel megváltoztatása
-        </button>
-        <button class="profile-button">
-          <span class="button-icon">Aa</span>
-          Becenevek módosítása
+          Csoporttagok
         </button>
       </div>
 
@@ -130,30 +202,55 @@ const mediaMessagesData = computed(() => {
       <div class="profile-section">
         <h3>Médiatartalom és fájlok</h3>
         <div class="media-grid">
-          <div v-for="media in mediaMessagesData" :key="media.id || Math.random()" class="media-item">
-            <img v-if="media.type === 'image' || media.type === 'gif'" :src="media.text"
-              :alt="media.fileName || 'Media content'" @error="$event.target.src = 'fallback-image-url'" />
-            <div v-else-if="media.type === 'video'" class="video-preview"
-              :style="{ backgroundImage: `url(${media.thumbnail || media.text})` }">
-              <div class="video-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
+          <div v-for="message in messageStore.getNotTextMessages" :key="message.getMessageID() || Math.random()">
+            <div class="media-item">
+              <img v-if="message.getType() === 'image' || message.getType() === 'gif'" :src="message.getContent()"
+                :alt="message.getContent() || 'Media content'" @error="$event.target.src = 'fallback-image-url'" />
+              <div v-else-if="message.getType() === 'video'" class="video-preview"
+                :style="{ backgroundImage: `url(${message.getContent()})` }">
+                <div class="video-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
-          <div v-for="n in Math.max(0, 9 - (mediaMessages?.length || 0))" :key="'placeholder-' + n"
-            class="media-placeholder"></div>
         </div>
       </div>
 
-      <div class="profile-section">
-        <h3>Személyes adatok védelme és támogatás</h3>
+
+      <div class="profile-section" v-if="channelStore.getGroupChannelById(messageStore.getCurrentChannelId)">
+        <button class="profile-button"
+          v-if="channelStore.getGroupChannelById(messageStore.getCurrentChannelId)?.getOwnerID() == userStore.getUserID()"
+          @click="deleteGroup">
+          <span class="button-icon">Aa</span>
+          Csoport törlése
+        </button>
+        <button class="profile-button" @click="leaveGroup">
+          <span class="button-icon">Aa</span>
+          Csoport elhagyása
+        </button>
       </div>
+      <div class="profile-section" v-else>
+        <button class="profile-button" @click="deleteFriend">
+          <span class="button-icon">Aa</span>
+          Barát törlése
+        </button>
+      </div>
+
     </div>
 
     <AppearanceSelector v-if="showAppearanceSelector" @close="showAppearanceSelector = false"
-      @select="handleThemeSelect" />
+      @select="userStore.handleThemeChange" />
+
+    <UserList v-if="showUserList" @close="showUserList = false" />
+
+    <AddUser v-if="showAddUser" @close="showAddUser = false" />
+
+    <ChangeName v-if="showChangeName" @close="showChangeName = false" />
+
+    <ChangeProfile v-if="showChangeProfile" @close="showChangeProfile = false" />
   </div>
 </template>
 

@@ -37,9 +37,7 @@ class NotificationService
     public function notifyMultipleClients(array $clientIds, string $senderId, string $type, array $data = [])
     {
         foreach ($clientIds as $clientID) {
-            if ($clientID == $senderId) {
-                $this->notifyClient($clientID, $type, $data);
-            }
+            $this->notifyClient($clientID, $type, $data);
         }
     }
     

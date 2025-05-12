@@ -14,15 +14,20 @@ $rootDir = dirname(__DIR__);
 require_once $rootDir . '/src/controllers/AuthController.php';
 require_once $rootDir . '/src/controllers/UserinfoController.php';
 require_once $rootDir . '/src/controllers/MessageController.php';
+require_once $rootDir . '/src/controllers/FileController.php';
+require_once $rootDir . '/src/controllers/ProfilePictureController.php';
 //Models
 require_once $rootDir . '/src/models/User.php';
 require_once $rootDir . '/src/models/RefreshToken.php';
 require_once $rootDir . '/src/models/Userinfo.php';
 require_once $rootDir . '/src/models/Message.php';
+require_once $rootDir . '/src/models/File.php';
+require_once $rootDir . '/src/models/Group.php';
 //Middleware
 require_once $rootDir . '/src/middleware/AuthMiddleware.php';
 require_once $rootDir . '/src/middleware/UserinfoMiddleware.php';
 require_once $rootDir . '/src/middleware/MessageMiddleware.php';
+require_once $rootDir . '/src/middleware/FileMiddleware.php';
 //Config
 require_once $rootDir . '/src/config/database.php';
 require_once $rootDir . '/src/config/core.php';
@@ -33,7 +38,6 @@ require_once $rootDir . '/src/utils/ResponseHandler.php';
 require_once $rootDir . '/src/utils/JWTTools.php';
 require_once $rootDir . '/src/utils/DatabaseOperations.php';
 
-// Set error handling
 set_exception_handler([ErrorHandler::class, 'handleError']);
 
 try {
@@ -100,6 +104,30 @@ try {
                     break;
             }
             break;
+            
+        case "files":
+            $fileController = new FileController($db);
+            
+            if (!isset($uri[2])) {
+                if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                    $fileController->handleUploadFile();
+                } else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+                    $fileController->handleGetUserFiles();
+                } else {
+                    throw new ApiException('Invalid method', 405);
+                }
+            } else if ($uri[2] === 'size') {
+                $fileController->handleGetTotalFileSize();
+            } else {
+                if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+                    $fileController->handleServeFile($uri[2]);
+                } else if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+                    $fileController->handleDeleteFile($uri[2]);
+                } else {
+                    throw new ApiException('Invalid method', 405);
+                }
+            }
+            break;
 
         case "userData":
             if (!isset($uri[2])) {
@@ -118,6 +146,9 @@ try {
                 case "groupChannels":
                     $userInfo->handleGetGroupChannelList();
                     break;
+                case "updateProfile":
+                    $userInfo->handleUpdateUserProfile($data);
+                    break;
                 default:
                     throw new ApiException('Invalid route', 404);
                     break;
@@ -134,6 +165,38 @@ try {
             $messageController->handleGetChannelMessages($uri[2]);
             break;
 
+        case "pfp":
+            if (!isset($uri[2])) {
+                throw new ApiException('Invalid route', 404);
+            }
+            
+            $profilePictureController = new ProfilePictureController($db);
+            
+            switch ($uri[2]) {
+                case "user":
+                    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                        $profilePictureController->handleUserProfilePictureUpload();
+                    } else if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($uri[3])) {
+                        $profilePictureController->handleServeUserProfilePicture($uri[3]);
+                    } else {
+                        throw new ApiException('Invalid method or missing user ID', 400);
+                    }
+                    break;
+                case "group":
+                    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($uri[3])) {
+                        $profilePictureController->handleGroupProfilePictureUpload($uri[3]);
+                    } else if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($uri[3])) {
+                        $profilePictureController->handleServeGroupProfilePicture($uri[3]);
+                    } else {
+                        throw new ApiException('Invalid method or missing group ID', 400);
+                    }
+                    break;
+                default:
+                    throw new ApiException('Invalid route', 404);
+                    break;
+            }
+            break;
+            
         default:
             throw new ApiException('Invalid route', 404);
             break;

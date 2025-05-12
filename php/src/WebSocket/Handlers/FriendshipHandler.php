@@ -36,22 +36,26 @@ class FriendshipHandler
 
         try {
             $friendship = new \Friendship($this->dbConn, $sender->id, $recipientId);
-            $result = $friendship->sendFriendRequest();
+            $result = $friendship->sendFriendRequest($sender->id);
 
-            if ($result) {
-                $channel = new \Channel($this->dbConn);
-                $channel->createFriendshipChannel($result);
-
-                ResponseHandlerService::sendSuccess($from, 'friend_add');
-
-                $notifyData = ['sender' => [
-                    'id' => $sender->id,
-                    'username' => $sender->username
-                ]];
-                $this->notificationService->notifyClient($recipientId, 'friend_request_received', $notifyData);
-
-                $this->logger->info("Friend request sent from user {$sender->id} to user {$recipientId}");
+            try {
+                if ($result) {
+                    $channel = new \Channel($this->dbConn);
+                    $channel->createFriendshipChannel($result);
+                }
+            } catch (\Exception $e) {
+                
             }
+
+            ResponseHandlerService::sendSuccess($from, 'friend_add');
+
+            $notifyData = ['sender' => [
+                'id' => $sender->id,
+                'username' => $sender->username
+            ]];
+            $this->notificationService->notifyClient($recipientId, 'friend_request_recieved', $notifyData);
+
+            $this->logger->info("Friend request sent from user {$sender->id} to user {$recipientId}");
         } catch (\WebSocketException $e) {
             $this->errorHandler->handleException($from, $e, 'friend_add');
         } catch (\ApiException $e) {
@@ -77,6 +81,7 @@ class FriendshipHandler
         $recipientId = $data['recipient_id'];
 
         try {
+            echo json_encode(["sender"=>$sender->id, "recipient"=>$recipientId]);
             $friendship = new \Friendship($this->dbConn, $sender->id, $recipientId);
             $result = $friendship->declineFriendRequest();
 
@@ -87,7 +92,7 @@ class FriendshipHandler
                     'id' => $sender->id,
                     'username' => $sender->username
                 ]];
-                $this->notificationService->notifyClient($sender, 'friend_request_denied', $notifyData);
+                $this->notificationService->notifyClient($recipientId, 'friend_request_denied', $notifyData);
 
                 $this->logger->info("Friend request denied from user {$sender->id} to user {$recipientId}");
             }
@@ -142,6 +147,45 @@ class FriendshipHandler
             $this->logger->error("Friend request accept failed: {$e->getMessage()}");
         } catch (\Exception $e) {
             $this->errorHandler->handleException($from, $e, 'friend_request_accept');
+        }
+    }
+    
+    public function handleFriendRemove(ConnectionInterface $from, $data)
+    {
+        if (!$this->errorHandler->validateRequest($from, $data, ['recipient_id'])) {
+            return;
+        }
+
+        $sender = $from->userData;
+        $recipientId = $data['recipient_id'];
+
+        try {
+            $friendship = new \Friendship($this->dbConn, $sender->id, $recipientId);
+            $result = $friendship->removeFriend();
+
+            if ($result) {
+                ResponseHandlerService::sendSuccess($from, 'friend_remove');
+
+                $notifyData = ['sender' => [
+                    'id' => $sender->id,
+                    'username' => $sender->username
+                ]];
+                $this->notificationService->notifyClient($recipientId, 'friend_removed', $notifyData);
+
+                $this->logger->info("Friend removed: user {$sender->id} removed user {$recipientId} from friends");
+            }
+        } catch (\WebSocketException $e) {
+            $this->errorHandler->handleException($from, $e, 'friend_remove');
+        } catch (\ApiException $e) {
+            $this->errorHandler->sendError(
+                $from,
+                $e->getMessage(),
+                'FRIEND_REMOVE_FAILED',
+                $e->getStatusCode()
+            );
+            $this->logger->error("Friend removal failed: {$e->getMessage()}");
+        } catch (\Exception $e) {
+            $this->errorHandler->handleException($from, $e, 'friend_remove');
         }
     }
 }

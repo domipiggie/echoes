@@ -232,4 +232,103 @@ class User
     {
         return $this->profilePicture;
     }
+    
+    public function setProfilePicture($profilePicture)
+    {
+        try {
+            $query = "UPDATE " . $this->table_name . "
+                    SET
+                        profilePicture = :profilePicture
+                    WHERE
+                        userID = :userID";
+            
+            $args = [
+                [':profilePicture', $profilePicture],
+                [':userID', $this->userID]
+            ];
+            
+            $result = DatabaseOperations::updateDB($this->dbConn, $query, $args);
+            
+            if ($result > 0) {
+                $this->profilePicture = $profilePicture;
+                return true;
+            }
+            
+            throw new ApiException('Failed to update profile picture', 500);
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to update profile picture: ' . $e->getMessage(), 500);
+        }
+    }
+    
+    public function updateUsername($username)
+    {
+        try {
+            if ($this->usernameExists($username) && $username !== $this->username) {
+                throw new ApiException('Username already in use', 400);
+            }
+            
+            $query = "UPDATE " . $this->table_name . "
+                    SET
+                        username = :username
+                    WHERE
+                        userID = :userID";
+            
+            $args = [
+                [':username', $username],
+                [':userID', $this->userID]
+            ];
+            
+            $result = DatabaseOperations::updateDB($this->dbConn, $query, $args);
+            
+            if ($result > 0) {
+                $this->username = $username;
+                return true;
+            }
+            
+            throw new ApiException('Failed to update username', 500);
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to update username: ' . $e->getMessage(), 500);
+        }
+    }
+    
+    public function updateEmail($email)
+    {
+        try {
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new ApiException('Invalid email format', 400);
+            }
+            
+            if ($this->emailExists($email) && $email !== $this->email) {
+                throw new ApiException('Email already in use', 400);
+            }
+            
+            $query = "UPDATE " . $this->table_name . "
+                    SET
+                        email = :email
+                    WHERE
+                        userID = :userID";
+            
+            $args = [
+                [':email', $email],
+                [':userID', $this->userID]
+            ];
+            
+            $result = DatabaseOperations::updateDB($this->dbConn, $query, $args);
+            
+            if ($result > 0) {
+                $this->email = $email;
+                return true;
+            }
+            
+            throw new ApiException('Failed to update email', 500);
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to update email: ' . $e->getMessage(), 500);
+        }
+    }
 }

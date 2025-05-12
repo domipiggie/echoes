@@ -114,6 +114,7 @@ const selectTheme = () => {
   padding: 6px 8px;
   font-size: 8px;
   max-width: 60%;
+  width: fit-content;
   border-radius: 14px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   margin: 0;
@@ -250,6 +251,7 @@ const selectTheme = () => {
   color: #2d3748;
   max-width: 70px;
   /* Reduced width */
+  width: fit-content;
   margin: 0;
 }
 
@@ -344,6 +346,8 @@ h2 {
   cursor: pointer;
   font-weight: 500;
   transition: all 0.2s ease;
+  min-width: 100px; /* Minimális szélesség beállítása */
+  text-align: center; /* Szöveg középre igazítása */
 }
 
 .action-button.select {

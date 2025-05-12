@@ -15,7 +15,7 @@ class Userinfo
                     CASE 
                         WHEN f.user1ID = :user THEN f.user2ID
                         ELSE f.user1ID
-                    END as friendID, f.user1ID as initiator, u.username, u.displayName, u.profilePicture
+                    END as friendID, fs.initiator as initiator, u.username, u.displayName, u.profilePicture
                     FROM friendship f
                     INNER JOIN friendshipStatus fs
                         ON f.statusID = fs.statusID
@@ -48,11 +48,17 @@ class Userinfo
 
             $sql = "SELECT cl.channelID, f.user1ID, f.user2ID, u1.username as user1_username, u1.displayName as user1_displayName,
                         u1.profilePicture as user1_profilePicture, u2.username as user2_username, u2.displayName as user2_displayName,
-                        u2.profilePicture as user2_profilePicture FROM `channel_list` cl
+                        u2.profilePicture as user2_profilePicture, m.content, m.userID as lastMessageUserID,
+                        u3.username as lastMessageUsername
+                    FROM `channel_list` cl
                     INNER JOIN
                         `friendship` f
                     ON
                         cl.`friendshipID` = f.`friendshipID`
+                    INNER JOIN
+                        `friendshipStatus` fs
+                    ON
+                        f.`statusID` = fs.`statusID`
                     INNER JOIN
                         `user` u1
                     ON
@@ -61,8 +67,23 @@ class Userinfo
                         `user` u2
                     ON
                         f.`user2ID` = u2.`userID`
+                    LEFT JOIN
+                        (SELECT m1.* 
+                         FROM message m1
+                         INNER JOIN (
+                             SELECT channelID, MAX(sent_at) as sent_at 
+                             FROM message 
+                             GROUP BY channelID
+                         ) m2 ON m1.channelID = m2.channelID AND m1.sent_at = m2.sent_at) m
+                    ON
+                        cl.channelID = m.channelID
+                    LEFT JOIN
+                        `user` u3
+                    ON
+                        m.userID = u3.userID
                     WHERE
-                        f.`user1ID` = :userID OR f.`user2ID` = :userID";
+                        (f.`user1ID` = :userID OR f.`user2ID` = :userID)
+                        AND fs.`status` = 1";
 
             $args = [
                 [':userID', $user]
@@ -84,7 +105,10 @@ class Userinfo
                         "username" => $row['user2_username'],
                         "displayName" => $row['user2_displayName'],
                         "profilePicture" => $row['user2_profilePicture']
-                    )
+                    ),
+                    "lastMessage" => $row['content'],
+                    "lastMessageUserID" => $row['lastMessageUserID'],
+                    "lastMessageUsername" => $row['lastMessageUsername']
                 );
             }
             return $channels;
@@ -101,11 +125,36 @@ class Userinfo
             $channels = [];
             $channelsMap = [];
 
-            $sql = "SELECT ca.channelID, ca.userID, u.username, u.displayName, u.profilePicture FROM channel_access ca
+            $sql = "SELECT ca.channelID, ca.userID, u.username, u.displayName, u.profilePicture, 
+                    cl.groupID, gi.name as groupName, gi.picture as groupPicture, gi.ownerID as groupOwnerID,
+                    m.content, m.userID as lastMessageUserID, u2.username as lastMessageUsername
+                    FROM channel_access ca
                     INNER JOIN
                         user u
                     ON
                         ca.userID = u.userID
+                    INNER JOIN
+                        channel_list cl
+                    ON
+                        ca.channelID = cl.channelID
+                    LEFT JOIN
+                        group_info gi
+                    ON
+                        cl.groupID = gi.id
+                    LEFT JOIN
+                        (SELECT m1.* 
+                         FROM message m1
+                         INNER JOIN (
+                             SELECT channelID, MAX(sent_at) as sent_at 
+                             FROM message 
+                             GROUP BY channelID
+                         ) m2 ON m1.channelID = m2.channelID AND m1.sent_at = m2.sent_at) m
+                    ON
+                        ca.channelID = m.channelID
+                    LEFT JOIN
+                        user u2
+                    ON
+                        m.userID = u2.userID
                     WHERE 
                         ca.channelID IN (
                             SELECT cl.channelID FROM channel_list cl
@@ -135,6 +184,13 @@ class Userinfo
                 if (!isset($channelsMap[$channelID])) {
                     $channelsMap[$channelID] = [
                         "channelID" => $channelID,
+                        "groupID" => $row['groupID'],
+                        "groupName" => $row['groupName'],
+                        "groupPicture" => $row['groupPicture'],
+                        "groupOwnerID" => $row['groupOwnerID'],
+                        "lastMessage" => $row['content'],
+                        "lastMessageUserID" => $row['lastMessageUserID'],
+                        "lastMessageUsername" => $row['lastMessageUsername'],
                         "users" => []
                     ];
                     $channels[] = &$channelsMap[$channelID];

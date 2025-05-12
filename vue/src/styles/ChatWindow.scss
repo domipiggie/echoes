@@ -8,7 +8,7 @@
 	border-radius: 16px;
 	overflow: hidden;
 	color: #333;
-	box-shadow: 0 4px 20px rgba(112, 120, 230, 0.15);
+	box-shadow: none;
 	height: 100%;
 	width: calc(100% - 400px);
 	margin-left: auto;
@@ -27,7 +27,7 @@
 	background-color: #fff;
 	border-bottom: 1px solid rgba(112, 120, 230, 0.2);
 	height: 70px;
-	box-shadow: 0 2px 10px rgba(112, 120, 230, 0.1);
+	box-shadow: none;
 	border-top-left-radius: 16px;
 	border-top-right-radius: 16px;
 }
@@ -244,6 +244,10 @@
 }
 .message-text {
 	padding: 4px 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
 }
 // Hover actions
 .message-hover-actions {
@@ -447,15 +451,15 @@
 	align-items: center;
 	background-color: #f5f5f5;
 	border-radius: 24px;
-	padding: 10px 16px; // Növeltem a padding-et
-	width: calc(100% - 20px);
+	padding: 8px 12px;
+	width: calc(100% - 16px);
 	margin: 0 auto;
 	box-sizing: border-box;
 	input {
 		flex: 1;
 		border: none;
 		outline: none;
-		padding: 8px 0;
+		padding: 6px 0;
 		font-size: 14px;
 		color: #2d3748;
 		background: transparent;
@@ -467,15 +471,15 @@
 .left-actions {
 	display: flex;
 	align-items: center;
-	gap: 12px; // Növeltem a gombok közötti távolságot
-	margin-right: 12px; // Növeltem a jobb oldali margót
+	gap: 8px;
+	margin-right: 8px;
 	margin-left: 4px;
 }
 .message-actions {
 	display: flex;
 	align-items: center;
-	gap: 16px; // Növeltem a gombok közötti távolságot
-	margin-right: 8px; // Növeltem a jobb oldali margót
+	gap: 12px;
+	margin-right: 6px;
 }
 .action-button {
 	border: none;
@@ -487,8 +491,8 @@
 	background-color: #7078e6;
 	color: #fff;
 	border-radius: 50%;
-	width: 36px;
-	height: 36px;
+	width: 32px;
+	height: 32px;
 	padding: 0;
 	&:hover {
 		background-color: #5a61d2;
@@ -498,12 +502,16 @@
 .gif-button {
 	background-color: #7078e6;
 	color: #fff;
-	font-weight: 600;
-	font-size: 13px;
-	border-radius: 16px;
-	padding: 6px 12px;
+	border-radius: 50%;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	border: none;
 	transition: all .2s ease;
+	font-size: 16px; // ha csak ikon van, ez lehet kisebb is
 	&:hover {
 		background-color: #5a61d2;
 		transform: translateY(-1px);
@@ -924,6 +932,163 @@
 	}
 	.message-received .message-hover-actions {
 		left: calc(100% + 8px);
+	}
+	
+	// Nagy zoom esetén teljes képernyős megjelenítés
+	.chat-window {
+		width: 100%;
+		margin-left: 0;
+	}
+}
+
+// Mobile responsive styles
+@media (max-width: 768px) {
+    .chat-window {
+        width: 100%;
+        margin-left: 0;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 100vh;
+        border-radius: 0;
+        z-index: 1000;
+        &.with-profile {
+            .messages-container, .input-area {
+                width: 100%;
+            }
+        }
+    }
+    .chat-header {
+        border-radius: 0;
+        height: 60px;
+    }
+    .messages-container {
+        height: calc(100vh - 130px);
+        max-height: calc(100% - 130px);
+        padding: 10px;
+        padding-bottom: 70px;
+        &.with-reply {
+            height: calc(100% - 180px);
+            max-height: calc(100% - 180px);
+        }
+    }
+    .message {
+        max-width: 85%;
+    }
+    .message-sent, .message-received {
+        margin-right: 10px;
+        &.first-message {
+            margin-right: 10px;
+        }
+    }
+    .message-received {
+        margin-left: 10px;
+        &.first-message {
+            margin-left: 10px;
+        }
+    }
+    .message-avatar {
+        width: 24px;
+        height: 24px;
+        left: -30px;
+        .message-sent & {
+            right: -30px;
+        }
+    }
+    .message-bubble {
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+    .input-area {
+        padding: 8px 0;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100vw;
+        background-color: #1e1e2d;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 1001;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .modern-message-box {
+        display: flex;
+        align-items: center;
+        background-color: #23233a;
+        border-radius: 18px;
+        padding: 4px 4px;
+        width: 97vw;
+        max-width: 97vw;
+        margin: 0 auto;
+        min-height: 36px;
+        gap: 2px;
+    }
+    .action-button {
+    width: 24px; // Csökkentett szélesség
+    height: 24px; // Csökkentett magasság
+    
+}
+    .action-button svg {
+        width: 14px;
+        height: 14px;
+    }
+    .modern-message-box input[type="text"],
+    .modern-message-box input[type="search"],
+    .modern-message-box input {
+        flex: 1;
+        border: none;
+        outline: none;
+        background: transparent;
+        color: #fff;
+        font-size: 15px;
+        padding: 4px 8px;
+        min-width: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .chat-profile-sidebar {
+        display: none;
+    }
+    .message-hover-actions {
+        opacity: 1;
+        top: -24px;
+        transform: none;
+    }
+    .message-sent .message-hover-actions {
+        right: 0;
+    }
+    .message-received .message-hover-actions {
+        left: 0;
+    }
+}
+
+// Új mobilnézet javítások
+@media (max-width: 480px) {
+	.modern-message-box {
+		padding: 6px 10px;
+		width: calc(100% - 60px);
+	}
+	
+	.action-button {
+		width: 28px;
+		height: 28px;
+	}
+	
+	.left-actions, .message-actions {
+		gap: 6px;
+	}
+	
+	.message-actions {
+		margin-right: 4px;
+	}
+	
+	.left-actions {
+		margin-right: 6px;
+		margin-left: 2px;
 	}
 }
 // Media elements

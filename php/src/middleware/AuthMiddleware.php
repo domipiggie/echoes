@@ -57,13 +57,13 @@ class AuthMiddleware
         }
     }
 
-    public static function refresh($db, $refreshToken)
+    public static function refresh($db, $refreshTokenString)
     {
         $user = new User($db);
-        $refreshToken = new RefreshToken($db);
+        $refreshTokenObj = new RefreshToken($db);
 
         try {
-            $userID = $refreshToken->validate($refreshToken);
+            $userID = $refreshTokenObj->validate($refreshTokenString);
 
             if (!$user->loadFromID($userID)) {
                 throw new ApiException("User not found", 401);
@@ -71,8 +71,8 @@ class AuthMiddleware
 
             $accessToken = JWTTools::generateAccessToken($userID, $user->getUsername(), $user->getEmail());
 
-            $refreshToken->revoke($refreshToken);
-            $newRefreshToken = $refreshToken->create($userID);
+            $refreshTokenObj->revoke($refreshTokenString);
+            $newRefreshToken = $refreshTokenObj->create($userID);
 
             return array(
                 "status" => "success",
@@ -91,10 +91,10 @@ class AuthMiddleware
 
     public static function logout($db, $refreshToken)
     {
-        $refreshToken = new RefreshToken($db);
+        $refreshTokenObj = new RefreshToken($db);
 
         try {
-            $refreshToken->revoke($refreshToken);
+            $refreshTokenObj->revoke($refreshToken);
             return array(
                 "status" => "success",
                 "message" => "Successfully logged out"

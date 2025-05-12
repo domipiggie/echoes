@@ -12,6 +12,10 @@ require_once __DIR__ . '/../utils/DatabaseOperations.php';
 require_once __DIR__ . '/../models/Friendship.php';
 require_once __DIR__ . '/../models/FriendshipStatus.php';
 require_once __DIR__ . '/../models/Message.php';
+require_once __DIR__ . '/../models/Channel.php';
+require_once __DIR__ . '/../utils/DatabaseOperations.php';
+require_once __DIR__ . '/../models/Group.php';
+require_once __DIR__ . '/../models/User.php';
 
 use Ratchet\Server\IoServer;
 use Ratchet\Http\HttpServer;
@@ -44,21 +48,72 @@ if ($useSSL) {
         exit(1);
     }
 
+    $certPath = \Config\WebSocketConfig::SSL_CERT_PATH;
+    $keyPath = \Config\WebSocketConfig::SSL_KEY_PATH;
+    
+    $logger->info("Using Let's Encrypt certificates");
+    $logger->info("Certificate path (fullchain.pem): " . $certPath);
+    $logger->info("Private key path (privkey.pem): " . $keyPath);
+    
+    if (!file_exists($certPath)) {
+        $logger->error("SSL certificate file not found: " . $certPath);
+        exit(1);
+    }
+    
+    if (!is_readable($certPath)) {
+        $logger->error("SSL certificate file not readable: " . $certPath);
+        exit(1);
+    }
+    
+    if (!file_exists($keyPath)) {
+        $logger->error("SSL key file not found: " . $keyPath);
+        exit(1);
+    }
+    
+    if (!is_readable($keyPath)) {
+        $logger->error("SSL key file not readable: " . $keyPath);
+        exit(1);
+    }
+    
+    $certData = file_get_contents($certPath);
+    $certInfo = openssl_x509_parse($certData);
+    
+    if ($certInfo) {
+        $logger->info("Certificate subject: " . $certInfo['subject']['CN']);
+        $logger->info("Certificate valid until: " . date('Y-m-d H:i:s', $certInfo['validTo_time_t']));
+        
+        if (time() > $certInfo['validTo_time_t']) {
+            $logger->warning("Certificate has expired!");
+        }
+    } else {
+        $logger->warning("Could not parse certificate information");
+    }
+    
     $context = [
         'tls' => [
-            'local_cert' => \Config\WebSocketConfig::SSL_CERT_PATH,
-            'local_pk' => \Config\WebSocketConfig::SSL_KEY_PATH,
-            'verify_peer' => false
+            'local_cert' => $certPath,
+            'local_pk' => $keyPath,
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+            'allow_self_signed' => false,
+            'SNI_enabled' => true,
+            'disable_compression' => true,
+            'ciphers' => 'HIGH:!aNULL:!MD5'
         ]
     ];
 
-    $socketServer = new SocketServer(
-        'tls://' . \Config\WebSocketConfig::HOST . ':' . \Config\WebSocketConfig::SECURE_PORT,
-        ['tls' => $context],
-        $loop
-    );
-
-    $logger->info("SSL WebSocket server running on wss://" . \Config\WebSocketConfig::HOST . ":" . \Config\WebSocketConfig::SECURE_PORT);
+    try {
+        $socketServer = new SocketServer(
+            'tls://' . \Config\WebSocketConfig::HOST . ':' . \Config\WebSocketConfig::SECURE_PORT,
+            $context,
+            $loop
+        );
+        $logger->info("SSL WebSocket server running on wss://" . \Config\WebSocketConfig::HOST . ":" . \Config\WebSocketConfig::SECURE_PORT);
+    } catch (\Exception $e) {
+        $logger->error("Failed to create SSL socket server: " . $e->getMessage());
+        $logger->error("Stack trace: " . $e->getTraceAsString());
+        exit(1);
+    }
 } else {
     $socketServer = new SocketServer(
         \Config\WebSocketConfig::HOST . ':' . \Config\WebSocketConfig::PORT,

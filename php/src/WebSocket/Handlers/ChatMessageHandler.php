@@ -27,6 +27,7 @@ class ChatMessageHandler
 
     public function handleChatMessage(ConnectionInterface $from, $data)
     {
+        $this->logger->info(json_encode($data));
         if (!$this->errorHandler->validateRequest($from, $data, ['channelId', 'content', 'messageType'])) {
             return;
         }
@@ -35,6 +36,7 @@ class ChatMessageHandler
         $channelId = $data['channelId'];
         $content = $data['content'];
         $messageType = $data['messageType'];
+        $replyTo = isset($data['replyTo']) ? $data['replyTo'] : null;
 
         try {
             $message = new \Message($this->dbConn);
@@ -45,22 +47,28 @@ class ChatMessageHandler
                     403
                 );
             }
-            $message->createMessage($channelId, $sender->id, $content, $messageType);
+            $result = $message->createMessage($channelId, $sender->id, $content, $messageType, $replyTo);
 
-            ResponseHandlerService::sendSuccess($from, 'chatmessage_sent');
+            ResponseHandlerService::sendSuccess($from, 'chatmessage_sent', ['messageId' => $result['messageID']]);
 
             $this->logger->info("Chat message sent by user {$sender->id} in channel {$channelId}");
+
+            $user = new \User($this->dbConn);
+            $user->loadFromID($sender->id);
 
             $notifyData = [
                 'message' => [
                     'channelId' => $channelId,
+                    'messageId' => $result['messageID'],
                     'content' => $content,
                     'messageType' => $messageType,
+                    'replyTo' => $replyTo,
                     'sender' => [
                         'id' => $sender->id,
-                        'username' => $sender->username
+                        'username' => $sender->username,
+                        'profilePicture' => $user->getProfilePicture()
                     ],
-                    'timestamp' => time()
+                    'timestamp' => $result['sent_at']
                 ]
             ];
             $userIds = $message->getUsersWithChannelAccess($channelId);

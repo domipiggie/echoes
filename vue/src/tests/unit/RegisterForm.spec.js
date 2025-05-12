@@ -21,30 +21,30 @@ describe('RegisterForm', () => {
 
   it('validates email format', async () => {
     const wrapper = mount(RegisterForm);
-    
+
     await wrapper.find('input[type="email"]').setValue('invalidEmail');
     await wrapper.find('form').trigger('submit.prevent');
-    
+
     expect(wrapper.vm.errors.email).toBe(true);
-    
+
     await wrapper.find('input[type="email"]').setValue('valid@email.com');
     await wrapper.find('form').trigger('submit.prevent');
-    
+
     expect(wrapper.vm.errors.email).toBe(false);
   });
 
   it('validates password match', async () => {
     const wrapper = mount(RegisterForm);
-    
+
     await wrapper.find('input[type="password"]').setValue('password123');
     await wrapper.findAll('input[type="password"]')[1].setValue('differentPassword');
     await wrapper.find('form').trigger('submit.prevent');
-    
+
     expect(wrapper.vm.errors.password2).toBe(true);
-    
+
     await wrapper.findAll('input[type="password"]')[1].setValue('password123');
     await wrapper.find('form').trigger('submit.prevent');
-    
+
     expect(wrapper.vm.errors.password2).toBe(false);
   });
 
@@ -62,7 +62,7 @@ describe('RegisterForm', () => {
     await wrapper.find('input[type="date"]').setValue(testData.birthdate);
     await wrapper.findAll('input[type="password"]')[0].setValue(testData.password);
     await wrapper.findAll('input[type="password"]')[1].setValue(testData.password);
-    
+
     await wrapper.find('form').trigger('submit.prevent');
 
     expect(wrapper.emitted().register[0]).toEqual([

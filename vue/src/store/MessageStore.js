@@ -7,6 +7,7 @@ import User from '../classes/User';
 export const useMessageStore = defineStore('message', () => {
   const messages = ref([]);
   const currentChannelId = ref(null);
+  const currentChannelName = ref("ccc");
   const isLoading = ref(false);
   const error = ref(null);
   const pagination = ref({
@@ -16,7 +17,11 @@ export const useMessageStore = defineStore('message', () => {
   });
 
   const getMessages = computed(() => messages.value);
+  const getNotTextMessages = computed(() => {
+    return messages.value.filter(message => message.getType() !== 'text');
+  });
   const getCurrentChannelId = computed(() => currentChannelId.value);
+  const getCurrentChannelName = computed(() => currentChannelName.value);
   const getIsLoading = computed(() => isLoading.value);
   const getError = computed(() => error.value);
   const getPagination = computed(() => pagination.value);
@@ -25,11 +30,23 @@ export const useMessageStore = defineStore('message', () => {
     return messages.value.find(message => message.getMessageID() === messageId);
   });
 
+  const setCurrentChannelId = (channelId) => {
+    currentChannelId.value = channelId;
+    pagination.value = {
+      offset: 0,
+      limit: 20,
+      total: 0
+    }
+  };
+  const setCurrentChannelName = (channelName) => {
+    currentChannelName.value = channelName;
+  };
+
   function mapToMessageInstance(messageData) {
     let user = null;
     if (messageData.user) {
       user = new User(
-        messageData.user.id,
+        messageData.user.userID,
         messageData.user.username,
         messageData.user.displayName || '',
         messageData.user.profilePicture
@@ -42,22 +59,21 @@ export const useMessageStore = defineStore('message', () => {
       messageData.content,
       messageData.type || 'text',
       messageData.sent_at,
-      user
+      user,
+      messageData.replyTo
     );
   }
 
-  async function fetchMessages(channelId, offset = 0, limit = 20) {
-    if (!channelId) return;
-
-    currentChannelId.value = channelId;
+  async function fetchMessages(offset = 0, limit = 20) {
     isLoading.value = true;
     error.value = null;
 
     try {
-      const response = await messageService.getChannelMessages(channelId, offset, limit);
-
-      if (response && response.messages) {
-        messages.value = response.messages.map(msg => mapToMessageInstance(msg));
+      const response = await messageService.getChannelMessages(currentChannelId.value, offset, limit);
+      
+      if (response.data && response.data.messages) {
+        const reversedMessages = [...response.data.messages].reverse();
+        messages.value = reversedMessages.map(msg => mapToMessageInstance(msg));
 
         if (response.pagination) {
           pagination.value = {
@@ -90,45 +106,26 @@ export const useMessageStore = defineStore('message', () => {
         pagination.value.limit
       );
 
-      if (response && response.messages && response.messages.length > 0) {
-        const newMessages = response.messages.map(msg => mapToMessageInstance(msg));
-        messages.value = [...messages.value, ...newMessages];
+      if (response.data && response.data.messages && response.data.messages.length > 0) {
+        const newMessages = response.data.messages.map(msg => mapToMessageInstance(msg));
+        
+        messages.value = [...newMessages.reverse(), ...messages.value];
 
-        if (response.pagination) {
-          pagination.value = {
-            offset: response.pagination.offset,
-            limit: response.pagination.limit,
-            total: response.pagination.total
-          };
+        pagination.value = {
+          offset: newOffset,
+          limit: response.data.pagination.limit,
+          total: response.data.pagination.total
         }
+        
+        return true;
       }
+      return false;
     } catch (err) {
       error.value = err.message || 'Failed to load more messages';
       console.error('Error loading more messages:', err);
+      return false;
     } finally {
       isLoading.value = false;
-    }
-  }
-
-  async function sendMessage(content, type = 'text') {
-    if (!currentChannelId.value) {
-      error.value = 'No channel selected';
-      return null;
-    }
-
-    try {
-      const response = await messageService.sendMessage(currentChannelId.value, content, type);
-
-      if (response) {
-        const newMessage = mapToMessageInstance(response);
-        messages.value.unshift(newMessage);
-        return newMessage;
-      }
-      return null;
-    } catch (err) {
-      error.value = err.message || 'Failed to send message';
-      console.error('Error sending message:', err);
-      return null;
     }
   }
 
@@ -164,36 +161,8 @@ export const useMessageStore = defineStore('message', () => {
     }
   }
 
-  async function removeMessage(messageId) {
-    try {
-      const response = await messageService.deleteMessage(messageId);
-
-      if (response) {
-        messages.value = messages.value.filter(msg => msg.getMessageID() !== messageId);
-        return true;
-      }
-      return false;
-    } catch (err) {
-      error.value = err.message || 'Failed to delete message';
-      console.error('Error deleting message:', err);
-      return false;
-    }
-  }
-
-  function addWebSocketMessage(messageData) {
-    if (messageData.channelId !== currentChannelId.value) return;
-
-    const newMessage = mapToMessageInstance({
-      messageID: messageData.messageId,
-      channelID: messageData.channelId,
-      content: messageData.content,
-      type: messageData.messageType || 'text',
-      sent_at: new Date().toISOString(),
-      user: messageData.sender
-    });
-
-    messages.value.unshift(newMessage);
-    return newMessage;
+  function addMessage(message) {
+    messages.value.push(message);
   }
 
   function updateWebSocketMessage(messageId, newContent) {
@@ -202,16 +171,15 @@ export const useMessageStore = defineStore('message', () => {
     if (messageIndex !== -1) {
       const updatedMessage = messages.value[messageIndex];
 
-      const messageData = {
-        messageID: updatedMessage.getMessageID(),
-        channelID: updatedMessage.getChannelID(),
-        content: newContent,
-        type: updatedMessage.getType(),
-        sent_at: updatedMessage.getSentAt(),
-        user: updatedMessage.getUser()
-      };
-
-      const newMessage = mapToMessageInstance(messageData);
+      const newMessage = new Message(
+        updatedMessage.getMessageID(),
+        updatedMessage.getChannelID(),
+        newContent,
+        updatedMessage.getType(),
+        updatedMessage.getSentAt(),
+        updatedMessage.getUser(),
+        updatedMessage.getReplyTo()
+      );
       messages.value.splice(messageIndex, 1, newMessage);
       return newMessage;
     }
@@ -219,7 +187,7 @@ export const useMessageStore = defineStore('message', () => {
     return null;
   }
 
-  function removeWebSocketMessage(messageId) {
+  function removeMessage(messageId) {
     messages.value = messages.value.filter(msg => msg.getMessageID() !== messageId);
   }
 
@@ -236,20 +204,23 @@ export const useMessageStore = defineStore('message', () => {
 
   return {
     getMessages,
+    getNotTextMessages,
     getCurrentChannelId,
+    getCurrentChannelName,
     getIsLoading,
     getError,
     getPagination,
     getMessageById,
 
+    setCurrentChannelId,
+    setCurrentChannelName,
+
     fetchMessages,
     loadMoreMessages,
-    sendMessage,
     updateMessage,
     removeMessage,
-    addWebSocketMessage,
+    addMessage,
     updateWebSocketMessage,
-    removeWebSocketMessage,
     clearMessages
   };
 });

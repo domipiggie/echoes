@@ -24,6 +24,33 @@ export const useChannelStore = defineStore('channel', () => {
     return groupChannels.value.find(channel => channel.getChannelID() === channelId);
   });
 
+  function updateLastMessage(user, message, id) {
+    var channel = getFriendChannelById.value(id) || getGroupChannelById.value(id);
+  
+    if (!channel) {
+      return false;
+    }
+  
+    channel.setLastMessageUsername(user);
+    channel.setLastMessage(message);
+    
+    if (getFriendChannelById.value(id)) {
+      const index = friendChannels.value.findIndex(c => c.getChannelID() === id);
+      if (index !== -1) {
+        const updatedChannels = [...friendChannels.value];
+        friendChannels.value = updatedChannels;
+      }
+    } else if (getGroupChannelById.value(id)) {
+      const index = groupChannels.value.findIndex(c => c.getChannelID() === id);
+      if (index !== -1) {
+        const updatedChannels = [...groupChannels.value];
+        groupChannels.value = updatedChannels;
+      }
+    }
+    
+    return true;
+  }
+
   function mapToUserInstance(userData) {
     return new User(
       userData.id,
@@ -45,7 +72,9 @@ export const useChannelStore = defineStore('channel', () => {
           new FriendshipChannel(
             channel.channelID,
             mapToUserInstance(channel.user1),
-            mapToUserInstance(channel.user2)
+            mapToUserInstance(channel.user2),
+            channel.lastMessageUsername,
+            channel.lastMessage
           )
         );
       } else {
@@ -70,7 +99,12 @@ export const useChannelStore = defineStore('channel', () => {
         groupChannels.value = response.data.map(channel =>
           new GroupChannel(
             channel.channelID,
-            channel.users.map(user => mapToUserInstance(user))
+            channel.users.map(user => mapToUserInstance(user)),
+            channel.groupName,
+            channel.groupPicture,
+            channel.groupOwnerID,
+            channel.lastMessageUsername,
+            channel.lastMessage
           )
         );
       } else {
@@ -104,6 +138,7 @@ export const useChannelStore = defineStore('channel', () => {
     getGroupChannels,
     getFriendChannelById,
     getGroupChannelById,
+    updateLastMessage,
     fetchFriendChannels,
     fetchGroupChannels,
     fetchAllChannels,

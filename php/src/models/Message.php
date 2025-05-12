@@ -9,18 +9,19 @@ class Message
         $this->dbConn = $dbConn;
     }
 
-    public function createMessage($channelID, $userID, $content, $type = 'text')
+    public function createMessage($channelID, $userID, $content, $type = 'text', $replyTo = null)
     {
         try {
             $sql = "INSERT INTO " . $this->table_name . "
-            (channelID, userID, content, type, sent_at)
-            VALUES (:channelID, :userID, :content, :type, NOW())";
+            (channelID, userID, content, type, replyTo, sent_at)
+            VALUES (:channelID, :userID, :content, :type, :replyTo, NOW())";
 
             $args = [
                 [':channelID', $channelID],
                 [':userID', $userID],
                 [':content', $content],
-                [':type', $type]
+                [':type', $type],
+                [':replyTo', $replyTo]
             ];
 
             $result = DatabaseOperations::insertIntoDB($this->dbConn, $sql, $args);
@@ -34,6 +35,7 @@ class Message
                     'userID' => $userID,
                     'content' => $content,
                     'type' => $type,
+                    'replyTo' => $replyTo,
                     'sent_at' => date('Y-m-d H:i:s')
                 ];
 
@@ -117,7 +119,7 @@ class Message
             }
 
             if (!$result[0]['friendshipID']) {
-                return true;
+                return false;
             }
 
             $sql = "SELECT 1 FROM channel_list cl
@@ -170,7 +172,7 @@ class Message
             $offset = (int)$offset;
             $limit = (int)$limit;
             
-            $sql = "SELECT m.messageID, m.channelID, m.userID, m.content, m.type, m.sent_at
+            $sql = "SELECT m.messageID, m.channelID, m.userID, m.content, m.type, m.sent_at, m.replyTo
                     FROM " . $this->table_name . " m
                     WHERE m.channelID = :channelID
                     ORDER BY m.sent_at DESC
@@ -227,7 +229,7 @@ class Message
             }
 
             $sql = "UPDATE " . $this->table_name . " 
-                    SET content = :content, edited_at = NOW()
+                    SET content = :content
                     WHERE messageID = :messageId AND userID = :userId";
 
             $args = [

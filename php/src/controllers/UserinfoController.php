@@ -110,4 +110,58 @@ class UserinfoController
             throw new ApiException('Failed to get group channel list ' . $e->getMessage(), 500);
         }
     }
+    
+    public function handleUpdateUserProfile($data)
+    {
+        try {
+            if ($_SERVER['REQUEST_METHOD'] != 'PUT') {
+                throw new ApiException('Invalid method', 405);
+            }
+            
+            if ((!isset($data['username']) || empty($data['username'])) && 
+                (!isset($data['email']) || empty($data['email']))) {
+                throw new ApiException('At least one field (username or email) must be provided', 400);
+            }
+            
+            $userData = JWTTools::validateToken();
+            $userId = $userData->id;
+            
+            $user = new User($this->dbConn);
+            if (!$user->loadFromID($userId)) {
+                throw new ApiException('User not found', 404);
+            }
+            
+            $updated = false;
+            $response = [];
+            
+            if (isset($data['username']) && !empty($data['username'])) {
+                $user->updateUsername($data['username']);
+                $updated = true;
+                $response['username'] = $data['username'];
+            }
+
+            if (isset($data['email']) && !empty($data['email'])) {
+                $user->updateEmail($data['email']);
+                $updated = true;
+                $response['email'] = $data['email'];
+            }
+            
+            if (!$updated) {
+                throw new ApiException('No fields were updated', 400);
+            }
+            
+            $accessToken = JWTTools::generateAccessToken($user->getUserID(), $user->getUsername(), $user->getEmail());
+            
+            $response['access_token'] = $accessToken['token'];
+            $response['token_type'] = 'Bearer';
+            $response['expires_in'] = $accessToken['expires_in'];
+            $response['message'] = 'Profile updated successfully';
+            
+            ResponseHandler::success($response);
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to update user profile: ' . $e->getMessage(), 500);
+        }
+    }
 }

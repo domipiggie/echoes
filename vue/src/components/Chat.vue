@@ -1,74 +1,108 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import Sidebar from './SideBar.vue';
 import ChatWindow from './ChatWindow.vue';
+import { API_CONFIG } from '../config/api.js';
 import { userdataStore } from '../store/UserdataStore';
-import { useWebSocket } from '../composables/useWebSocket';
-import { chatService } from '../services/chatService';
-import { fileService } from '../services/fileService';
-import { messageFormatter } from '../utils/messageFormatter';
-import { WS_CONFIG } from '../config/ws';
+import { useFriendshipStore } from '../store/FriendshipStore';
+import { useChannelStore } from '../store/ChannelStore';
+import { useMessageStore } from '../store/MessageStore';
+import { useWebSocketStore } from '../store/WebSocketStore';
+import { fileService } from '../services/fileService.js';
+
+import { onGroupChange, onRemovedFromGroup, handleOnFriendChange, handleFriendRemove, handleNewMessage, handleDeleteMessage, handleOnFriendAdded, handleGroupCreated, handleMessageUpdate, handleGroupDeleted, handleFriendRemoved } from '../composables/websocketFunctions.js';
 
 const userStore = userdataStore();
+const friendshipStore = useFriendshipStore();
+const channelStore = useChannelStore();
+const messageStore = useMessageStore();
+const webSocketStore = useWebSocketStore();
 const showChat = ref(false);
 const isMobile = ref(false);
-const recentChats = ref([]);
-const currentChat = ref({
-  id: 1,
-  name: 'Név',
-  online: true,
-  lastSeen: '2 perce'
-});
-const messages = ref([]);
-
-const processedFriendRequests = ref(new Set());
-
-const handleWebSocketMessage = (data) => {
-  console.log('[WebSocket] New message received:', data);
-  
-  if (data.type === 'new_message') {
-    if (parseInt(data.message.userID) === parseInt(userStore.getUserID())) {
-      console.log('[WebSocket] Ignoring message from self');
-      return;
-    }
-    
-    if (currentChat.value && currentChat.value.channelID == data.channelID) {
-      const formattedMessage = messageFormatter.formatIncomingMessage(data.message);
-      console.log('[WebSocket] Adding formatted message to chat:', formattedMessage);
-      messages.value.push(formattedMessage);
-    }
-  } else if (data.type === 'friend_request') {
-    const friendshipID = data.friendRequest?.friendshipID;
-    
-    if (friendshipID && !processedFriendRequests.value.has(friendshipID)) {
-      console.log('[WebSocket] Dispatching friend request event for ID:', friendshipID);
-      processedFriendRequests.value.add(friendshipID);
-      
-      window.dispatchEvent(new CustomEvent('new-friend-request', { 
-        detail: data 
-      }));
-    } else {
-      console.log('[WebSocket] Skipping duplicate friend request dispatch for ID:', friendshipID);
-    }
-  }
-};
-
-const { connectWebSocket } = useWebSocket(handleWebSocketMessage);
 
 onMounted(async () => {
   checkScreenSize();
   window.addEventListener('resize', checkScreenSize);
-  
+
   try {
-    const channelsData = await chatService.getChannels();
-    recentChats.value = channelsData.friendshipChannels;
-    console.log('Channels loaded:', recentChats.value);
+    await friendshipStore.fetchFriendships();
+    await channelStore.fetchAllChannels();
+
+    console.log('Channels loaded:', channelStore.getFriendChannels, channelStore.getFriendChannels);
+    console.log('Friendships loaded:', friendshipStore.getFriendships);
+
+    if (userStore.getAccessToken() != null) {
+      await userStore.fetchUserInfo();
+      webSocketStore.connect();
+
+      // friendships
+      webSocketStore.registerHandler('friend_add', handleOnFriendAdded);
+      webSocketStore.registerHandler('friend_accept', handleOnFriendChange);
+      webSocketStore.registerHandler('friend_request_accepted', handleOnFriendChange);
+      webSocketStore.registerHandler('friend_removed', handleFriendRemoved);
+      webSocketStore.registerHandler('friend_remove', handleFriendRemove);
+
+      //messages
+      webSocketStore.registerHandler('new_message', handleNewMessage);
+      webSocketStore.registerHandler('message_deleted', handleDeleteMessage);
+      webSocketStore.registerHandler('message_edited', handleMessageUpdate);
+
+      //groups
+      webSocketStore.registerHandler('group_created', handleGroupCreated);
+      webSocketStore.registerHandler('group_channel_created', handleGroupCreated);
+      webSocketStore.registerHandler('group_deleted', handleGroupDeleted);
+      webSocketStore.registerHandler('removed_from_group', onRemovedFromGroup);
+      webSocketStore.registerHandler('user_removed_from_group', onGroupChange);
+      webSocketStore.registerHandler('added_to_group', onGroupChange);
+      webSocketStore.registerHandler('users_added_to_group', onGroupChange);
+      webSocketStore.registerHandler('left_group', onRemovedFromGroup);
+      webSocketStore.registerHandler('user_left_group', onGroupChange);
+      webSocketStore.registerHandler('group_info_updated', onGroupChange);
+      webSocketStore.registerHandler('group_ownership_transferred', onGroupChange);
+      webSocketStore.registerHandler('group_ownership_received', onGroupChange);
+
+      webSocketStore.registerHandler('chatmessage_sent', function () { })
+      webSocketStore.registerHandler('chatmessage_deleted', function () { })
+      webSocketStore.registerHandler('chatmessage_edited', function () { })
+      webSocketStore.registerHandler('ownership_transferred', function () { })
+    }
   } catch (error) {
     console.error('Failed to load channels:', error);
   }
-  console.log('[Chat] Attempting to connect to WebSocket server at:', WS_CONFIG.BASE_URL);
-  connectWebSocket();
-  console.log('[Chat] WebSocket connection initiated');
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkScreenSize);
+
+  webSocketStore.unregisterHandler('friend_add', handleOnFriendAdded);
+  webSocketStore.unregisterHandler('friend_accept', handleOnFriendChange);
+  webSocketStore.unregisterHandler('friend_request_accepted', handleOnFriendChange);
+  webSocketStore.unregisterHandler('friend_removed', handleFriendRemoved);
+  webSocketStore.unregisterHandler('friend_remove', handleFriendRemove);
+
+  //messages
+  webSocketStore.unregisterHandler('new_message', handleNewMessage);
+  webSocketStore.unregisterHandler('message_deleted', handleDeleteMessage);
+  webSocketStore.unregisterHandler('message_updated', handleMessageUpdate);
+
+  //groups
+  webSocketStore.unregisterHandler('group_created');
+  webSocketStore.unregisterHandler('group_channel_created');
+  webSocketStore.unregisterHandler('group_deleted');
+  webSocketStore.unregisterHandler('removed_from_group');
+  webSocketStore.unregisterHandler('user_removed_from_group');
+  webSocketStore.unregisterHandler('added_to_group');
+  webSocketStore.unregisterHandler('users_added_to_group');
+  webSocketStore.unregisterHandler('left_group');
+  webSocketStore.unregisterHandler('user_left_group');
+  webSocketStore.unregisterHandler('group_info_updated');
+  webSocketStore.unregisterHandler('group_ownership_transferred');
+  webSocketStore.unregisterHandler('group_ownership_received');
+
+  webSocketStore.unregisterHandler('chatmessage_sent')
+  webSocketStore.unregisterHandler('chatmessage_deleted')
+  webSocketStore.unregisterHandler('ownership_transferred')
+  webSocketStore.disconnect();
 });
 
 const checkScreenSize = () => {
@@ -76,28 +110,39 @@ const checkScreenSize = () => {
 };
 
 const handleChatSelect = async (chat) => {
-  currentChat.value = chat;
-  
-  currentChat.value.name = userStore.getUserID() == chat.user1.id 
-    ? chat.user2.username 
-    : chat.user1.username;
-  
-  messages.value = [];
-  
+  if (messageStore.getCurrentChannelId == chat.getChannelID()) {
+    return;
+  }
+
+  messageStore.setCurrentChannelId(chat.getChannelID());
+
+  var name;
+
   try {
-    const messagesData = await chatService.getMessages(chat.channelID);
+    name = userStore.getUserID() == chat.getUser1().getUserID()
+      ? chat.getUser2().getUserName()
+      : chat.getUser1().getUserName();
+  } catch (e) {
+    name = chat.getName();
+  }
+
+  messageStore.setCurrentChannelName(name);
+
+  try {
+    await messageStore.fetchMessages();
+
+    console.log('Messages loaded:', messageStore.getMessages);
     
-    if (messagesData && Array.isArray(messagesData.messages)) {
-      messages.value = messagesData.messages
-        .map(msg => messageFormatter.formatIncomingMessage(msg))
-        .reverse();
-    }
-    
-    console.log('Loaded messages:', messages.value);
+    setTimeout(() => {
+      const messagesContainer = document.querySelector('.messages-container');
+      if (messagesContainer) {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+    }, 100);
   } catch (error) {
     console.error('Error fetching messages:', error);
   }
-  
+
   if (isMobile.value) {
     showChat.value = true;
   }
@@ -108,77 +153,67 @@ const goBackToList = () => {
 };
 
 const sendMessage = async (text) => {
-  const newId = messages.value.length + 1;
-  let messageContent;
-  let messageType = 'text';
-  
-  const messageObj = messageFormatter.formatOutgoingMessage(text, newId);
-  messages.value.push(messageObj);
-  
-  if (typeof text === 'object') {
-    messageContent = text.text;
-    messageType = text.type || 'text';
-  } else {
-    messageContent = text;
-  }
-  
   try {
-    const response = await chatService.sendMessage(
-      currentChat.value.channelID,
-      messageContent,
-      messageType
-    );
-    
-    console.log('Message sent successfully:', response);
-    
-    if (response && response.messageID) {
-      messageObj.id = response.messageID;
+    if (webSocketStore.getIsConnected) {
+      console.log('Sending message:', text);
+      webSocketStore.send({
+        type: 'chatmessage_send',
+        channelId: messageStore.getCurrentChannelId,
+        content: text.text,
+        messageType: text.type,
+        replyTo: text.replyTo == undefined ? null : text.replyTo
+
+      });
     }
   } catch (error) {
     console.error('Error sending message:', error);
   }
 };
 
+const deleteMessage = async (messageId) => {
+  try {
+    if (webSocketStore.getIsConnected) {
+      webSocketStore.send({
+        type: 'chatmessage_delete',
+        channelId: messageStore.getCurrentChannelId,
+        messageId: messageId
+      });
+    }
+  } catch (error) {
+    console.error('Error deleting message:', error);
+  }
+}
+
 const updateMessage = async (updatedMessage) => {
   console.log('Üzenet frissítés fogadva:', updatedMessage);
-  
-  const messageIndex = messages.value.findIndex(msg => msg.id === updatedMessage.id);
-  
-  if (messageIndex !== -1) {
-    messages.value[messageIndex] = updatedMessage;
-    
-    try {
-      if (updatedMessage.isRevoked) {
-        await chatService.deleteMessage(currentChat.value.channelID, updatedMessage.id);
+
+  try {
+    if (webSocketStore.getIsConnected) {
+      // Ellenőrizzük, hogy az updatedMessage objektum rendelkezik-e a szükséges metódusokkal
+      if (updatedMessage && typeof updatedMessage.getMessageID === 'function' && typeof updatedMessage.getContent === 'function') {
+        webSocketStore.send({
+          type: 'chatmessage_update',
+          channelId: messageStore.getCurrentChannelId,
+          messageId: updatedMessage.getMessageID(),
+          content: updatedMessage.getContent()
+        });
+        console.log('Üzenet frissítve a szerveren');
       } else {
-        await chatService.updateMessage(
-          currentChat.value.channelID,
-          updatedMessage.id,
-          updatedMessage.text
-        );
+        console.error('Érvénytelen üzenet objektum:', updatedMessage);
       }
-      console.log('Message updated successfully on server');
-    } catch (error) {
-      console.error('Error updating message on server:', error);
     }
+  } catch (error) {
+    console.error('Hiba az üzenet frissítésekor:', error);
   }
 };
 
 const handleFileUpload = async (fileData) => {
   try {
-    console.log('Uploading file:', fileData.file.name);
-    const response = await fileService.uploadFile(fileData.file, fileData.channelID);
-    console.log('File uploaded successfully:', response);
-    
-    if (response && response.messageID) {
-      const tempMessageIndex = messages.value.findIndex(
-        msg => msg.fileName === fileData.file.name && msg.sender === 'me'
-      );
-      
-      if (tempMessageIndex !== -1) {
-        messages.value[tempMessageIndex].id = response.messageID;
-        console.log('Updated message with server ID:', response.messageID);
-      }
+    const response = await fileService.uploadFile(fileData);
+    if (response.success) {
+      const uniqueName = response.data.uniqueName;
+      const fileUrl = `${API_CONFIG.BASE_URL}/files/${uniqueName}`;
+      sendMessage({ text: fileUrl, type: fileData.type, replyTo: null });
     }
   } catch (error) {
     console.error('Error uploading file:', error);
@@ -188,20 +223,9 @@ const handleFileUpload = async (fileData) => {
 
 <template>
   <div class="chat-application">
-    <Sidebar 
-      v-if="!isMobile || !showChat" 
-      :recents="recentChats" 
-      @select-chat="handleChatSelect" 
-    />
-    <ChatWindow
-      v-if="!isMobile || showChat"
-      :currentChat="currentChat"
-      :messages="messages"
-      @send-message="sendMessage"
-      @send-file="handleFileUpload"
-      @go-back="goBackToList"
-      @update-message="updateMessage"
-    />
+    <Sidebar v-if="!isMobile || !showChat" @select-chat="handleChatSelect" />
+    <ChatWindow v-if="!isMobile || showChat" @send-message="sendMessage" @send-file="handleFileUpload"
+      @go-back="goBackToList" @update-message="updateMessage" @delete-message="deleteMessage" />
   </div>
 </template>
 

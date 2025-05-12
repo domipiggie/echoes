@@ -6,7 +6,7 @@ class Friendship
     private $user1ID;
     private $user2ID;
     private $friendshipStatus;
-
+    private $friendshipID;
 
     public function __construct($db, $user1ID, $user2ID)
     {
@@ -31,8 +31,10 @@ class Friendship
 
             $result = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
 
-
+            echo json_encode($result);
+            echo $this->user2ID;
             if (count($result) > 0) {
+                $this->friendshipID = $result[0]['friendshipID'];
                 if (!isset($this->friendshipStatus)) {
                     $this->friendshipStatus = new FriendshipStatus($this->dbConn);
                     $this->friendshipStatus->loadFromDB($result[0]['statusID']);
@@ -47,12 +49,14 @@ class Friendship
         }
     }
 
-    public function sendFriendRequest()
+    public function sendFriendRequest($initiator = null)
     {
         try {
             if ($this->doesFriendshipExist()) {
                 if ($this->friendshipStatus->getStatus() == -1) {
-                    return $this->friendshipStatus->updateStatus(0);
+                    $this->friendshipStatus->updateStatus(0);
+                    $this->friendshipStatus->updateInitiator($initiator);
+                    return $this->getFriendshipID();
                 }
                 throw new ApiException('Friendship already exists with status: ' . $this->friendshipStatus->getStatus(), 400);
             }
@@ -125,6 +129,29 @@ class Friendship
         }
     }
 
+    public function removeFriend()
+    {
+        try {
+            if (!$this->doesFriendshipExist()) {
+                throw new ApiException('Friendship doesn\'t exist!', 400);
+            }
+
+            if ($this->friendshipStatus->getStatus() == -1) {
+                throw new ApiException('Friendship already removed!', 400);
+            }
+
+            if ($this->friendshipStatus->updateStatus(-1)) {
+                return true;
+            }
+            
+            return false;
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Couldn\'t remove friendship: ' . $e->getMessage(), 500);
+        }
+    }
+    
     //getters
     public function getUser1ID()
     {
@@ -139,5 +166,10 @@ class Friendship
     public function getFriendshipStatus()
     {
         return $this->friendshipStatus;
+    }
+
+    public function getFriendshipID()
+    {
+        return $this->friendshipID;
     }
 }

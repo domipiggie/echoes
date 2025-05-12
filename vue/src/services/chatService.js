@@ -1,16 +1,9 @@
-import axios from 'axios';
-import { userdataStore } from '../store/UserdataStore';
-import { API_CONFIG } from '../config/api.js';
+import { apiService } from './apiService.js';
 
 export const chatService = {
   async getChannels() {
-    const userStore = userdataStore();
     try {
-      const response = await axios.get(`${API_CONFIG.BASE_URL}/usrinfo/channellist`, {
-        headers: {
-          'Authorization': `Bearer ${userStore.getAccessToken()}`
-        }
-      });
+      const response = await apiService.get('/usrinfo/channellist');
       return response.data;
     } catch (error) {
       console.error('Error fetching channels:', error);
@@ -19,14 +12,8 @@ export const chatService = {
   },
 
   async getMessages(channelID) {
-    const userStore = userdataStore();
     try {
-      const response = await axios.get(`${API_CONFIG.BASE_URL}/message/get`, {
-        params: { channelID },
-        headers: {
-          'Authorization': `Bearer ${userStore.getAccessToken()}`
-        }
-      });
+      const response = await apiService.get('/message/get', { channelID });
       return response.data;
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -34,18 +21,19 @@ export const chatService = {
     }
   },
 
-  async sendMessage(channelID, content, type = 'text') {
-    const userStore = userdataStore();
+  async sendMessage(channelID, content, type = 'text', replyToId = null) {
     try {
-      const response = await axios.post(`${API_CONFIG.BASE_URL}/message/send`, {
+      const messageData = {
         channelID,
         content,
         type
-      }, {
-        headers: {
-          'Authorization': `Bearer ${userStore.getAccessToken()}`
-        }
-      });
+      };
+      
+      if (replyToId) {
+        messageData.replyToId = replyToId;
+      }
+      
+      const response = await apiService.post('/message/send', messageData);
       return response.data;
     } catch (error) {
       console.error('Error sending message:', error);
