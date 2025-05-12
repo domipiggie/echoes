@@ -3,8 +3,11 @@ import { onMounted, ref } from 'vue';
 import { useFileStore } from '../store/FileStore';
 import { API_CONFIG } from '../config/api';
 import { fileService } from '../services/fileService';
+import { useAlertStore } from '../../store/AlertStore.js';
+import Alert from '../../classes/Alert';
 
 const fileStore = useFileStore();
+const alertStore = useAlertStore();
 const emit = defineEmits(['close']);
 const isDeleting = ref(false);
 
@@ -12,7 +15,15 @@ onMounted(() => {
     fileStore.fetchFiles();
 });
 
-const deleteFile = async (fileId) => {
+const deleteFile = (fileId) => {
+    alertStore.addAlert(new Alert(
+        'Megerősítés',
+        'Biztosan el szeretnéd távolítani ezt a fájlt?',
+        'confirm',
+        () => deleteFileCallback(fileId)
+    ));
+}
+const deleteFileCallback = async (fileId) => {
     try {
         isDeleting.value = true;
         await fileService.deleteFile(fileId);
@@ -241,7 +252,7 @@ h3 {
     width: 40px;
     height: 40px;
     min-width: 40px;
-    border-radius: 50%;
+    border-radius: 10%;
     background-color: #7078e6;
     color: white;
     display: flex;

@@ -6,8 +6,11 @@ import LoginForm from './LoginForm.vue'
 import RegisterForm from './RegisterForm.vue'
 import OverlayContainer from './OverlayContainer.vue'
 import { authService } from '../services/authService';
+import { useAlertStore } from '../store/AlertStore';
+import Alert from '../classes/Alert';
 
 const userdata = userdataStore();
+const alertStore = useAlertStore();
 const isRightPanelActive = ref(false)
 const router = useRouter();
 
@@ -21,10 +24,11 @@ const deactivateRightPanel = () => {
 const sendRegisterRequest = async (username, birthdate, email, password) => {
 	try {
 		const response = await authService.register(username, email, password);
-		alert(response.message);
+		alertStore.addAlert(new Alert("Sikeres regisztráció!", "", null, null))
 		activateRightPanel();
 	} catch (error) {
-		alert(error.response?.data?.message || 'Registration failed');
+		console.error(error);
+		alertStore.addAlert(new Alert("Sikertelen regisztráció!", error.response?.data?.message || "Ismeretlen hiba", null, null));
 	}
 }
 
@@ -33,7 +37,7 @@ const sendLoginRequest = async (email, password) => {
 		const response = await authService.login(email, password);
 
 		if (!response.success) {
-			alert('Authentication failed: No access token received');
+			alertStore.addAlert(new Alert("Sikertelen bejelntkezés!", error.response?.data?.message || "Ismeretlen hiba", null, null));
 			return;
 		}
 
@@ -41,10 +45,9 @@ const sendLoginRequest = async (email, password) => {
 		userdata.setUserID(response.data.userID);
 		userdata.setRefreshToken(response.data.refresh_token);
 		
-		alert("Sikeres bejelentkezés!")
 		router.push("/chat")
 	} catch (error) {
-		alert(error.response?.data?.message || 'Login failed');
+		alertStore.addAlert(new Alert("Sikertelen bejelntkezés!", error.response?.data?.message || "Ismeretlen hiba", null, null));
 	}
 }
 </script>

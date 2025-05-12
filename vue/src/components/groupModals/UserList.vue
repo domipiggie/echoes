@@ -4,15 +4,36 @@ import { useChannelStore } from '../../store/channelStore.js';
 import { userdataStore } from '../../store/UserdataStore.js';
 import { useWebSocketStore } from '../../store/WebSocketStore.js';
 import { API_CONFIG } from '../../config/api.js';
+import { useAlertStore } from '../../store/AlertStore.js';
+import Alert from '../../classes/Alert';
 
 const messageStore = useMessageStore();
 const channelStore = useChannelStore();
 const webSocketStore = useWebSocketStore();
 const userStore = userdataStore();
+const alertStore = useAlertStore();
 
 const emit = defineEmits(['close']);
 
 const removeUserFromGroup = (userId) => {
+    alertStore.addAlert(new Alert(
+        'Megerősítés',
+        'Biztosan el akarod távolítani ezt a felhasználót a csoportból?',
+        'confirm',
+        () => removeUserFromGroupCallback(userId)
+    ))
+}
+
+const transferOwnership = (userId) => {
+    alertStore.addAlert(new Alert(
+        'Megerősítés',
+        'Biztosan át szeretnéd adni a csoport tulajdonát?',
+        'confirm',
+        () => transferOwnershipCallback(userId)
+    ))
+}
+
+const removeUserFromGroupCallback = (userId) => {
     if (webSocketStore.isConnected) {
         console.log("Removing user from group");
         webSocketStore.send({
@@ -24,7 +45,7 @@ const removeUserFromGroup = (userId) => {
     }
 }
 
-const transferOwnership = (userId) => {
+const transferOwnershipCallback = (userId) => {
     if (webSocketStore.isConnected) {
         console.log("Transferring ownership");
         webSocketStore.send({
