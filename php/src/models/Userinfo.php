@@ -54,6 +54,10 @@ class Userinfo
                     ON
                         cl.`friendshipID` = f.`friendshipID`
                     INNER JOIN
+                        `friendshipStatus` fs
+                    ON
+                        f.`statusID` = fs.`statusID`
+                    INNER JOIN
                         `user` u1
                     ON
                         f.`user1ID` = u1.`userID`
@@ -62,7 +66,8 @@ class Userinfo
                     ON
                         f.`user2ID` = u2.`userID`
                     WHERE
-                        f.`user1ID` = :userID OR f.`user2ID` = :userID";
+                        (f.`user1ID` = :userID OR f.`user2ID` = :userID)
+                        AND fs.`status` = 1";
 
             $args = [
                 [':userID', $user]

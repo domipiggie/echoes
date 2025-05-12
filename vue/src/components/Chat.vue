@@ -10,7 +10,7 @@ import { useMessageStore } from '../store/MessageStore';
 import { useWebSocketStore } from '../store/WebSocketStore';
 import axios from 'axios';
 
-import { handleNewMessage, handleDeleteMessage, handleOnFriendAdded, handleGroupCreated, handleMessageUpdate, handleGroupDeleted } from '../composables/websocketFunctions.js';
+import { onGroupChange, onRemovedFromGroup, handleOnFriendChange, handleFriendRemove, handleNewMessage, handleDeleteMessage, handleOnFriendAdded, handleGroupCreated, handleMessageUpdate, handleGroupDeleted, handleFriendRemoved } from '../composables/websocketFunctions.js';
 
 const userStore = userdataStore();
 const friendshipStore = useFriendshipStore();
@@ -35,12 +35,35 @@ onMounted(async () => {
       await userStore.fetchUserInfo();
       webSocketStore.connect();
       
+      // friendships
+      webSocketStore.registerHandler('friend_add', handleOnFriendAdded);
+      webSocketStore.registerHandler('friend_accept', handleOnFriendChange);
+      webSocketStore.registerHandler('friend_request_accepted', handleOnFriendChange);
+      webSocketStore.registerHandler('friend_removed', handleFriendRemoved);
+      webSocketStore.registerHandler('friend_remove', handleFriendRemove);
+
+      //messages
       webSocketStore.registerHandler('new_message', handleNewMessage);
       webSocketStore.registerHandler('message_deleted', handleDeleteMessage);
-      webSocketStore.registerHandler('friend_add', handleOnFriendAdded);
-      webSocketStore.registerHandler('group_created', handleGroupCreated);
       webSocketStore.registerHandler('message_updated', handleMessageUpdate);
+
+      //groups
+      webSocketStore.registerHandler('group_created', handleGroupCreated);
+      webSocketStore.registerHandler('group_channel_created', handleGroupCreated);
       webSocketStore.registerHandler('group_deleted', handleGroupDeleted);
+      webSocketStore.registerHandler('removed_from_group', onRemovedFromGroup);
+      webSocketStore.registerHandler('user_removed_from_group', onGroupChange);
+      webSocketStore.registerHandler('added_to_group', onGroupChange);
+      webSocketStore.registerHandler('users_added_to_group', onGroupChange);
+      webSocketStore.registerHandler('left_group', onRemovedFromGroup);
+      webSocketStore.registerHandler('user_left_group', onGroupChange);
+      webSocketStore.registerHandler('group_info_updated', onGroupChange);
+      webSocketStore.registerHandler('group_ownership_transferred', onGroupChange);
+      webSocketStore.registerHandler('group_ownership_received', onGroupChange);
+
+      webSocketStore.registerHandler('chatmessage_sent', function(){})
+      webSocketStore.registerHandler('chatmessage_deleted', function(){})
+      webSocketStore.registerHandler('ownership_transferred', function(){})
     }
   } catch (error) {
     console.error('Failed to load channels:', error);

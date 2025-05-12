@@ -43,6 +43,60 @@ const handleOnFriendAdded = (data) => {
     }
 }
 
+const handleOnFriendChange = () => {
+    var friendshipStore = useFriendshipStore();
+    var channelStore = useChannelStore();
+    friendshipStore.clearFriendships();
+    channelStore.clearChannels();
+    friendshipStore.fetchFriendships();
+    channelStore.fetchAllChannels();
+}
+
+const handleFriendRemove = (data) => {
+    var messageStore = useMessageStore();
+    messageStore.clearMessages();
+    messageStore.setCurrentChannelId(null);
+    messageStore.setCurrentChannelName('');
+
+    handleOnFriendChange();
+}
+
+const handleFriendRemoved = (data) => {
+    const messageStore = useMessageStore();
+    const channelStore = useChannelStore();
+    const currentChannel = channelStore.getFriendChannelById(messageStore.getCurrentChannelId);
+
+    if (currentChannel && (currentChannel.getUser1().getUserID() == data.sender.id || currentChannel.getUser2().getUserID() == data.sender.id)) {
+        handleFriendRemove();
+    } else {
+        handleOnFriendChange();
+    }
+}
+
+const onGroupChange = (data) => {
+    const channelStore = useChannelStore();
+    channelStore.fetchGroupChannels();
+
+    if (data.channelId && data.groupName) {
+        const messageStore = useMessageStore();
+        if (data.channelId == messageStore.getCurrentChannelId) {
+            messageStore.setCurrentChannelName(data.groupName);
+        }
+    }
+}
+
+const onRemovedFromGroup = (data) => {
+    const messageStore = useMessageStore();
+
+    if (data.channelId == messageStore.getCurrentChannelId) {
+        messageStore.setCurrentChannelId(null);
+        messageStore.setCurrentChannelName('');
+        messageStore.clearMessages();
+    }
+
+    onGroupChange();
+}
+
 const handleGroupCreated = (data) => {
     if (isSuccess(data)) {
         var channelStore = useChannelStore();
@@ -69,9 +123,10 @@ const handleGroupDeleted = (data) => {
     if (data.channelId === messageStore.getCurrentChannelId) {
         messageStore.setCurrentChannelId(null);
         messageStore.setCurrentChannelName('');
+        messageStore.clearMessages();
     }
     
     channelStore.fetchAllChannels();
 }
 
-export { handleNewMessage, handleDeleteMessage, isSuccess, handleOnFriendAdded, handleGroupCreated, handleMessageUpdate, handleGroupDeleted };
+export { onGroupChange, onRemovedFromGroup, handleOnFriendChange, handleFriendRemoved, handleFriendRemove, handleNewMessage, handleDeleteMessage, isSuccess, handleOnFriendAdded, handleGroupCreated, handleMessageUpdate, handleGroupDeleted };
