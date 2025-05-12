@@ -17,13 +17,15 @@
   const showProfile = ref(false);
   const replyingTo = ref(null);
   const editingMessage = ref(null);
+
   
+
   const startReply = (message) => {
     replyingTo.value = {
       id: message.getMessageID(),
-      
+      text: message.getContent(),
     };
-    
+
     nextTick(() => {
       document.querySelector('.modern-message-box input').focus();
     });
@@ -36,7 +38,10 @@
   const startEditing = (message) => {
     console.log('Szerkesztés indítása:', message);
     if (message.getUser().getUserID() === userStore.getUserID() && !message.isRevoked) {
-      editingMessage.value = message;
+      editingMessage.value = {
+        id: message.getMessageID(),
+        text: message.getContent()
+      };
       
       nextTick(() => {
         document.querySelector('.modern-message-box input').focus();
@@ -50,15 +55,12 @@
   
   const saveEdit = (newText) => {
     if (editingMessage.value && newText.trim()) {
-      const messageIndex = messageStore.getMessages.findIndex(msg => msg.getMessageID() === editingMessage.value.getMessageID());
+      const messageIndex = messageStore.getMessages.findIndex(msg => msg.getMessageID() === editingMessage.value.id);
       if (messageIndex !== -1) {
-        // Update message text
         const updatedMessage = messageStore.getMessages[messageIndex];
-        // Assuming there's a method to update content
         updatedMessage.setContent(newText);
         
         emit('update-message', updatedMessage);
-        
         console.log('Üzenet szerkesztve:', updatedMessage);
       }
       

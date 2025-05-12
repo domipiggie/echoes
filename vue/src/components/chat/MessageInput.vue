@@ -14,17 +14,20 @@ const showGifPicker = ref(false);
 const fileInput = ref(null);
 
 // Ha szerkesztési módban vagyunk, akkor az üzenet tartalmát betöltjük az input mezőbe
-watch(() => props.editingMessage, (newVal) => {
+watch(() => props.editingMessage, (newVal, oldVal) => {
+  console.log('Szerkesztési állapot változás:', { newVal, oldVal });
   if (newVal) {
-    newMessage.value = newVal.getContent();
+    newMessage.value = newVal.text || '';
+  } else if (!newVal && oldVal) {
+    newMessage.value = '';
   }
 }, { immediate: true });
 
 const submitMessage = () => {
-  console.log(props.replyingTo)
   if (newMessage.value.trim()) {
     if (props.editingMessage) {
       emit('save-edit', newMessage.value);
+      newMessage.value = '';
       return;
     }
     
@@ -136,8 +139,9 @@ const handleImageUpload = (event) => {
       <input 
         type="text" 
         v-model="newMessage" 
-        placeholder="Írj egy üzenetet..." 
+        :placeholder="editingMessage ? 'Üzenet szerkesztése...' : 'Írj egy üzenetet...'" 
         @keyup.enter="submitMessage"
+        @keyup.esc="$emit('cancel-editing')"
       />
       
       <div class="message-actions">
@@ -161,6 +165,49 @@ const handleImageUpload = (event) => {
 
 <style lang="scss" scoped>
 @import '../../styles/chat/MessageInput.scss';
+
+.edit-box {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.edit-box-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.edit-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.edit-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 2px;
+}
+
+.cancel-edit-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  
+  &:hover {
+    color: #ffffff;
+  }
+}
 
 .reply-box {
   background-color: rgba(255, 255, 255, 0.1);

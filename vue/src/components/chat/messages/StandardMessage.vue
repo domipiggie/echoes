@@ -1,25 +1,33 @@
 <script setup>
+import { ref } from 'vue';
 import { useMessageStore } from '../../../store/MessageStore';
 import { API_CONFIG } from '../../../config/api';
+import ImageModal from './ImageModal.vue';
+
 const messageStore = useMessageStore();
+const selectedImage = ref(null);
 
 const props = defineProps({
   message: Object,
   index: Number,
   messages: Array,
   userID: String,
-  currentChannelName: String,
-  showVideoOptions: Object
+  currentChannelName: String
 });
 
 const emit = defineEmits([
-  'toggle-video-options', 
-  'toggle-fullscreen', 
-  'toggle-mute', 
   'start-reply', 
   'start-editing', 
   'delete-message'
 ]);
+
+const openImageModal = (imageUrl) => {
+  selectedImage.value = imageUrl;
+};
+
+const closeImageModal = () => {
+  selectedImage.value = null;
+};
 </script>
 
 <template>
@@ -96,9 +104,10 @@ const emit = defineEmits([
         <div v-if="message.getType() === 'gif'" class="gif-container">
           <img :src="message.getContent()" class="message-gif" />
         </div>
-        <img v-else-if="message.getType() === 'image'" 
-             :src="message.getContent()" 
-             class="message-image" />
+        <div v-else-if="message.getType() === 'image'" class="message-image-container">
+          <img :src="message.getContent()" class="message-image" @click="openImageModal(message.getContent())" alt="" aria-hidden="true" />
+        </div>
+        <ImageModal v-if="selectedImage" :imageUrl="selectedImage" :onClose="closeImageModal" />
         
         <!-- Video handling -->
         <div v-else-if="message.getType() === 'video'" class="video-container">
@@ -106,26 +115,9 @@ const emit = defineEmits([
             :src="message.getContent()" 
             class="message-video" 
             controls
-            @click.stop
             preload="metadata"
+            aria-label="Beágyazott videó"
           ></video>
-          <div class="video-options">
-            <button @click.stop="$emit('toggle-video-options', message.getMessageID())" class="video-options-button">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="1"></circle>
-                <circle cx="12" cy="5" r="1"></circle>
-                <circle cx="12" cy="19" r="1"></circle>
-              </svg>
-            </button>
-            <div v-if="showVideoOptions[message.getMessageID()]" class="video-options-menu">
-              <div class="video-option-item" @click.stop="$emit('toggle-fullscreen', $event.target.closest('.video-container').querySelector('video'))">
-                Teljes képernyő
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
-                </svg>
-              </div>
-            </div>
-          </div>
         </div>
         
         <!-- Text messages -->
@@ -158,10 +150,23 @@ const emit = defineEmits([
   }
 }
 
-.message-image {
-  max-width: 300px;
+.message-image-container {
+  max-width: 400px;
   max-height: 300px;
   border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  
+  .message-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 4px;
+    font-size: 0;
+  }
 }
 
 .reply-gif-container {
@@ -174,6 +179,24 @@ const emit = defineEmits([
     max-width: 150px; // Még kisebb méret a válaszokban
     max-height: 150px;
     border-radius: 3px;
+  }
+}
+
+.video-container {
+  width: 400px;
+  height: 300px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+
+  .message-video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    font-size: 0;
   }
 }
 </style>
