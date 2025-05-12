@@ -19,5 +19,15 @@ export const userService = {
       console.error('Error fetching user by id:', error);
       throw error;
     }
+  },
+
+  async updateUser(body) {
+    try {
+      const response = await apiService.put(`/userData/updateProfile`, body);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
   }
 };

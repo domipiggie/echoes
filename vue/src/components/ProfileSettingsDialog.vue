@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue';
 import { userdataStore } from '../store/UserdataStore';
 import { fileService } from '../services/fileService.js';
 import { API_CONFIG } from '../config/api.js';
+import { userService } from '../services/userService.js';
 
 const emit = defineEmits(['close']);
 const userStore = userdataStore();
@@ -34,8 +35,8 @@ const saveUserData = async () => {
     errorMessage.value = '';
 
     // Check if there's a profile image to upload
-    if (!profileImage.value) {
-      successMessage.value = 'Nincs új profilkép kiválasztva.';
+    if (!profileImage.value && (username.value == userStore.getUsername() || username.value.trim() == '') && email.value.trim() == '') {
+      errorMessage.value = 'Nincs új adat!';
       setTimeout(() => {
         successMessage.value = '';
       }, 3000);
@@ -43,18 +44,32 @@ const saveUserData = async () => {
       return;
     }
 
-    const formData = new FormData();
-    formData.append('file', profileImage.value);
+    if (profileImage.value) {
+      const formData = new FormData();
+      formData.append('file', profileImage.value);
 
-    console.log('Uploading profile picture...');
+      console.log('Uploading profile picture...');
 
-    const response = await fileService.uploadUserProfilePicture(profileImage.value);
+      const response = await fileService.uploadUserProfilePicture(profileImage.value);
 
-    console.log('Upload response:', response);
+      console.log('Upload response:', response);
 
-    profileImageUrl.value = API_CONFIG.BASE_URL + response.data.profilePicture;
+      profileImageUrl.value = API_CONFIG.BASE_URL + response.data.profilePicture;
+    }
 
-    // Display success message
+    var body = {}
+
+    if (username.value.trim() != '' && username.value.trim() != userStore.getUsername()) {
+      body.username = username.value.trim();
+    }
+    if (email.value.trim()!= '') {
+      body.email = email.value.trim();
+    }
+
+    if (body.username || body.email) {
+      await userService.updateUser(body);
+    }
+    
     successMessage.value = 'A profil adatok sikeresen frissítve!';
     setTimeout(() => {
       successMessage.value = '';

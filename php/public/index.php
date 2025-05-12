@@ -146,6 +146,9 @@ try {
                 case "groupChannels":
                     $userInfo->handleGetGroupChannelList();
                     break;
+                case "updateProfile":
+                    $userInfo->handleUpdateUserProfile($data);
+                    break;
                 default:
                     throw new ApiException('Invalid route', 404);
                     break;
