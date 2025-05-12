@@ -3,8 +3,8 @@ import { onMounted, ref } from 'vue';
 import { useFileStore } from '../store/FileStore';
 import { API_CONFIG } from '../config/api';
 import { fileService } from '../services/fileService';
-import { useAlertStore } from '../../store/AlertStore.js';
-import Alert from '../../classes/Alert';
+import { useAlertStore } from '../store/AlertStore.js';
+import Alert from '../classes/Alert';
 
 const fileStore = useFileStore();
 const alertStore = useAlertStore();

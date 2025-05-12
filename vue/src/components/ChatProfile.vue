@@ -11,8 +11,8 @@ import { useChannelStore } from '../store/ChannelStore';
 import { userdataStore } from '../store/UserdataStore';
 import { useWebSocketStore } from '../store/WebSocketStore';
 import { API_CONFIG } from '../config/api';
-import { useAlertStore } from '../../store/AlertStore.js';
-import Alert from '../../classes/Alert';
+import { useAlertStore } from '../store/AlertStore.js';
+import Alert from '../classes/Alert';
 
 const emit = defineEmits(['close', 'update:showProfile']);
 
