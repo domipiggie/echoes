@@ -90,6 +90,17 @@ const deleteGroup = () => {
     }
 }
 
+const deleteFriend = () => {
+  if (webSocketStore.isConnected) {
+    const channel = channelStore.getFriendChannelById(messageStore.getCurrentChannelId);
+    const recipient_id = channel.getUser1().getUserID() == userStore.getUserID()? channel.getUser2().getUserID() : channel.getUser1().getUserID();
+    webSocketStore.send({
+      type: 'friend_remove',
+      recipient_id: recipient_id
+    });
+  }
+};
+
 const profilePicture = computed(() => {
   if (messageStore.getCurrentChannelId == null) return null;
   if (channelStore.getFriendChannelById(messageStore.getCurrentChannelId)) {
@@ -192,6 +203,12 @@ const profilePicture = computed(() => {
         <button class="profile-button" @click="leaveGroup">
           <span class="button-icon">Aa</span>
           Csoport elhagyása
+        </button>
+      </div>
+      <div class="profile-section" v-else>
+        <button class="profile-button" @click="deleteFriend">
+          <span class="button-icon">Aa</span>
+          Barát törlése
         </button>
       </div>
 

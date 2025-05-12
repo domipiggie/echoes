@@ -83,7 +83,7 @@ const emit = defineEmits([
         <div v-if="message.getReplyTo()" class="reply-indicator">
           <div class="reply-content">
             <span class="reply-to">Válasz erre:</span>
-            <span class="reply-text">{{ messageStore.getMessageById(message.getReplyTo()).getContent() }}</span>
+            <span class="reply-text">{{ messageStore.getMessageById(message.getReplyTo())?.getContent() || "Üzenet betöltése sikertelen" }}</span>
           </div>
         </div>
         

@@ -58,7 +58,7 @@ const emit = defineEmits([
                 </svg>
               </div>
               <div class="reply-content">
-                <span class="reply-text">{{ messageStore.getMessageById(message.getReplyTo()).getContent() }}</span>
+                <span class="reply-text">{{ messageStore.getMessageById(message.getReplyTo())?.getContent() || "Üzenet betöltése sikertelen" }}</span>
               </div>
             </div>
             

@@ -129,6 +129,29 @@ class Friendship
         }
     }
 
+    public function removeFriend()
+    {
+        try {
+            if (!$this->doesFriendshipExist()) {
+                throw new ApiException('Friendship doesn\'t exist!', 400);
+            }
+
+            if ($this->friendshipStatus->getStatus() == -1) {
+                throw new ApiException('Friendship already removed!', 400);
+            }
+
+            if ($this->friendshipStatus->updateStatus(-1)) {
+                return true;
+            }
+            
+            return false;
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Couldn\'t remove friendship: ' . $e->getMessage(), 500);
+        }
+    }
+    
     //getters
     public function getUser1ID()
     {

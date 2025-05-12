@@ -119,7 +119,7 @@ class Message
             }
 
             if (!$result[0]['friendshipID']) {
-                return true;
+                return false;
             }
 
             $sql = "SELECT 1 FROM channel_list cl
@@ -127,6 +127,7 @@ class Message
                     INNER JOIN friendshipStatus fs ON f.statusID = fs.statusID
                     WHERE cl.channelID = :channelID
                     AND (f.user1ID = :userID OR f.user2ID = :userID)
+                    AND fs.status = 1
                     LIMIT 1";
 
             $args = [

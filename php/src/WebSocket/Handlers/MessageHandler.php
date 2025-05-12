@@ -48,6 +48,9 @@ class MessageHandler
             case 'friend_accept':
                 $this->friendshipHandler->handleFriendRequestAccept($from, $data);
                 break;
+            case 'friend_remove':
+                $this->friendshipHandler->handleFriendRemove($from, $data);
+                break;
 
             case 'chatmessage_send':
                 $this->chatMessageHandler->handleChatMessage($from, $data);
