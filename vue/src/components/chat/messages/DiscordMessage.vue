@@ -58,15 +58,23 @@ const emit = defineEmits([
                 </svg>
               </div>
               <div class="reply-content">
-                <span class="reply-text">{{ messageStore.getMessageById(message.getReplyTo())?.getContent() || "Üzenet betöltése sikertelen" }}</span>
+                <template v-if="messageStore.getMessageById(message.getReplyTo())?.getType() === 'gif'">
+                  <div class="reply-gif-container">
+                    <img :src="messageStore.getMessageById(message.getReplyTo())?.getContent()" class="reply-gif" />
+                  </div>
+                </template>
+                <span v-else class="reply-text">{{ messageStore.getMessageById(message.getReplyTo())?.getContent() || "Üzenet betöltése sikertelen" }}</span>
               </div>
             </div>
             
             <div class="message-bubble discord-bubble">
               <!-- Image and GIF handling -->
-              <img v-if="message.getType() === 'gif' || message.getType() === 'image'" 
+              <div v-if="message.getType() === 'gif'" class="gif-container">
+                <img :src="message.getContent()" class="message-gif" />
+              </div>
+              <img v-else-if="message.getType() === 'image'" 
                    :src="message.getContent()" 
-                   class="message-gif" />
+                   class="message-image" />
               
               <!-- Video handling -->
               <div v-else-if="message.getType() === 'video'" class="video-container">
@@ -148,6 +156,26 @@ const emit = defineEmits([
 @import '../../../styles/chat/themes/DiscordTheme.scss';
 @import '../../../styles/chat/Avatar.scss';
 
+// GIF konténer stílusok
+.gif-container {
+  background-color: rgba(138, 43, 226, 0.1); // Halvány lila háttér
+  border-radius: 8px;
+  padding: 8px;
+  margin: 4px 0;
+  
+  .message-gif {
+    max-width: 200px; // Kisebb méret
+    max-height: 200px;
+    border-radius: 4px;
+  }
+}
+
+.message-image {
+  max-width: 300px;
+  max-height: 300px;
+  border-radius: 4px;
+}
+
 // Discord küldő neve stílus
 .sender-name {
   margin-left: 72px; // Igazítás az avatar helyéhez
@@ -191,6 +219,19 @@ const emit = defineEmits([
   .reply-text {
     color: #333333; // Sötétebb szín a válasz szövegének a világosabb háttéren
     opacity: 1;
+  }
+
+  .reply-gif-container {
+    background-color: rgba(138, 43, 226, 0.1); // Halvány lila háttér
+    border-radius: 6px;
+    padding: 6px;
+    margin: 2px 0;
+    
+    .reply-gif {
+      max-width: 150px; // Még kisebb méret a válaszokban
+      max-height: 150px;
+      border-radius: 3px;
+    }
   }
 }
 </style>

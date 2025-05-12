@@ -28,3 +28,11 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   }
 }
+
+// Nagy zoom esetén teljes képernyős megjelenítés
+@media (min-resolution: 192dpi) and (max-width: 1400px) {
+  .chat-window {
+    width: 100%;
+    margin-left: 0;
+  }
+}
