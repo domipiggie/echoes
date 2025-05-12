@@ -8,7 +8,7 @@ import { useFriendshipStore } from '../store/FriendshipStore';
 import { useChannelStore } from '../store/ChannelStore';
 import { useMessageStore } from '../store/MessageStore';
 import { useWebSocketStore } from '../store/WebSocketStore';
-import axios from 'axios';
+import { fileService } from '../services/fileService.js';
 
 import { onGroupChange, onRemovedFromGroup, handleOnFriendChange, handleFriendRemove, handleNewMessage, handleDeleteMessage, handleOnFriendAdded, handleGroupCreated, handleMessageUpdate, handleGroupDeleted, handleFriendRemoved } from '../composables/websocketFunctions.js';
 
@@ -197,18 +197,9 @@ const updateMessage = async (updatedMessage) => {
 
 const handleFileUpload = async (fileData) => {
   try {
-    const response = await axios.post(
-      `${API_CONFIG.BASE_URL}/files`,
-      fileData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${userStore.getAccessToken()}`
-        }
-      }
-    );
-    if (response.data.success) {
-      const uniqueName = response.data.data.uniqueName;
+    const response = await fileService.uploadFile(fileData);
+    if (response.success) {
+      const uniqueName = response.data.uniqueName;
       const fileUrl = `${API_CONFIG.BASE_URL}/files/${uniqueName}`;
       sendMessage({ text: fileUrl, type: fileData.type, replyTo: null });
     }

@@ -8,8 +8,7 @@ import { useRouter } from 'vue-router';
 import NewChatDialog from './NewChatDialog.vue';
 import NewGroupDialog from './NewGroupDialog.vue';
 import ProfileSettingsDialog from './ProfileSettingsDialog.vue';
-import friendService from '../services/friendService';
-import axios from 'axios';
+import { fileService } from '../services/fileService';
 import { API_CONFIG } from '../config/api';
 
 const router = useRouter();
@@ -122,14 +121,10 @@ const reloadFriendships = async () => {
 
 const loadStorageUsage = async () => {
   try {
-    const response = await axios.get(`${API_CONFIG.BASE_URL}/files/size`, {
-      headers: {
-        Authorization: `Bearer ${userStore.getAccessToken()}`,
-      }
-    })
+    const response = await fileService.getUsedSpace();
 
-    storageUsed.value = response.data.data.total_size_bytes / 1024 / 1024 / 10;
-    storageText.value = response.data.data.total_size_formatted;
+    storageUsed.value = response.data.total_size_bytes / 1024 / 1024 / 10;
+    storageText.value = response.data.total_size_formatted;
   } catch (error) {
     console.error('Failed to fetch storage usage:', error);
   }
