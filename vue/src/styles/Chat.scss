@@ -180,6 +180,22 @@
     color: #7078e6 !important;
 }
 
+/* Biztosítjuk, hogy nagy zoom esetén is megfelelően jelenjen meg */
+@media (min-resolution: 192dpi) and (max-width: 1400px) {
+  .chat-application {
+    flex-direction: column;
+    height: calc(100vh - 20px);
+    width: calc(100vw - 20px);
+    margin: 10px;
+    gap: 12px;
+  }
+  
+  :deep(.chat-window) {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
 /* Mobilnézet kezelése */
 @media (max-width: 768px) {
     .chat-application {
@@ -188,5 +204,37 @@
         width: calc(100vw - 20px);
         margin: 10px;
         gap: 12px;
+    }
+    
+    /* Input mező javítása mobilnézetben */
+    :deep(.input-area) {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        padding: 8px;
+        background-color: #1e1e2d;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 1001;
+    }
+    
+    :deep(.modern-message-box) {
+        width: calc(100% - 80px);
+        margin: 0 auto;
+        border-radius: 20px;
+    }
+    
+    :deep(.action-button) {
+        width: 36px;
+        height: 36px;
+        padding: 6px;
+    }
+    
+    :deep(.chat-footer) {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 8px;
     }
 }

@@ -1,6 +1,6 @@
 // Beviteli terület
 .input-area {
-  padding: 16px 10px;
+  padding: 12px 8px;  // Csökkentett padding
   background-color: #fff;
   border-top: 1px solid rgba(112, 120, 230, 0.1);
   position: relative;
@@ -16,19 +16,20 @@
   align-items: center;
   background-color: #f5f5f5;
   border-radius: 24px;
-  padding: 10px 16px;
-  width: calc(100% - 20px);
-  margin: 0 auto;
+  padding: 6px 8px;
+  width: 100%;  // Módosítva a teljes szélességre
+  margin: 0;    // Margó eltávolítva
   box-sizing: border-box;
   
   input {
     flex: 1;
     border: none;
     outline: none;
-    padding: 8px 0;
+    padding: 6px 8px;  // Növelt padding
     font-size: 14px;
     color: #2d3748;
     background: transparent;
+    min-height: 24px;  // Minimális magasság hozzáadva
     
     &::placeholder {
       color: #a0aec0;
@@ -39,20 +40,24 @@
 .left-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-right: 32px; // Távolság az input mezőtől
-  margin-left: 4px;
+  gap: 8px;
+  margin-right: 8px;  // Csökkentett margó
+  margin-left: 4px;   // Csökkentett margó
 }
 
 .message-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-left: 32px; // Távolság az input mezőtől
-  margin-right: 8px;
+  gap: 8px;
+  margin-left: 8px;    // Csökkentett margó
+  margin-right: 4px;   // Csökkentett margó
 }
 
 .action-button {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
   border: none;
   cursor: pointer;
   display: flex;
@@ -62,9 +67,12 @@
   background-color: #7078e6;
   color: #fff;
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
   padding: 0;
+  
+  svg {
+    width: 18px;
+    height: 18px;
+  }
   
   &:hover {
     background-color: #5a61d2;
@@ -73,6 +81,10 @@
 }
 
 .attachment-button, .gif-button {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
   background: none;
   border: none;
   cursor: pointer;
@@ -81,6 +93,12 @@
   align-items: center;
   justify-content: center;
   transition: all .2s ease;
+  padding: 0;
+  
+  svg {
+    width: 18px;
+    height: 18px;
+  }
   
   &:hover {
     color: #5a61d2;
@@ -89,6 +107,10 @@
 }
 
 .send-button {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
   background: none;
   border: none;
   cursor: pointer;
@@ -97,6 +119,12 @@
   align-items: center;
   justify-content: center;
   transition: all .2s ease;
+  padding: 0;
+  
+  svg {
+    width: 18px;
+    height: 18px;
+  }
   
   &:hover {
     color: #5a61d2;
