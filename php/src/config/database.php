@@ -1,10 +1,10 @@
 <?php
 class Database
 {
-    private $host = "localhost";
-    private $db_name = "echoes";
-    private $username = "username";
-    private $password = "password";
+    public $host = "localhost";
+    public $db_name = "echoes";
+    public $username = "username";
+    public $password = "password";
     private $conn;
 
     public function getConnection()

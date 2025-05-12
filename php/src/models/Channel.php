@@ -1,13 +1,6 @@
 <?php
 class Channel
 {
-    private $db;
-
-    public function __construct($db)
-    {
-        $this->db = $db;
-    }
-
     public function createFriendshipChannel($friendshipId)
     {
         try {
@@ -23,7 +16,7 @@ class Channel
                 [':friendshipID', $friendshipId]
             ];
 
-            $results = DatabaseOperations::insertIntoDB($this->db, $sql, $args);
+            $results = DatabaseOperations::insertIntoDB($sql, $args);
 
             if ($results) {
                 return $results[1];
@@ -51,7 +44,7 @@ class Channel
                 [':ownerID', $ownerId]
             ];
 
-            $groupResults = DatabaseOperations::insertIntoDB($this->db, $sql, $args);
+            $groupResults = DatabaseOperations::insertIntoDB($sql, $args);
             
             if (!$groupResults) {
                 throw new ApiException('Failed to create group chat', 500);
@@ -69,7 +62,7 @@ class Channel
                 [':id', $groupId]
             ];
 
-            $results = DatabaseOperations::insertIntoDB($this->db, $sql, $args);
+            $results = DatabaseOperations::insertIntoDB($sql, $args);
 
             if ($results) {
                 $channelId = $results[1];
@@ -99,7 +92,7 @@ class Channel
                     [':userID', $userId]
                 ];
 
-                $results = DatabaseOperations::insertIntoDB($this->db, $sql, $args);
+                $results = DatabaseOperations::insertIntoDB($sql, $args);
 
                 if (!$results) {
                     throw new ApiException('Failed to add users to channel', 500);
@@ -127,7 +120,7 @@ class Channel
                     [':userID', $userId]
                 ];
 
-                $results = DatabaseOperations::updateDB($this->db, $sql, $args);
+                $results = DatabaseOperations::updateDB($sql, $args);
 
                 if ($results === false) {
                     throw new ApiException('Failed to remove users from channel', 500);
@@ -152,7 +145,7 @@ class Channel
                 [':friendshipID', $friendshipId]
             ];
 
-            $result = DatabaseOperations::fetchFromDB($this->db, $sql, $args);
+            $result = DatabaseOperations::fetchFromDB($sql, $args);
 
 
             if (count($result) > 0) {
@@ -178,7 +171,7 @@ class Channel
                 [':id', $groupId]
             ];
 
-            $result = DatabaseOperations::fetchFromDB($this->db, $sql, $args);
+            $result = DatabaseOperations::fetchFromDB($sql, $args);
 
             if (count($result) > 0) {
                 return $result[0];
@@ -213,7 +206,7 @@ class Channel
             
             $sql = "UPDATE group_info SET " . implode(", ", $updates) . " WHERE id = :id";
             
-            $result = DatabaseOperations::updateDB($this->db, $sql, $args);
+            $result = DatabaseOperations::updateDB($sql, $args);
             
             return $result;
         } catch (ApiException $e) {
@@ -232,7 +225,7 @@ class Channel
                 [':id', $groupId]
             ];
             
-            $result = DatabaseOperations::fetchFromDB($this->db, $sql, $args);
+            $result = DatabaseOperations::fetchFromDB($sql, $args);
             
             if (count($result) > 0 && $result[0]['ownerID'] == $userId) {
                 return true;

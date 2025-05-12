@@ -1,13 +1,6 @@
 <?php
 class Userinfo
 {
-    private $dbConn;
-
-    public function __construct($dbConn)
-    {
-        $this->dbConn = $dbConn;
-    }
-
     public function getFriendList($user)
     {
         try {
@@ -31,7 +24,7 @@ class Userinfo
                 [':user', $user]
             ];
 
-            $results = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
+            $results = DatabaseOperations::fetchFromDB($sql, $args);
 
             return $results;
         } catch (ApiException $e) {
@@ -89,7 +82,7 @@ class Userinfo
                 [':userID', $user]
             ];
 
-            $friendshipResults = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
+            $friendshipResults = DatabaseOperations::fetchFromDB($sql, $args);
 
             foreach ($friendshipResults as $row) {
                 $channels[] = array(
@@ -169,7 +162,7 @@ class Userinfo
                 [':userID', $user]
             ];
 
-            $groupResults = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
+            $groupResults = DatabaseOperations::fetchFromDB($sql, $args);
 
             foreach ($groupResults as $row) {
                 $userData = array(

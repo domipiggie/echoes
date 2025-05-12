@@ -157,7 +157,6 @@ const profilePicture = computed(() => {
           <span v-else class="avatar-circle">{{ messageStore.getCurrentChannelName.charAt(0).toUpperCase() }}</span>
         </div>
         <h2>{{ messageStore.getCurrentChannelName }}</h2>
-        <div class="last-seen">Elérhető volt: {{ }}soha</div>
       </div>
 
       <div class="profile-section" v-if="channelStore.getGroupChannelById(messageStore.getCurrentChannelId)">

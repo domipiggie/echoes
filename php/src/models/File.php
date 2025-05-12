@@ -1,13 +1,7 @@
 <?php
 class File
 {
-    private $dbConn;
     private $table_name = "file";
-
-    public function __construct($dbConn)
-    {
-        $this->dbConn = $dbConn;
-    }
 
     public function createFile($userID, $fileName, $uniqueName, $size)
     {
@@ -27,7 +21,7 @@ class File
                 [':size', $size]
             ];
 
-            $results = DatabaseOperations::insertIntoDB($this->dbConn, $query, $args);
+            $results = DatabaseOperations::insertIntoDB($query, $args);
             
             if (count($results) > 0 && $results[0] > 0) {
                 return $results[1]; // Return the file ID
@@ -52,7 +46,7 @@ class File
                 [':fileID', $fileID]
             ];
 
-            $results = DatabaseOperations::fetchFromDB($this->dbConn, $query, $args);
+            $results = DatabaseOperations::fetchFromDB($query, $args);
 
             if (count($results) === 0) {
                 throw new ApiException('File not found', 404);
@@ -77,7 +71,7 @@ class File
                 [':uniqueName', $uniqueName]
             ];
 
-            $results = DatabaseOperations::fetchFromDB($this->dbConn, $query, $args);
+            $results = DatabaseOperations::fetchFromDB($query, $args);
 
             if (count($results) === 0) {
                 throw new ApiException('File not found', 404);
@@ -103,7 +97,7 @@ class File
                 [':userID', $userID]
             ];
 
-            $results = DatabaseOperations::fetchFromDB($this->dbConn, $query, $args);
+            $results = DatabaseOperations::fetchFromDB($query, $args);
             return $results;
         } catch (Exception $e) {
             throw new ApiException('Failed to get user files: ' . $e->getMessage(), 500);
@@ -122,7 +116,7 @@ class File
                 [':userID', $userID]
             ];
 
-            $result = DatabaseOperations::updateDB($this->dbConn, $query, $args);
+            $result = DatabaseOperations::updateDB($query, $args);
             
             if ($result > 0) {
                 return true;
@@ -147,7 +141,7 @@ class File
                 [':userID', $userID]
             ];
 
-            $results = DatabaseOperations::fetchFromDB($this->dbConn, $query, $args);
+            $results = DatabaseOperations::fetchFromDB($query, $args);
 
             if (count($results) === 0 || $results[0]['total_size'] === null) {
                 return 0; // No files or sum is null

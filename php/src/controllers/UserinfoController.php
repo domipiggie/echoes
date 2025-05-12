@@ -1,13 +1,6 @@
 <?php
 class UserinfoController
 {
-    private $dbConn;
-
-    public function __construct($dbConn)
-    {
-        $this->dbConn = $dbConn;
-    }
-
     public function handleGetUserInfo($userId)
     {
         try {
@@ -19,7 +12,7 @@ class UserinfoController
                 throw new ApiException('Missing required fields', 400);
             }
 
-            $response = UserinfoMiddleware::getUserInfo($userId, $this->dbConn);
+            $response = UserinfoMiddleware::getUserInfo($userId);
 
             ResponseHandler::success($response);
         } catch (ApiException $e) {
@@ -40,7 +33,7 @@ class UserinfoController
                 throw new ApiException('Username parameter is required', 400);
             }
 
-            $result = UserinfoMiddleware::searchUser($username, $this->dbConn);
+            $result = UserinfoMiddleware::searchUser($username);
 
             if (!$result) {
                 throw new ApiException('User not found', 404);
@@ -63,7 +56,7 @@ class UserinfoController
 
             $user = JWTTools::validateToken();
 
-            $result = UserinfoMiddleware::getFriendList($user->id, $this->dbConn);
+            $result = UserinfoMiddleware::getFriendList($user->id);
 
             ResponseHandler::success($result);
         } catch (ApiException $e) {
@@ -82,7 +75,7 @@ class UserinfoController
 
             $user = JWTTools::validateToken();
 
-            $result = UserinfoMiddleware::getFriendChannelList($user->id, $this->dbConn);
+            $result = UserinfoMiddleware::getFriendChannelList($user->id);
 
             ResponseHandler::success($result);
         } catch (ApiException $e) {
@@ -101,7 +94,7 @@ class UserinfoController
 
             $user = JWTTools::validateToken();
 
-            $result = UserinfoMiddleware::getGroupChannelList($user->id, $this->dbConn);
+            $result = UserinfoMiddleware::getGroupChannelList($user->id);
 
             ResponseHandler::success($result);
         } catch (ApiException $e) {
@@ -126,7 +119,7 @@ class UserinfoController
             $userData = JWTTools::validateToken();
             $userId = $userData->id;
             
-            $user = new User($this->dbConn);
+            $user = new User();
             if (!$user->loadFromID($userId)) {
                 throw new ApiException('User not found', 404);
             }

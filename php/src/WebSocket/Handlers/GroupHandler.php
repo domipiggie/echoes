@@ -11,16 +11,14 @@ use WebSocket\Services\NotificationService;
 
 class GroupHandler
 {
-    private $dbConn;
     private $logger;
     private $notificationService;
     private $errorHandler;
 
-    public function __construct($dbConn, $logger, $clients)
+    public function __construct($logger, $clients)
     {
-        $this->dbConn = $dbConn;
         $this->logger = $logger;
-        $this->notificationService = new NotificationService($clients, $logger, $dbConn);
+        $this->notificationService = new NotificationService($clients, $logger);
         $this->errorHandler = new ErrorHandlerService($logger);
     }
 
@@ -38,7 +36,7 @@ class GroupHandler
         try {
             $validUserIds = $this->validateGroupMembers($sender, $userIds);
             
-            $group = new \Group($this->dbConn, $this->logger);
+            $group = new \Group($this->logger);
             $channelId = $group->createGroupWithValidatedUsers($validUserIds, $groupName, $groupPicture, $sender->id);
 
             $this->sendGroupCreationResponse($from, $channelId, $groupName, $groupPicture, $validUserIds, $sender);
@@ -61,7 +59,7 @@ class GroupHandler
     private function validateGroupMembers($sender, $userIds)
     {
         $validUserIds = [$sender->id];
-        $group = new \Group($this->dbConn, $this->logger);
+        $group = new \Group($this->logger);
 
         foreach ($userIds as $userId) {
             if ($userId == $sender->id) {
@@ -119,7 +117,7 @@ class GroupHandler
         }
 
         try {
-            $group = new \Group($this->dbConn, $this->logger);
+            $group = new \Group($this->logger);
             $groupId = $group->getGroupIdFromChannel($channelId);
             
             if (!$group->isGroupOwner($sender->id, $groupId)) {
@@ -136,7 +134,7 @@ class GroupHandler
                 $validUserIds[] = $userId;
             }
             
-            $channel = new \Channel($this->dbConn);
+            $channel = new \Channel();
             $channel->addUsersToChannel($channelId, $validUserIds);
             
             $this->sendAddUsersResponse($from, $validUserIds, $groupId, $channelId, $sender);
@@ -166,7 +164,7 @@ class GroupHandler
         
         $this->logger->info("Users " . implode(', ', $userIds) . " added to group {$channelId} by user {$sender->id}");
         
-        $group = new \Group($this->dbConn, $this->logger);
+        $group = new \Group($this->logger);
         
         foreach ($userIds as $userId) {
             $notifyData = [
@@ -215,7 +213,7 @@ class GroupHandler
         $channelId = $data['channelId'];
 
         try {
-            $group = new \Group($this->dbConn, $this->logger);
+            $group = new \Group($this->logger);
             $groupId = $group->getGroupIdFromChannel($channelId);
             
             if ($group->isGroupOwner($sender->id, $groupId)) {
@@ -256,7 +254,7 @@ class GroupHandler
         $channelId = $data['channelId'];
 
         try {
-            $group = new \Group($this->dbConn, $this->logger);
+            $group = new \Group($this->logger);
             $groupId = $group->getGroupIdFromChannel($channelId);
             
             if (!$group->isGroupOwner($sender->id, $groupId)) {
@@ -316,7 +314,7 @@ class GroupHandler
         
         $this->logger->info("User {$sender->id} left group {$groupId}");
         
-        $group = new \Group($this->dbConn, $this->logger);
+        $group = new \Group($this->logger);
         $members = $group->getGroupMembers($channelId);
         
         $memberNotifyData = [
@@ -354,7 +352,7 @@ class GroupHandler
         
         $this->notificationService->notifyClient($userId, 'removed_from_group', $notifyData);
         
-        $group = new \Group($this->dbConn, $this->logger);
+        $group = new \Group($this->logger);
         $members = $group->getGroupMembers($channelId, $sender->id);
         
         $memberNotifyData = [
@@ -396,7 +394,7 @@ class GroupHandler
         }
 
         try {
-            $group = new \Group($this->dbConn, $this->logger);
+            $group = new \Group($this->logger);
             
             $groupId = $group->getGroupIdFromChannel($channelId);
             
@@ -408,7 +406,7 @@ class GroupHandler
                 );
             }
             
-            $channel = new \Channel($this->dbConn);
+            $channel = new \Channel();
             $result = $channel->updateGroupInfo($groupId, $groupName, $groupPicture);
             
             if (!$result) {
@@ -453,7 +451,7 @@ class GroupHandler
         
         $this->logger->info("Group info updated for group {$groupId} by user {$sender->id}");
         
-        $group = new \Group($this->dbConn, $this->logger);
+        $group = new \Group($this->logger);
         $members = $group->getGroupMembers($channelId);
         
         $notifyData = [
@@ -491,7 +489,7 @@ class GroupHandler
         $newOwnerId = $data['newOwnerId'];
 
         try {
-            $group = new \Group($this->dbConn, $this->logger);
+            $group = new \Group($this->logger);
             $groupId = $group->getGroupIdFromChannel($channelId);
             
             if (!$group->isGroupOwner($sender->id, $groupId)) {
@@ -533,7 +531,7 @@ class GroupHandler
         
         $this->logger->info("Group {$groupId} ownership transferred from user {$sender->id} to user {$newOwnerId}");
         
-        $user = new \User($this->dbConn);
+        $user = new \User();
         $newOwnerInfo = $user->loadFromID($newOwnerId);
         $newOwnerUsername = $newOwnerInfo ? $newOwnerInfo['username'] : 'Unknown';
         
@@ -548,7 +546,7 @@ class GroupHandler
         
         $this->notificationService->notifyClient($newOwnerId, 'group_ownership_received', $notifyData);
         
-        $group = new \Group($this->dbConn, $this->logger);
+        $group = new \Group($this->logger);
         $members = $group->getGroupMembers($channelId);
         
         $memberNotifyData = [
@@ -581,7 +579,7 @@ class GroupHandler
         $channelId = $data['channelId'];
 
         try {
-            $group = new \Group($this->dbConn, $this->logger);
+            $group = new \Group($this->logger);
             $groupId = $group->getGroupIdFromChannel($channelId);
             
             if (!$group->isGroupOwner($sender->id, $groupId)) {

@@ -9,13 +9,11 @@ class NotificationService
 {
     protected $clients;
     protected $logger;
-    protected $dbConn;
 
-    public function __construct(\SplObjectStorage $clients, Logger $logger, $dbConn)
+    public function __construct(\SplObjectStorage $clients, Logger $logger)
     {
         $this->clients = $clients;
         $this->logger = $logger;
-        $this->dbConn = $dbConn;
     }
 
     public function notifyClient($clientID, $type, $data = [])

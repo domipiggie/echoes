@@ -1,10 +1,10 @@
 <?php
 class MessageMiddleware
 {
-    public static function getChannelMessages($channelId, $userId, $dbConn, $offset = 0, $limit = 20)
+    public static function getChannelMessages($channelId, $userId, $offset = 0, $limit = 20)
     {
         try {
-            $message = new Message($dbConn);
+            $message = new Message();
 
             if (!$message->hasChannelAccess($userId, $channelId)) {
                 throw new ApiException('You do not have access to this channel', 403);
@@ -15,7 +15,7 @@ class MessageMiddleware
             $messagesWithUserInfo = [];
 
             foreach ($messages as $msg) {
-                $userDetails = UserinfoMiddleware::getUserInfo($msg['userID'], $dbConn);
+                $userDetails = UserinfoMiddleware::getUserInfo($msg['userID']);
                 $msg['user'] = $userDetails;
                 $messagesWithUserInfo[] = $msg;
             }

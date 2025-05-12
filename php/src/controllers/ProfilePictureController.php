@@ -1,13 +1,6 @@
 <?php
 class ProfilePictureController
 {
-    private $dbConn;
-
-    public function __construct($dbConn)
-    {
-        $this->dbConn = $dbConn;
-    }
-
     public function handleUserProfilePictureUpload()
     {
         try {
@@ -21,7 +14,7 @@ class ProfilePictureController
                 throw new ApiException('No file uploaded', 400);
             }
 
-            $result = FileMiddleware::uploadUserProfilePicture($user->id, $_FILES['file'], $this->dbConn);
+            $result = FileMiddleware::uploadUserProfilePicture($user->id, $_FILES['file']);
 
             ResponseHandler::success($result);
         } catch (ApiException $e) {
@@ -74,7 +67,7 @@ class ProfilePictureController
                 throw new ApiException('Group ID is required', 400);
             }
 
-            $result = FileMiddleware::uploadGroupProfilePicture($groupID, $user->id, $_FILES['file'], $this->dbConn);
+            $result = FileMiddleware::uploadGroupProfilePicture($groupID, $user->id, $_FILES['file']);
 
             ResponseHandler::success($result);
         } catch (ApiException $e) {
