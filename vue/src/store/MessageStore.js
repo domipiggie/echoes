@@ -32,6 +32,11 @@ export const useMessageStore = defineStore('message', () => {
 
   const setCurrentChannelId = (channelId) => {
     currentChannelId.value = channelId;
+    pagination.value = {
+      offset: 0,
+      limit: 20,
+      total: 0
+    }
   };
   const setCurrentChannelName = (channelName) => {
     currentChannelName.value = channelName;
@@ -67,7 +72,6 @@ export const useMessageStore = defineStore('message', () => {
       const response = await messageService.getChannelMessages(currentChannelId.value, offset, limit);
       
       if (response.data && response.data.messages) {
-        // Reverse the messages array to display newest messages at the bottom
         const reversedMessages = [...response.data.messages].reverse();
         messages.value = reversedMessages.map(msg => mapToMessageInstance(msg));
 
@@ -102,21 +106,24 @@ export const useMessageStore = defineStore('message', () => {
         pagination.value.limit
       );
 
-      if (response && response.messages && response.messages.length > 0) {
-        const newMessages = response.messages.map(msg => mapToMessageInstance(msg));
-        messages.value = [...messages.value, ...newMessages];
+      if (response.data && response.data.messages && response.data.messages.length > 0) {
+        const newMessages = response.data.messages.map(msg => mapToMessageInstance(msg));
+        
+        messages.value = [...newMessages.reverse(), ...messages.value];
 
-        if (response.pagination) {
-          pagination.value = {
-            offset: response.pagination.offset,
-            limit: response.pagination.limit,
-            total: response.pagination.total
-          };
+        pagination.value = {
+          offset: newOffset,
+          limit: response.data.pagination.limit,
+          total: response.data.pagination.total
         }
+        
+        return true;
       }
+      return false;
     } catch (err) {
       error.value = err.message || 'Failed to load more messages';
       console.error('Error loading more messages:', err);
+      return false;
     } finally {
       isLoading.value = false;
     }

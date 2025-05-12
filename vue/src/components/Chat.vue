@@ -109,6 +109,10 @@ const checkScreenSize = () => {
 };
 
 const handleChatSelect = async (chat) => {
+  if (messageStore.getCurrentChannelId == chat.getChannelID()) {
+    return;
+  }
+
   messageStore.setCurrentChannelId(chat.getChannelID());
 
   var name;
@@ -127,6 +131,13 @@ const handleChatSelect = async (chat) => {
     await messageStore.fetchMessages();
 
     console.log('Messages loaded:', messageStore.getMessages);
+    
+    setTimeout(() => {
+      const messagesContainer = document.querySelector('.messages-container');
+      if (messagesContainer) {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+    }, 100);
   } catch (error) {
     console.error('Error fetching messages:', error);
   }

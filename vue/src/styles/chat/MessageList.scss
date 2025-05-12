@@ -29,4 +29,24 @@
     background-color: #1e1e2d;
     scrollbar-color: #a0a0ff #2d2d3a;
   }
+
+  .loading-indicator {
+    color: #a0a0ff;
+  }
+}
+
+.loading-indicator {
+  text-align: center;
+  padding: 10px;
+  color: #7078e6;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+// Dark mode
+.dark-mode {
+  .messages-container {
+    background-color: #1e1e2d;
+    scrollbar-color: #a0a0ff #2d2d3a;
+  }
 }
