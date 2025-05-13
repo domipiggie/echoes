@@ -36,7 +36,7 @@ describe('AppearanceSelector', () => {
     expect(wrapper.emitted().close).toBeTruthy(); 
   });
 
-  it('kiválasztja az alapértelmezett "messenger" témát és "select", valamint "close" eseményt bocsát ki a "Kiválasztás" gombra kattintva', async () => {
+  it('kiválasztja a "messenger" témát és "select", valamint "close" eseményt bocsát ki a "Kiválasztás" gombra kattintva', async () => {
 
     const selectButton = wrapper.find('button.action-button.select');
     await selectButton.trigger('click'); 

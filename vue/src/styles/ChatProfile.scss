@@ -11,8 +11,8 @@
 }
 
 .dark-mode .profile-overlay {
-  background: #252536;
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+  background: #121220;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.4);
 }
 
 .profile-sidebar {
@@ -28,7 +28,7 @@
 }
 
 .dark-mode .profile-sidebar {
-  background-color: #252536;
+  background-color: #121220;
   color: #e0e0e0;
 }
 
@@ -304,3 +304,87 @@
   border-radius: 50%;
   background-color: #7078e6;
 }
+
+
+// Sötét mód beállítások
+.dark-mode {
+  .profile-overlay {
+    background: #121220;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .profile-sidebar {
+    background-color: #121220;
+    color: #e0e0e0;
+  }
+
+  .profile-header {
+    background: linear-gradient(135deg, #1a1a27, #27293d);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .profile-section {
+    background-color: #1a1a27;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    h3 {
+      color: #e0e0e0;
+    }
+  }
+
+  .profile-button {
+    color: #e0e0e0;
+    background-color: #27293d;
+
+    &:hover {
+      background-color: #2d2d44;
+    }
+  }
+
+  .button-icon {
+    background: rgba(255, 255, 255, 0.05);
+    color: #7078e6;
+  }
+
+  input {
+    background-color: #27293d;
+    color: #e0e0e0;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+
+    &:focus {
+      border-color: #7078e6;
+      background-color: #2d2d44;
+    }
+  }
+}
+
+  .media-item {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .media-placeholder {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .appearance-section {
+    background-color: #1a1a27;
+
+    h3 {
+      color: #e0e0e0;
+    }
+
+    .theme-option {
+      background-color: #27293d;
+      border: 2px solid rgba(255, 255, 255, 0.05);
+
+      &:hover {
+        background-color: #2d2d44;
+        border-color: #7078e6;
+      }
+
+      &.active {
+        border-color: #7078e6;
+        background-color: rgba(112, 120, 230, 0.1);
+      }
+    }
+  }
