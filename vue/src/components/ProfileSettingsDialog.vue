@@ -50,7 +50,7 @@ const saveUserData = async () => {
 
       console.log('Uploading profile picture...');
 
-      const response = await fileService.uploadUserProfilePicture(profileImage.value);
+      const response = await fileService.uploadUserProfile(profileImage.value);
 
       console.log('Upload response:', response);
 

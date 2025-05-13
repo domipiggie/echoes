@@ -119,7 +119,7 @@ onUnmounted(() => {
         @toggle-mute="toggleMute"
         @start-reply="startReply(message)"
         @start-editing="startEditing(message)"
-        @delete-message="startEditing(message)"
+        @delete-message="emit('delete-message', $event)"
       />
     </template>
     

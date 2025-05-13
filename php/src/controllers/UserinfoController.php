@@ -29,11 +29,13 @@ class UserinfoController
                 throw new ApiException('Invalid method', 405);
             }
 
-            if (!isset($username) || empty($username)) {
+            $decodedUsername = urldecode($username);
+            
+            if (!isset($decodedUsername) || empty($decodedUsername)) {
                 throw new ApiException('Username parameter is required', 400);
             }
 
-            $result = UserinfoMiddleware::searchUser($username);
+            $result = UserinfoMiddleware::searchUser($decodedUsername);
 
             if (!$result) {
                 throw new ApiException('User not found', 404);

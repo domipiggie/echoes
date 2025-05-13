@@ -56,12 +56,13 @@ class FileController
 
             $fileInfo = FileMiddleware::getFileByUniqueName($uniqueName);
             
-            // Set appropriate headers for file download
+            while (ob_get_level()) ob_end_clean();
+            
             header('Content-Type: ' . $fileInfo['fileType']);
             header('Content-Disposition: inline; filename="' . $fileInfo['fileName'] . '"');
             header('Content-Length: ' . $fileInfo['fileSize']);
+            header('Cache-Control: no-cache, must-revalidate');
             
-            // Output the file and exit
             readfile($fileInfo['filePath']);
             exit;
         } catch (ApiException $e) {
