@@ -118,7 +118,7 @@ class Message
 
             $sql = "SELECT 1 FROM channel_list cl
                     INNER JOIN friendship f ON cl.friendshipID = f.friendshipID
-                    INNER JOIN friendshipStatus fs ON f.statusID = fs.statusID
+                    INNER JOIN friendshipstatus fs ON f.statusID = fs.statusID
                     WHERE cl.channelID = :channelID
                     AND (f.user1ID = :userID OR f.user2ID = :userID)
                     AND fs.status = 1

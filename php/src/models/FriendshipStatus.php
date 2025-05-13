@@ -1,7 +1,7 @@
 <?php
 class FriendshipStatus
 {
-    private $status_table = 'friendshipStatus';
+    private $status_table = 'friendshipstatus';
     private $statusID;
     private $initiator;
     private $status;
