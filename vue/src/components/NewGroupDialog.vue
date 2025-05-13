@@ -2,13 +2,11 @@
 import { ref, onMounted } from 'vue';
 import { useFriendshipStore } from '../store/FriendshipStore';
 import { useWebSocketStore } from '../store/WebSocketStore';
-import { userdataStore } from '../store/UserdataStore';
 import { API_CONFIG } from '../config/api.js';
 
 const emit = defineEmits(['close', 'group-created']);
 const friendshipStore = useFriendshipStore();
 const webSocketStore = useWebSocketStore();
-const userStore = userdataStore();
 
 const groupName = ref('');
 const selectedFriends = ref([]);
@@ -16,7 +14,7 @@ const isLoading = ref(false);
 const errorMessage = ref('');
 
 onMounted(async () => {
-  if (friendshipStore.getFriendships.length === 0) {
+  if (friendshipStore.getFriendships && friendshipStore.getFriendships.length === 0) {
     await friendshipStore.fetchFriendships();
   }
 });
