@@ -12,7 +12,8 @@ const props = defineProps({
   index: Number,
   messages: Array,
   userID: String,
-  currentChannelName: String
+  currentChannelName: String,
+  showVideoOptions: Object
 });
 
 const emit = defineEmits([
@@ -118,6 +119,23 @@ const closeImageModal = () => {
             preload="metadata"
             aria-label="Beágyazott videó"
           ></video>
+          <div class="video-options">
+            <span @click.stop="$emit('toggle-video-options', message.getMessageID())" class="video-options-button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="1"></circle>
+                <circle cx="12" cy="5" r="1"></circle>
+                <circle cx="12" cy="19" r="1"></circle>
+              </svg>
+            </span>
+            <div v-if="showVideoOptions[message.getMessageID()]" class="video-options-menu">
+              <div class="video-option-item" @click.stop="$emit('toggle-fullscreen', $event.target.closest('.video-container').querySelector('video'))">
+                Teljes képernyő
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
         </div>
         
         <!-- Text messages -->

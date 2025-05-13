@@ -23,6 +23,7 @@
   const startReply = (message) => {
     replyingTo.value = {
       id: message.getMessageID(),
+      text: message.getContent()
     };
     
     nextTick(() => {
