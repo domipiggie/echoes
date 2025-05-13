@@ -111,20 +111,21 @@ const handleClickOutside = (event) => {
 .gif-picker {
   position: absolute;
   bottom: 60px;
-  left: 0;
-  width: 200px;
-  background: #ffffff;
+  left: 20px;
+  min-width: 200px;
+  max-width: 400px;
+  width: 100%;
   border-radius: 6px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   z-index: 9999;
-  max-width: 40vw;
+  background: #ffffff;
   overflow: hidden;
-}
 
-:global(.dark-mode) .gif-picker {
-  background: #1e1e2d;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  .dark-mode & {
+    background: #1e1e2d;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
 }
 
 .gif-search {
@@ -153,10 +154,17 @@ const handleClickOutside = (event) => {
 
 .gif-grid {
   padding: 8px;
-  max-height: 300px;
+  min-height: 200px;
+  max-height: 400px;
+  height: 100%;
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
 }
 
 .gif-grid::-webkit-scrollbar {
@@ -167,6 +175,12 @@ const handleClickOutside = (event) => {
 .gif-item {
   margin-bottom: 8px;
   cursor: pointer;
+  max-width: 49%;
+  width: 100%;
+}
+
+.gif-item:nth-child(2n) {
+  margin-left: 2%;
 }
 
 .gif-item img {
@@ -197,6 +211,15 @@ const handleClickOutside = (event) => {
 
   .gif-grid {
     max-height: 250px;
+  }
+
+  .gif-item {
+    min-width: 100%;
+    width: 100%;
+  }
+
+  .gif-item:nth-child(2n) {
+    margin-left: 0;
   }
 }
 
