@@ -1,9 +1,9 @@
 <?php
 class UserinfoMiddleware
 {
-    public static function getUserInfo($userId, $dbConn)
+    public static function getUserInfo($userId)
     {
-        $user = new User($dbConn);
+        $user = new User();
         $user->loadFromID($userId);
 
         $response = [
@@ -16,9 +16,9 @@ class UserinfoMiddleware
         return $response;
     }
 
-    public static function searchUser($name, $dbConn)
+    public static function searchUser($name)
     {
-        $user = new User($dbConn);
+        $user = new User();
 
         if (!$user->loadFromUsername($name)) {
             throw new ApiException("User not found", 404);
@@ -32,25 +32,25 @@ class UserinfoMiddleware
         ];
     }
 
-    public static function getFriendList($userId, $dbConn)
+    public static function getFriendList($userId)
     {
-        $userInfo = new Userinfo($dbConn);
+        $userInfo = new Userinfo();
         $friendList = $userInfo->getFriendList($userId);
 
         return $friendList;
     }
 
-    public static function getFriendChannelList($userId, $dbConn)
+    public static function getFriendChannelList($userId)
     {
-        $userInfo = new Userinfo($dbConn);
+        $userInfo = new Userinfo();
         $friendChannelList = $userInfo->getFriendChannels($userId);
 
         return $friendChannelList;
     }
 
-    public static function getGroupChannelList($userId, $dbConn)
+    public static function getGroupChannelList($userId)
     {
-        $userInfo = new Userinfo($dbConn);
+        $userInfo = new Userinfo();
         $groupChannelList = $userInfo->getGroupChannels($userId);
 
         return $groupChannelList;

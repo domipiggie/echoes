@@ -12,16 +12,14 @@ class ChatMessageHandler
 {
     protected $clients;
     protected $logger;
-    protected $dbConn;
     protected $notificationService;
     protected $errorHandler;
 
-    public function __construct(\SplObjectStorage $clients, Logger $logger, $dbConn)
+    public function __construct(\SplObjectStorage $clients, Logger $logger)
     {
         $this->clients = $clients;
         $this->logger = $logger;
-        $this->dbConn = $dbConn;
-        $this->notificationService = new NotificationService($clients, $logger, $dbConn);
+        $this->notificationService = new NotificationService($clients, $logger);
         $this->errorHandler = new ErrorHandlerService($logger);
     }
 
@@ -39,7 +37,7 @@ class ChatMessageHandler
         $replyTo = isset($data['replyTo']) ? $data['replyTo'] : null;
 
         try {
-            $message = new \Message($this->dbConn);
+            $message = new \Message();
             if (!$message->hasChannelAccess($sender->id, $channelId)) {
                 throw new \WebSocketException(
                     'You do not have access to this channel',
@@ -53,7 +51,7 @@ class ChatMessageHandler
 
             $this->logger->info("Chat message sent by user {$sender->id} in channel {$channelId}");
 
-            $user = new \User($this->dbConn);
+            $user = new \User();
             $user->loadFromID($sender->id);
 
             $notifyData = [
@@ -98,7 +96,7 @@ class ChatMessageHandler
         $messageId = $data['messageId'];
 
         try {
-            $message = new \Message($this->dbConn);
+            $message = new \Message();
             $channelId = $message->getChannelIdFromMessageId($messageId);
 
             if (!$message->hasChannelAccess($sender->id, $channelId)) {
@@ -167,7 +165,7 @@ class ChatMessageHandler
         $newContent = $data['content'];
 
         try {
-            $message = new \Message($this->dbConn);
+            $message = new \Message();
             $channelId = $message->getChannelIdFromMessageId($messageId);
 
             if (!$message->hasChannelAccess($sender->id, $channelId)) {

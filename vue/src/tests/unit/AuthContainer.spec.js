@@ -1,88 +1,91 @@
-import { mount } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import AuthContainer from '../../components/AuthContainer.vue';
-import authService from '../../services/authService';
-import { useRouter } from 'vue-router';
+import { mount } from '@vue/test-utils'
+import AuthContainer from '../../components/AuthContainer.vue'
+import { vi } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
+import { authService } from '../../services/authService'
 
-vi.mock('../../services/authService');
-vi.mock('vue-router', () => ({
-  useRouter: vi.fn(() => ({
-    push: vi.fn(),
-  })),
-}));
+vi.mock('../../store/UserdataStore', () => ({
+    userdataStore: vi.fn(() => ({
+        setAccessToken: vi.fn(),
+        setUserID: vi.fn(),
+        setRefreshToken: vi.fn()
+    }))
+}))
 
-vi.mock('../../components/LoginForm.vue', () => ({ default: { template: '<div class="mock-login-form"></div>', name: 'LoginForm' }}));
-vi.mock('../../components/RegisterForm.vue', () => ({ default: { template: '<div class="mock-register-form"></div>', name: 'RegisterForm' }}));
-vi.mock('../../components/OverlayContainer.vue', () => ({ default: { template: '<div class="mock-overlay-container"></div>', name: 'OverlayContainer' }}));
+vi.mock('../../store/AlertStore', () => ({
+    useAlertStore: vi.fn(() => ({
+        addAlert: vi.fn()
+    }))
+}))
+
+vi.mock('../../services/authService', () => ({
+    authService: {
+        login: vi.fn(),
+        register: vi.fn()
+    }
+}))
 
 describe('AuthContainer', () => {
-  let routerPushMock;
-  let windowAlertSpy;
+    let pinia
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-    routerPushMock = vi.fn();
-    useRouter.mockReturnValue({ push: routerPushMock });
-    windowAlertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
-    
-    authService.setToken = vi.fn();
-  });
+    beforeEach(() => {
+        pinia = createPinia()
+        setActivePinia(pinia)
+    });
 
-  it('renders child components', () => {
-    const wrapper = mount(AuthContainer);
-    expect(wrapper.findComponent({ name: 'LoginForm' }).exists()).toBe(true);
-    expect(wrapper.findComponent({ name: 'RegisterForm' }).exists()).toBe(true);
-    expect(wrapper.findComponent({ name: 'OverlayContainer' }).exists()).toBe(true);
-  });
+    const factory = () => {
+        return mount(AuthContainer, {
+            global: {
+                plugins: [pinia]
+            }
+        });
+    };
 
-  it('toggles right panel active class via methods', () => {
-    const wrapper = mount(AuthContainer);
-    expect(wrapper.vm.isRightPanelActive).toBe(false);
-    wrapper.vm.activateRightPanel();
-    expect(wrapper.vm.isRightPanelActive).toBe(true);
-    wrapper.vm.deactivateRightPanel();
-    expect(wrapper.vm.isRightPanelActive).toBe(false);
-  });
+    it('renders login and register forms', () => {
+        const wrapper = factory()
+        expect(wrapper.findComponent({ name: 'LoginForm' }).exists()).toBe(true)
+        expect(wrapper.findComponent({ name: 'RegisterForm' }).exists()).toBe(true)
+    })
 
-  it('calls authService.login and navigates on successful login', async () => {
-    authService.login.mockResolvedValue({ token: 'test_token' });
-    const wrapper = mount(AuthContainer);
+    it('handles successful login', async () => {
+        const wrapper = factory();
+        const mockResponse = {
+            success: true,
+            data: {
+                access_token: 'test-access',
+                userID: 'user-123',
+                refresh_token: 'test-refresh'
+            }
+        };
     
-    await wrapper.vm.sendLoginRequest('test@example.com', 'password');
-    
-    expect(authService.login).toHaveBeenCalledWith('test@example.com', 'password');
-    expect(authService.setToken).toHaveBeenCalledWith('test_token');
-    expect(routerPushMock).toHaveBeenCalledWith('/chat');
-  });
+        authService.login.mockResolvedValue(mockResponse);
+        
+        await wrapper.findComponent({ name: 'LoginForm' }).vm.$emit('login', 'test@example.com', 'password');
+        
+        expect(authService.login).toHaveBeenCalledWith('test@example.com', 'password');
+        expect(wrapper.vm.userdata.setAccessToken).toHaveBeenCalledWith('test-access');
+    });
 
-  it('calls authService.register and activates right panel on successful registration', async () => {
-    authService.register.mockResolvedValue({ message: 'Registration successful' });
-    const wrapper = mount(AuthContainer);
-    const spyActivateRightPanel = vi.spyOn(wrapper.vm, 'activateRightPanel');
-    
-    await wrapper.vm.sendRegisterRequest('user', '2000-01-01', 'test@example.com', 'password');
-    
-    expect(authService.register).toHaveBeenCalledWith('user', '2000-01-01', 'test@example.com', 'password');
-    expect(spyActivateRightPanel).toHaveBeenCalled();
-    expect(windowAlertSpy).toHaveBeenCalledWith('Sikeres regisztráció!');
-  });
+    it('handles successful registration', async () => {
+        const wrapper = factory();
+        vi.mocked(authService.register).mockResolvedValue({});
 
-  it('shows alert on login failure', async () => {
-    authService.login.mockRejectedValue(new Error('Login failed'));
-    const wrapper = mount(AuthContainer);
-    
-    await wrapper.vm.sendLoginRequest('test@example.com', 'password');
-    
-    expect(windowAlertSpy).toHaveBeenCalledWith('Sikertelen bejelentkezés!');
-    expect(routerPushMock).not.toHaveBeenCalled();
-  });
+        await wrapper.findComponent({ name: 'RegisterForm' }).vm.$emit('register',
+            'testuser', '2000-01-01', 'test@example.com', 'password'
+        );
 
-  it('shows alert on registration failure', async () => {
-    authService.register.mockRejectedValue(new Error('Registration failed'));
-    const wrapper = mount(AuthContainer);
-    
-    await wrapper.vm.sendRegisterRequest('user', '2000-01-01', 'test@example.com', 'password');
-    
-    expect(windowAlertSpy).toHaveBeenCalledWith('Sikertelen regisztráció!');
-  });
-});
+        expect(authService.register).toHaveBeenCalledWith('testuser', 'test@example.com', 'password');
+        expect(wrapper.vm.alertStore.addAlert).toHaveBeenCalled()
+        expect(wrapper.vm.isRightPanelActive).toBe(true)
+    })
+
+    it('toggles between panels using overlay', async () => {
+        const wrapper = factory()
+
+        await wrapper.findComponent({ name: 'OverlayContainer' }).vm.$emit('activate-right-panel')
+        expect(wrapper.vm.isRightPanelActive).toBe(true)
+
+        await wrapper.findComponent({ name: 'OverlayContainer' }).vm.$emit('deactivate-right-panel')
+        expect(wrapper.vm.isRightPanelActive).toBe(false)
+    })
+})

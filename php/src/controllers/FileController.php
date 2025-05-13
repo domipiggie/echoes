@@ -1,13 +1,6 @@
 <?php
 class FileController
 {
-    private $dbConn;
-
-    public function __construct($dbConn)
-    {
-        $this->dbConn = $dbConn;
-    }
-
     public function handleUploadFile()
     {
         try {
@@ -21,7 +14,7 @@ class FileController
                 throw new ApiException('No file uploaded', 400);
             }
 
-            $result = FileMiddleware::uploadFile($user->id, $_FILES['file'], $this->dbConn);
+            $result = FileMiddleware::uploadFile($user->id, $_FILES['file']);
 
             ResponseHandler::success($result);
         } catch (ApiException $e) {
@@ -40,7 +33,7 @@ class FileController
 
             $user = JWTTools::validateToken();
 
-            $result = FileMiddleware::getUserFiles($user->id, $this->dbConn);
+            $result = FileMiddleware::getUserFiles($user->id);
 
             ResponseHandler::success($result);
         } catch (ApiException $e) {
@@ -61,7 +54,7 @@ class FileController
                 throw new ApiException('File name is required', 400);
             }
 
-            $fileInfo = FileMiddleware::getFileByUniqueName($uniqueName, $this->dbConn);
+            $fileInfo = FileMiddleware::getFileByUniqueName($uniqueName);
             
             // Set appropriate headers for file download
             header('Content-Type: ' . $fileInfo['fileType']);
@@ -91,7 +84,7 @@ class FileController
 
             $user = JWTTools::validateToken();
 
-            $result = FileMiddleware::deleteFile($fileID, $user->id, $this->dbConn);
+            $result = FileMiddleware::deleteFile($fileID, $user->id);
 
             ResponseHandler::success($result);
         } catch (ApiException $e) {
@@ -110,7 +103,7 @@ class FileController
 
             $user = JWTTools::validateToken();
 
-            $result = FileMiddleware::getTotalUserFileSize($user->id, $this->dbConn);
+            $result = FileMiddleware::getTotalUserFileSize($user->id);
 
             ResponseHandler::success($result);
         } catch (ApiException $e) {

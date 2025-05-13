@@ -34,46 +34,6 @@ const closeProfile = () => {
   emit('update:showProfile', false);
 };
 
-// Hiányzó handleThemeSelect metódus
-const handleThemeSelect = (theme) => {
-  showAppearanceSelector.value = false;
-};
-
-const getVideoThumbnail = (videoUrl) => {
-  const video = document.createElement('video');
-  video.src = videoUrl;
-  return new Promise((resolve) => {
-    video.addEventListener('loadeddata', () => {
-      video.currentTime = 0;
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0);
-      resolve(canvas.toDataURL('image/jpeg'));
-    });
-  });
-};
-
-// Update mediaMessages computed property
-const mediaMessages = computed(() => {
-  return messageStore.getMessages
-    .filter(msg => {
-      return msg && msg.type && (
-        msg.type === 'image' ||
-        msg.type === 'video' ||
-        msg.type === 'gif'
-      ) && msg.text;
-    })
-    .slice(-9)
-    .reverse();
-});
-
-// Hiányzó mediaMessagesData - egyszerűsített verzió a computed property-ből
-const mediaMessagesData = computed(() => {
-  return mediaMessages.value;
-});
-
 const leaveGroup = () => {
   alertStore.addAlert(new Alert(
     'Megerősítés',
@@ -157,7 +117,6 @@ const profilePicture = computed(() => {
           <span v-else class="avatar-circle">{{ messageStore.getCurrentChannelName.charAt(0).toUpperCase() }}</span>
         </div>
         <h2>{{ messageStore.getCurrentChannelName }}</h2>
-        <div class="last-seen">Elérhető volt: {{ }}soha</div>
       </div>
 
       <div class="profile-section" v-if="channelStore.getGroupChannelById(messageStore.getCurrentChannelId)">

@@ -2,15 +2,13 @@
 class Friendship
 {
     private $friendship_table = 'friendship';
-    private $dbConn;
     private $user1ID;
     private $user2ID;
     private $friendshipStatus;
     private $friendshipID;
 
-    public function __construct($db, $user1ID, $user2ID)
+    public function __construct($user1ID, $user2ID)
     {
-        $this->dbConn = $db;
         $this->user1ID = $user1ID;
         $this->user2ID = $user2ID;
     }
@@ -29,14 +27,14 @@ class Friendship
                 [':user2ID', $this->user2ID]
             ];
 
-            $result = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
+            $result = DatabaseOperations::fetchFromDB($sql, $args);
 
             echo json_encode($result);
             echo $this->user2ID;
             if (count($result) > 0) {
                 $this->friendshipID = $result[0]['friendshipID'];
                 if (!isset($this->friendshipStatus)) {
-                    $this->friendshipStatus = new FriendshipStatus($this->dbConn);
+                    $this->friendshipStatus = new FriendshipStatus();
                     $this->friendshipStatus->loadFromDB($result[0]['statusID']);
                 }
                 return true;
@@ -61,7 +59,7 @@ class Friendship
                 throw new ApiException('Friendship already exists with status: ' . $this->friendshipStatus->getStatus(), 400);
             }
 
-            $this->friendshipStatus = new FriendshipStatus($this->dbConn);
+            $this->friendshipStatus = new FriendshipStatus();
             $statusID = $this->friendshipStatus->createNewEntry($this->user1ID);
 
             $sql = "INSERT INTO " . $this->friendship_table . " (user1ID, user2ID, statusID) 
@@ -74,7 +72,7 @@ class Friendship
                 [':statusID', $statusID]
             ];
 
-            $result = DatabaseOperations::insertIntoDB($this->dbConn, $sql, $args);
+            $result = DatabaseOperations::insertIntoDB($sql, $args);
 
             return $result[1];
         } catch (ApiException $e) {

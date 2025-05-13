@@ -1,7 +1,19 @@
 <script setup>
+import { ref } from 'vue';
 import { useMessageStore } from '../../../store/MessageStore';
 import { API_CONFIG } from '../../../config/api';
+import ImageModal from './ImageModal.vue';
+
 const messageStore = useMessageStore();
+const selectedImage = ref(null);
+
+const openImageModal = (imageUrl) => {
+  selectedImage.value = imageUrl;
+};
+
+const closeImageModal = () => {
+  selectedImage.value = null;
+};
 
 const props = defineProps({
   message: Object,
@@ -74,7 +86,9 @@ const emit = defineEmits([
               </div>
               <img v-else-if="message.getType() === 'image'" 
                    :src="message.getContent()" 
-                   class="message-image" />
+                   class="message-image"
+                   @click="openImageModal(message.getContent())" />
+              <ImageModal v-if="selectedImage" :imageUrl="selectedImage" :onClose="closeImageModal" />
               
               <!-- Video handling -->
               <div v-else-if="message.getType() === 'video'" class="video-container">
@@ -105,7 +119,7 @@ const emit = defineEmits([
               </div>
               
               <!-- Text messages -->
-              <span v-else-if="message.getType() !== 'audio' && message.getType() !== 'file'" 
+              <span v-else-if="message.getType() == 'text'" 
                     :class="{ 'revoked-message': message.isRevoked }">
                 {{ message.getContent() }}
               </span>
@@ -182,6 +196,39 @@ const emit = defineEmits([
   margin-bottom: 0;
   font-size: 11px;
   font-weight: 600;
+}
+
+.discord-hover-actions {
+  position: absolute;
+  right: -40px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 8px;
+  padding: 8px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  
+  .hover-action-btn {
+    display: block;
+    margin: 4px 0;
+    padding: 8px;
+    width: 32px;
+    height: 32px;
+    transition: background-color 0.2s ease;
+    border-radius: 4px;
+    text-align: center;
+    
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
 }
 
 // Saját üzenetek szövegének világosítása

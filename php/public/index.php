@@ -41,9 +41,6 @@ require_once $rootDir . '/src/utils/DatabaseOperations.php';
 set_exception_handler([ErrorHandler::class, 'handleError']);
 
 try {
-    $database = new Database();
-    $db = $database->getConnection();
-
     $request_method = $_SERVER["REQUEST_METHOD"];
     $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     $uri = explode('/', $uri);
@@ -56,7 +53,7 @@ try {
                 throw new ApiException('Invalid route', 404);
             }
 
-            $auth = new AuthController($db);
+            $auth = new AuthController();
 
             switch ($uri[2]) {
                 case "login":
@@ -82,7 +79,7 @@ try {
                 throw new ApiException('Invalid route', 404);
             }
 
-            $userInfo = new UserinfoController($db);
+            $userInfo = new UserinfoController();
 
             switch ($uri[2]) {
                 case "id":
@@ -106,7 +103,7 @@ try {
             break;
             
         case "files":
-            $fileController = new FileController($db);
+            $fileController = new FileController();
             
             if (!isset($uri[2])) {
                 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -134,7 +131,7 @@ try {
                 throw new ApiException('Invalid route', 404);
             }
 
-            $userInfo = new UserinfoController($db);
+            $userInfo = new UserinfoController();
 
             switch ($uri[2]) {
                 case "friendList":
@@ -160,7 +157,7 @@ try {
                 throw new ApiException('Provide a channel ID', 400);
             }
 
-            $messageController = new MessageController($db);
+            $messageController = new MessageController();
 
             $messageController->handleGetChannelMessages($uri[2]);
             break;
@@ -170,7 +167,7 @@ try {
                 throw new ApiException('Invalid route', 404);
             }
             
-            $profilePictureController = new ProfilePictureController($db);
+            $profilePictureController = new ProfilePictureController();
             
             switch ($uri[2]) {
                 case "user":

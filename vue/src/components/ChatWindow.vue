@@ -19,15 +19,12 @@
   const showProfile = ref(false);
   const replyingTo = ref(null);
   const editingMessage = ref(null);
-
   
-
   const startReply = (message) => {
     replyingTo.value = {
       id: message.getMessageID(),
-      text: message.getContent(),
     };
-
+    
     nextTick(() => {
       document.querySelector('.modern-message-box input').focus();
     });

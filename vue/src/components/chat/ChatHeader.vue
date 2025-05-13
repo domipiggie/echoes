@@ -57,7 +57,6 @@ const profilePicture = computed(() => {
         </div>
         <div class="user-details">
           <div class="user-name">{{ currentChannelName }}</div>
-          <div class="user-status">Online</div>
         </div>
       </div>
     </div>

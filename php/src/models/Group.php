@@ -1,12 +1,10 @@
 <?php
 class Group
 {
-    private $db;
     private $logger;
 
-    public function __construct($db, $logger = null)
+    public function __construct($logger = null)
     {
-        $this->db = $db;
         $this->logger = $logger;
     }
 
@@ -17,7 +15,7 @@ class Group
             [':groupID', $groupId]
         ];
         
-        $result = \DatabaseOperations::fetchFromDB($this->db, $sql, $args);
+        $result = \DatabaseOperations::fetchFromDB($sql, $args);
         
         if (count($result) == 0) {
             return false;
@@ -33,7 +31,7 @@ class Group
             [':groupID', $groupId]
         ];
         
-        $result = \DatabaseOperations::fetchFromDB($this->db, $sql, $args);
+        $result = \DatabaseOperations::fetchFromDB($sql, $args);
         
         if (count($result) == 0) {
             throw new \WebSocketException(
@@ -48,7 +46,7 @@ class Group
 
     public function getGroupInfo($groupId)
     {
-        $channel = new \Channel($this->db);
+        $channel = new \Channel();
         return $channel->getGroupInfo($groupId);
     }
 
@@ -60,7 +58,7 @@ class Group
             [':userID', $userId]
         ];
         
-        $userCheck = \DatabaseOperations::fetchFromDB($this->db, $sql, $args);
+        $userCheck = \DatabaseOperations::fetchFromDB($sql, $args);
         
         if (count($userCheck) == 0) {
             throw new \WebSocketException(
@@ -81,7 +79,7 @@ class Group
             [':userID', $userId]
         ];
         
-        \DatabaseOperations::fetchFromDB($this->db, $sql, $args);
+        \DatabaseOperations::fetchFromDB($sql, $args);
         return true;
     }
 
@@ -97,7 +95,7 @@ class Group
             $args[] = [':excludeUserID', $excludeUserId];
         }
         
-        return \DatabaseOperations::fetchFromDB($this->db, $sql, $args);
+        return \DatabaseOperations::fetchFromDB($sql, $args);
     }
 
     public function getMembersForNotification($channelId, $userId, $senderId)
@@ -109,12 +107,12 @@ class Group
             [':senderID', $senderId]
         ];
         
-        return \DatabaseOperations::fetchFromDB($this->db, $sql, $args);
+        return \DatabaseOperations::fetchFromDB($sql, $args);
     }
 
     public function validateFriendship($senderId, $userId)
     {
-        $friendship = new \Friendship($this->db, $senderId, $userId);
+        $friendship = new \Friendship($senderId, $userId);
         
         if (!$friendship->doesFriendshipExist() || $friendship->getFriendshipStatus() != 1) {
             throw new \WebSocketException(
@@ -127,7 +125,7 @@ class Group
 
     public function createGroupWithValidatedUsers($validUserIds, $groupName, $groupPicture, $senderId)
     {
-        $channel = new \Channel($this->db);
+        $channel = new \Channel();
         $channelId = $channel->createGroupChannel($validUserIds, $groupName, $groupPicture, $senderId);
 
         if (!$channelId) {
@@ -148,7 +146,7 @@ class Group
             [':channelID', $channelId]
         ];
         
-        $result = \DatabaseOperations::fetchFromDB($this->db, $sql, $args);
+        $result = \DatabaseOperations::fetchFromDB($sql, $args);
         
         if (count($result) == 0) {
             throw new \WebSocketException(
@@ -169,7 +167,7 @@ class Group
         return $result[0]['groupID'];
     }
 
-    public function setProfilePicture($profilePicture, $groupID, $dbConn)
+    public function setProfilePicture($profilePicture, $groupID)
     {
         try {
             $query = "UPDATE group_info
@@ -183,7 +181,7 @@ class Group
                 [':id', $groupID]
             ];
             
-            $result = DatabaseOperations::updateDB($dbConn, $query, $args);
+            $result = DatabaseOperations::updateDB($query, $args);
             
             if ($result > 0) {
                 return true;
@@ -206,7 +204,7 @@ class Group
                 [':groupId', $groupId]
             ];
             
-            $result = \DatabaseOperations::updateDB($this->db, $sql, $args);
+            $result = \DatabaseOperations::updateDB($sql, $args);
             
             if ($result <= 0) {
                 throw new \WebSocketException(
@@ -229,36 +227,31 @@ class Group
     public function deleteGroup($groupId, $channelId)
     {
         try {
-            $this->db->beginTransaction();
-            
             $sql = "DELETE FROM message WHERE channelID = :channelID";
             $args = [
                 [':channelID', $channelId]
             ];
-            \DatabaseOperations::updateDB($this->db, $sql, $args);
+            \DatabaseOperations::updateDB($sql, $args);
             
             $sql = "DELETE FROM channel_access WHERE channelID = :channelID";
             $args = [
                 [':channelID', $channelId]
             ];
-            \DatabaseOperations::updateDB($this->db, $sql, $args);
+            \DatabaseOperations::updateDB($sql, $args);
             
             $sql = "DELETE FROM channel_list WHERE channelID = :channelID";
             $args = [
                 [':channelID', $channelId]
             ];
-            \DatabaseOperations::updateDB($this->db, $sql, $args);
+            \DatabaseOperations::updateDB($sql, $args);
             
             $sql = "DELETE FROM group_info WHERE id = :groupID";
             $args = [
                 [':groupID', $groupId]
             ];
-            \DatabaseOperations::updateDB($this->db, $sql, $args);
-            
-            $this->db->commit();
+            \DatabaseOperations::updateDB($sql, $args);
             return true;
         } catch (\Exception $e) {
-            $this->db->rollBack();
             throw new \WebSocketException(
                 "Failed to delete group: " . $e->getMessage(),
                 "DELETE_GROUP_FAILED",

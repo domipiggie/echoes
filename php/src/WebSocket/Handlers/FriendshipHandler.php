@@ -12,16 +12,14 @@ class FriendshipHandler
 {
     protected $clients;
     protected $logger;
-    protected $dbConn;
     protected $notificationService;
     protected $errorHandler;
 
-    public function __construct(\SplObjectStorage $clients, Logger $logger, $dbConn)
+    public function __construct(\SplObjectStorage $clients, Logger $logger)
     {
         $this->clients = $clients;
         $this->logger = $logger;
-        $this->dbConn = $dbConn;
-        $this->notificationService = new NotificationService($clients, $logger, $dbConn);
+        $this->notificationService = new NotificationService($clients, $logger);
         $this->errorHandler = new ErrorHandlerService($logger);
     }
 
@@ -35,12 +33,12 @@ class FriendshipHandler
         $recipientId = $data['recipient_id'];
 
         try {
-            $friendship = new \Friendship($this->dbConn, $sender->id, $recipientId);
+            $friendship = new \Friendship($sender->id, $recipientId);
             $result = $friendship->sendFriendRequest($sender->id);
 
             try {
                 if ($result) {
-                    $channel = new \Channel($this->dbConn);
+                    $channel = new \Channel();
                     $channel->createFriendshipChannel($result);
                 }
             } catch (\Exception $e) {
@@ -82,7 +80,7 @@ class FriendshipHandler
 
         try {
             echo json_encode(["sender"=>$sender->id, "recipient"=>$recipientId]);
-            $friendship = new \Friendship($this->dbConn, $sender->id, $recipientId);
+            $friendship = new \Friendship($sender->id, $recipientId);
             $result = $friendship->declineFriendRequest();
 
             if ($result) {
@@ -121,7 +119,7 @@ class FriendshipHandler
         $recipientId = $data['recipient_id'];
 
         try {
-            $friendship = new \Friendship($this->dbConn, $sender->id, $recipientId);
+            $friendship = new \Friendship($sender->id, $recipientId);
             $result = $friendship->acceptFriendRequest($sender->id);
 
             if ($result) {
@@ -160,7 +158,7 @@ class FriendshipHandler
         $recipientId = $data['recipient_id'];
 
         try {
-            $friendship = new \Friendship($this->dbConn, $sender->id, $recipientId);
+            $friendship = new \Friendship($sender->id, $recipientId);
             $result = $friendship->removeFriend();
 
             if ($result) {

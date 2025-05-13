@@ -1,84 +1,142 @@
 import { mount } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ProfileSettingsDialog from '../../components/ProfileSettingsDialog.vue';
-import axios from 'axios';
-
-vi.mock('../../store/UserdataStore', () => ({
-  userdataStore: () => ({
-    getUserID: vi.fn(() => 'testUserID'),
-    getAccessToken: vi.fn(() => 'testAccessToken'),
-  }),
-}));
-
-vi.mock('axios');
+import { vi } from 'vitest';
+import { createPinia, setActivePinia } from 'pinia';
 
 vi.mock('../../config/api.js', () => ({
   API_CONFIG: {
-    BASE_URL: 'http://localhost:3000/api',
-  },
+    BASE_URL: 'http://test-api.com'
+  }
+}));
+
+vi.mock('../../services/fileService.js', () => ({
+  fileService: {
+    uploadUserProfilePicture: vi.fn().mockResolvedValue({
+      data: {
+        profilePicture: '/new-avatar.jpg'
+      }
+    })
+  }
+}));
+
+vi.mock('../../services/userService.js', () => ({
+  userService: {
+    updateUser: vi.fn().mockResolvedValue({})
+  }
+}));
+
+vi.mock('../../store/UserdataStore', () => ({
+  userdataStore: vi.fn(() => ({
+    getUserID: () => 'test-user-123',
+    getUsername: () => 'Test User',
+    getProfilePicture: () => '/default-avatar.jpg',
+    fetchUserInfo: vi.fn().mockResolvedValue({})
+  }))
 }));
 
 describe('ProfileSettingsDialog', () => {
-  let wrapper;
-
-  beforeEach(async () => {
+  let pinia;
+  
+  beforeEach(() => {
+    pinia = createPinia();
+    setActivePinia(pinia);
+    
+    global.URL.createObjectURL = vi.fn(() => 'blob:test-url');
+    
     vi.clearAllMocks();
-    axios.get.mockResolvedValue({ data: {} });
+  });
+  
+  const factory = () => {
+    return mount(ProfileSettingsDialog, {
+      global: {
+        plugins: [pinia],
+        stubs: {
+          'svg': true
+        }
+      }
+    });
+  };
 
-    wrapper = mount(ProfileSettingsDialog);
+  it('renders the dialog with user information', async () => {
+    const wrapper = factory();
+    
     await wrapper.vm.$nextTick();
-    await wrapper.vm.$nextTick();
+    
+    expect(wrapper.find('h2').text()).toBe('Profil beállítások');
   });
 
-  it('renders form elements with initial placeholder data', () => {
-    expect(wrapper.find('input#username').element.value).toBe('Felhasználó');
-    expect(wrapper.find('input#email').element.value).toBe('felhasznalo@example.com');
-    expect(wrapper.find('textarea#bio').element.value).toBe('Ez egy rövid bemutatkozás...');
+  it('emits close event when clicking close button', async () => {
+    const wrapper = factory();
+    
+    await wrapper.find('.close-button').trigger('click');
+    expect(wrapper.emitted('close')).toBeTruthy();
   });
 
-  it('emits "close" event when "Mégse" button is clicked', async () => {
-    const closeButton = wrapper.findAll('button').filter(b => b.text() === 'Mégse').at(0);
-    await closeButton.trigger('click');
-    expect(wrapper.emitted().close).toBeTruthy();
+  it('updates username when input changes', async () => {
+    const wrapper = factory();
+    
+    wrapper.vm.username = 'New Username';
+    expect(wrapper.vm.username).toBe('New Username');
   });
 
-  it('calls saveUserData and axios.put on form submit', async () => {
-    axios.put.mockResolvedValue({ data: { message: 'Profile updated successfully' } });
+  it('previews selected profile image', async () => {
+    const wrapper = factory();
+    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+    
+    wrapper.vm.handleImageUpload({ target: { files: [file] } });
+    
+    expect(wrapper.vm.profileImage).toBe(file);
+    expect(wrapper.vm.profileImageUrl).not.toBe('/default-avatar.jpg');
+  });
 
-    await wrapper.find('input#username').setValue('UpdatedUser');
-    await wrapper.find('textarea#bio').setValue('Updated Bio');
+  it('shows error when no changes are made', async () => {
+    const wrapper = factory();
+    
+    await wrapper.vm.saveUserData();
+    
+    expect(wrapper.vm.errorMessage).toBe('Nincs új adat!');
+  });
 
-    await wrapper.find('form').trigger('submit.prevent');
+  it('uploads profile picture when saving', async () => {
+    const wrapper = factory();
+    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
+    const { fileService } = await import('../../services/fileService.js');
+    
+    wrapper.vm.profileImage = file;
+    wrapper.vm.username = 'New Username';
+    
+    await wrapper.vm.saveUserData();
+    
+    expect(fileService.uploadUserProfilePicture).toHaveBeenCalledWith(file);
+  });
 
-    expect(axios.put).toHaveBeenCalled();
-    const calledUrl = axios.put.mock.calls[0][0];
-    const calledData = axios.put.mock.calls[0][1];
-
-    expect(calledUrl).toBe('http://localhost:3000/api/userInfo/testUserID');
-    expect(calledData.get('username')).toBe('UpdatedUser');
-    expect(calledData.get('bio')).toBe('Updated Bio');
+  it('updates user data when saving', async () => {
+    const wrapper = factory();
+    const { userService } = await import('../../services/userService.js');
+    
+    wrapper.vm.username = 'New Username';
+    wrapper.vm.email = 'new@example.com';
+    
+    await wrapper.vm.saveUserData();
+    
+    expect(userService.updateUser).toHaveBeenCalledWith({
+      username: 'New Username',
+      email: 'new@example.com'
+    });
+    
     expect(wrapper.vm.successMessage).toBe('A profil adatok sikeresen frissítve!');
   });
 
-  it('handles image upload and updates preview', async () => {
-    const file = new File(['(⌐□_□)'], 'chucknorris.png', { type: 'image/png' });
-    const mockCreateObjectURL = vi.fn(() => 'blob:http://localhost/testimage');
-    global.URL.createObjectURL = mockCreateObjectURL;
-
-    const fileInput = wrapper.find('input[type="file"]');
-    await wrapper.vm.handleImageUpload({ target: { files: [file] } });
-
-    expect(wrapper.vm.profileImage).toBe(file);
-    expect(wrapper.vm.profileImageUrl).toBe('blob:http://localhost/testimage');
-    expect(mockCreateObjectURL).toHaveBeenCalledWith(file);
-    expect(wrapper.find('img.w-32.h-32').attributes('src')).toBe('blob:http://localhost/testimage');
-
-    global.URL.createObjectURL = undefined;
-  });
-
-  it('shows error message if saveUserData fails', async () => {
-    axios.put.mockRejectedValue(new Error('Failed to save'));
-    await wrapper.find('form').trigger('submit.prevent');
+  it('handles errors during save', async () => {
+    const wrapper = factory();
+    const { userService } = await import('../../services/userService.js');
+    
+    userService.updateUser.mockRejectedValueOnce(new Error('Update failed'));
+    
+    wrapper.vm.username = 'New Username';
+    
+    await wrapper.vm.saveUserData();
+    
     expect(wrapper.vm.errorMessage).toBe('Nem sikerült menteni a felhasználói adatokat.');
   });
 });

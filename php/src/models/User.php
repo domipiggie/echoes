@@ -1,8 +1,6 @@
 <?php
 class User
 {
-    private $dbConn;
-
     private $table_name = "user";
 
     private $userID;
@@ -11,12 +9,6 @@ class User
     private $email;
     private $passwordHash;
     private $profilePicture;
-
-
-    public function __construct($dbConn)
-    {
-        $this->dbConn = $dbConn;
-    }
 
     // CREATE
     public function createUser($username, $email, $password)
@@ -37,7 +29,7 @@ class User
         ];
 
         try {
-            $results = DatabaseOperations::insertIntoDB($this->dbConn, $query, $args);
+            $results = DatabaseOperations::insertIntoDB($query, $args);
             if (count($results) > 0 && $results[0] > 0) {
                 $this->userID = $results[1];
                 $this->username = $username;
@@ -65,7 +57,7 @@ class User
                 [':userID', $id]
             ];
 
-            $results = DatabaseOperations::fetchFromDB($this->dbConn, $query, $args);
+            $results = DatabaseOperations::fetchFromDB($query, $args);
 
             if (count($results) === 0) {
                 throw new ApiException('User not found', 404);
@@ -99,7 +91,7 @@ class User
                 [':email', $email]
             ];
 
-            $results = DatabaseOperations::fetchFromDB($this->dbConn, $query, $args);
+            $results = DatabaseOperations::fetchFromDB($query, $args);
 
             if (count($results) === 0) {
                 throw new ApiException('User not found', 404);
@@ -133,7 +125,7 @@ class User
                 [':username', $username]
             ];
 
-            $results = DatabaseOperations::fetchFromDB($this->dbConn, $query, $args);
+            $results = DatabaseOperations::fetchFromDB($query, $args);
 
             if (count($results) === 0) {
                 throw new ApiException('User not found', 404);
@@ -174,7 +166,7 @@ class User
                 [':email', $email]
             ];
 
-            $results = DatabaseOperations::fetchFromDB($this->dbConn, $query, $args);
+            $results = DatabaseOperations::fetchFromDB($query, $args);
 
             return count($results) > 0;
         } catch (Exception $e) {
@@ -194,7 +186,7 @@ class User
                 [':username', $username]
             ];
 
-            $results = DatabaseOperations::fetchFromDB($this->dbConn, $query, $args);
+            $results = DatabaseOperations::fetchFromDB($query, $args);
 
             return count($results) > 0;
         } catch (Exception $e) {
@@ -247,7 +239,7 @@ class User
                 [':userID', $this->userID]
             ];
             
-            $result = DatabaseOperations::updateDB($this->dbConn, $query, $args);
+            $result = DatabaseOperations::updateDB($query, $args);
             
             if ($result > 0) {
                 $this->profilePicture = $profilePicture;
@@ -280,7 +272,7 @@ class User
                 [':userID', $this->userID]
             ];
             
-            $result = DatabaseOperations::updateDB($this->dbConn, $query, $args);
+            $result = DatabaseOperations::updateDB($query, $args);
             
             if ($result > 0) {
                 $this->username = $username;
@@ -317,7 +309,7 @@ class User
                 [':userID', $this->userID]
             ];
             
-            $result = DatabaseOperations::updateDB($this->dbConn, $query, $args);
+            $result = DatabaseOperations::updateDB($query, $args);
             
             if ($result > 0) {
                 $this->email = $email;

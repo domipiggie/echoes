@@ -2,13 +2,6 @@
 
 class AuthController
 {
-    private $dbConn;
-
-    public function __construct($dbConn)
-    {
-        $this->dbConn = $dbConn;
-    }
-
     public function handleRegister($data)
     {
         try {
@@ -21,7 +14,7 @@ class AuthController
 
             JWTTools::validateAuthData($data);
 
-            ResponseHandler::success(AuthMiddleware::register($this->dbConn, $data));
+            ResponseHandler::success(AuthMiddleware::register($data));
         } catch (ApiException $apie) {
             throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
@@ -41,7 +34,7 @@ class AuthController
 
             JWTTools::validateAuthData($data);
 
-            ResponseHandler::success(AuthMiddleware::login($this->dbConn, $data));
+            ResponseHandler::success(AuthMiddleware::login($data));
         } catch (ApiException $apie) {
             throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
@@ -59,7 +52,7 @@ class AuthController
                 throw new ApiException('Missing required fields', 400);
             }
 
-            ResponseHandler::success(AuthMiddleware::refresh($this->dbConn, $data['refresh_token']));
+            ResponseHandler::success(AuthMiddleware::refresh($data['refresh_token']));
         } catch (ApiException $apie) {
             throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
@@ -77,7 +70,7 @@ class AuthController
                 throw new ApiException('Missing required fields', 400);
             }
 
-            ResponseHandler::success(AuthMiddleware::logout($this->dbConn, $data['refresh_token']));
+            ResponseHandler::success(AuthMiddleware::logout($data['refresh_token']));
         } catch (ApiException $apie) {
             throw new ApiException($apie->getMessage(), $apie->getStatusCode());
         } catch (Exception $e) {
