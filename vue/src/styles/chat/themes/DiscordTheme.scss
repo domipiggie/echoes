@@ -15,20 +15,16 @@
     overflow: hidden;
     line-height: 0;
     
-    video::-webkit-media-controls-fullscreen-button {
-      display: none !important;
-    }
-    
-    video::-webkit-media-controls-overflow-button {
-      display: none !important;
-    }
-    
-    video::-webkit-media-controls-toggle-closed-captions-button {
-      display: none !important;
-    }
-    
-    video::-webkit-media-controls-enclosure {
-      overflow: hidden !important;
+    video::-webkit-media-controls {
+      &-fullscreen-button,
+      &-overflow-button,
+      &-toggle-closed-captions-button {
+        display: none !important;
+      }
+      
+      &-enclosure {
+        overflow: hidden !important;
+      }
     }
   }
   
@@ -49,6 +45,7 @@
   }
 }
 
+// Üzenet buborék
 .discord-bubble {
   background-color: #f0f2ff !important;
   color: #484a6a !important;
@@ -65,17 +62,36 @@
   }
 }
 
-.message-sent.discord-style .discord-bubble {
-  background-color: #7078e6 !important;
-  color: #fff !important;
+// Saját üzenetek
+.message-sent {
+  &.discord-style .discord-bubble {
+    background-color: #7078e6 !important;
+    color: #fff !important;
+  }
+  
+  .message-bubble {
+    color: #ffffff;
+    font-weight: 500;
+  }
+  
+  .reply-content .reply-text {
+    color: #333333;
+    opacity: 1;
+  }
+  
+  .revoked-message {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: line-through;
+  }
 }
 
+// Üzenet konténer és elrendezés
 .discord-message-container {
   display: flex;
   width: 100%;
   margin-bottom: 0.5px;
   padding: 0.5px 0;
-  gap: 8px; /* Vékony margó a profilkép és az üzenet konténer között */
+  gap: 8px;
 }
 
 .discord-message-content {
@@ -91,6 +107,15 @@
   margin-bottom: 2px;
 }
 
+// Küldő neve
+.sender-name {
+  margin-left: 72px;
+  margin-bottom: 0;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+// Üzenet wrapper és akciók
 .discord-message-wrapper {
   position: relative;
   display: block;
@@ -98,34 +123,75 @@
   
   &:hover .discord-hover-actions {
     opacity: 1;
-    pointer-events: all; /* Engedélyezzük a kattintást hover esetén */
+    pointer-events: all;
   }
+}
+
+// Válasz jelölő
+.discord-reply-indicator {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+  font-size: 0.85em;
+  color: #72767d;
+  background-color: #e0e5ff;
+  padding: 4px 8px;
+  border-radius: 4px;
   
-  .discord-reply-indicator {
-    display: flex;
-    align-items: center;
-    margin-bottom: 4px;
-    font-size: 0.85em;
+  .reply-arrow {
+    margin-right: 5px;
     color: #72767d;
     
-    .reply-arrow {
-      margin-right: 5px;
-      color: #72767d;
-      
-      svg {
-        width: 12px;
-        height: 12px;
-      }
+    svg {
+      width: 12px;
+      height: 12px;
     }
-    
-    .reply-content {
-      .reply-text {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 200px;
-      }
+  }
+  
+  .reply-content {
+    .reply-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
+      color: #333333;
+      opacity: 1;
     }
+  }
+}
+
+// Média tartalmak
+.message-image {
+  max-width: 300px;
+  max-height: 300px;
+  border-radius: 4px;
+}
+
+// GIF konténer stílusok
+.gif-container {
+  background-color: rgba(138, 43, 226, 0.1);
+  border-radius: 8px;
+  padding: 8px;
+  margin: 4px 0;
+  
+  .message-gif {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 4px;
+  }
+}
+
+// Válasz GIF konténer
+.reply-content .reply-gif-container {
+  background-color: rgba(138, 43, 226, 0.1);
+  border-radius: 6px;
+  padding: 6px;
+  margin: 2px 0;
+  
+  .reply-gif {
+    max-width: 150px;
+    max-height: 150px;
+    border-radius: 3px;
   }
 }
 
@@ -144,16 +210,23 @@
   border-radius: 4px;
   padding: 4px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  pointer-events: auto; /* Javítva: engedélyezzük a kattintást mindig */
+  pointer-events: auto;
   
   .hover-action-btn {
     width: 24px;
     height: 24px;
     background: transparent;
     box-shadow: none;
-    pointer-events: auto; /* Biztosítjuk, hogy a gomb mindig kattintható legyen */
+    pointer-events: auto;
+    display: block;
+    padding: 8px;
+    transition: background-color 0.2s ease;
+    border-radius: 4px;
+    text-align: center;
     
     svg {
+      width: 16px;
+      height: 16px;
       stroke: #484a6a;
     }
     

@@ -165,68 +165,6 @@ const handleImageUpload = (event) => {
 <style lang="scss" scoped>
 @import '../../styles/chat/MessageInput.scss';
 
-.edit-box {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 8px 12px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-}
 
-.edit-box-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.edit-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.edit-label {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 2px;
-}
-
-.cancel-edit-btn {
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.7);
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s;
-  
-  &:hover {
-    color: #ffffff;
-  }
-}
-
-.reply-box {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 8px 12px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-}
-
-.reply-box-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.reply-info {
-  display: flex;
-  flex-direction: column;
-}
 
 </style>
