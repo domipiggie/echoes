@@ -1,0 +1,106 @@
+// Lebegő műveletek
+.message-hover-actions {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 100;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none; /* Fontos: ez volt a probléma */
+}
+
+.message-sent .message-hover-actions {
+  right: calc(100% + 8px);
+}
+
+.message-received .message-hover-actions {
+  left: calc(100% + 8px);
+}
+
+.message:hover .message-hover-actions {
+  opacity: 1;
+  pointer-events: all; /* Engedélyezzük a kattintást hover esetén */
+}
+
+// Lebegő művelet gombok
+.hover-action-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(112, 120, 230, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  pointer-events: auto; /* Biztosítjuk, hogy a gomb mindig kattintható legyen */
+  
+  svg {
+    width: 14px;
+    height: 14px;
+    stroke: #fff;
+    stroke-width: 2;
+  }
+  
+  &:hover {
+    transform: scale(1.1);
+    background: #5a61d2;
+    box-shadow: 0 4px 12px rgba(112, 120, 230, 0.3);
+    
+    svg {
+      stroke-width: 2.2;
+    }
+  }
+}
+
+// Üzenet opciók
+.message-options-dropdown {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 8px 0;
+  z-index: 1000;
+}
+
+.message-option {
+  padding: 8px 16px;
+  color: #484a6a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color .2s;
+  
+  &:hover {
+    background-color: #f0f4ff;
+  }
+  
+  &.delete {
+    color: #ff4757;
+  }
+}
+
+// Sötét mód
+.dark-mode {
+  .message-options-dropdown {
+    background: #2d2d3a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .message-option {
+    color: #e0e0e0;
+    
+    &:hover {
+      background-color: #3d3d4a;
+    }
+  }
+}

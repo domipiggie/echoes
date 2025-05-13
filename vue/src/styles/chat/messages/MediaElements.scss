@@ -1,0 +1,145 @@
+// Média elemek
+.message-gif, .message-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  object-fit: contain;
+  margin: 2px 0;
+  display: block;
+}
+
+.message-video {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  object-fit: contain;
+  margin: 2px 0;
+  background: #000;
+  box-shadow: 0 2px 8px rgba(112, 120, 230, 0.15);
+  border: 1px solid rgba(112, 120, 230, 0.3);
+  display: block;
+  
+  &::-webkit-media-controls-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+    padding: 8px;
+  }
+  
+  &::-webkit-media-controls-play-button {
+    display: block;
+    opacity: .9;
+  }
+  
+  &::-webkit-media-controls-timeline, 
+  &::-webkit-media-controls-current-time-display, 
+  &::-webkit-media-controls-time-remaining-display, 
+  &::-webkit-media-controls-mute-button, 
+  &::-webkit-media-controls-volume-slider, 
+  &::-webkit-media-controls-fullscreen-button {
+    display: none;
+  }
+}
+
+// Videó konténer
+.video-container {
+  position: relative;
+  display: inline-block;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 4px 0;
+  background: #000;
+  max-width: 100%;
+  width: 100%;
+  
+  .message-video {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+// Videó opciók
+.video-options {
+  position: absolute;
+  bottom: 8px;
+  right: 16px;
+  z-index: 10;
+}
+
+.video-options-button {
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  width: 28px;
+  height: 28px;
+  max-width: 28px;
+  max-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  transition: background .2s ease;
+  
+  &:hover {
+    background: rgba(0, 0, 0, 0.8);
+  }
+  
+  svg {
+    width: 16px;
+    height: 16px;
+    stroke: #fff;
+    stroke-width: 2.5;
+  }
+}
+
+.video-options-menu {
+  position: absolute;
+  right: 8px;
+  top: -40px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  min-width: 150px;
+  padding: 4px 0;
+}
+
+.video-option-item {
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  color: #333;
+  transition: background-color .2s;
+  white-space: nowrap;
+  
+  &:hover {
+    background-color: #f0f4ff;
+  }
+  
+  svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+}
+
+// Sötét mód
+.dark-mode {
+  .video-options-menu {
+    background: #2d2d3a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .video-option-item {
+    color: #e0e0e0;
+    
+    &:hover {
+      background-color: #3d3d4a;
+    }
+  }
+}

@@ -35,9 +35,11 @@ const login = () => {
     <form @submit.prevent="login">
       <h1>Üdv újra itt!</h1>
       <span class="alcim">Jelentkezz be gyorsan!</span>
-      <input type="text" v-model="email" placeholder="Felhasználónév vagy email" :class="{ 'error': errorMessage }" style="font-style: italic;"/>
+      <input type="text" v-model="email" placeholder="Email cím" :class="{ 'error': errorMessage }"
+        style="font-style: italic;" />
       <span v-if="errorMessage" class="error-text">{{ errorMessageEmail }}</span>
-      <input type="password" v-model="password" placeholder="Jelszó" :class="{ 'error': errorMessage }" style="font-style: italic;"/>
+      <input type="password" v-model="password" placeholder="Jelszó" :class="{ 'error': errorMessage }"
+        style="font-style: italic;" />
       <span v-if="errorMessage" class="error-text">{{ errorMessagePassw }}</span>
       <button type="submit" class="registration">Bejelentkezés</button>
     </form>
@@ -60,11 +62,15 @@ const login = () => {
 }
 
 @keyframes show {
-  0%, 49.99% {
+
+  0%,
+  49.99% {
     opacity: 0;
     z-index: 1;
   }
-  50%, 100% {
+
+  50%,
+  100% {
     opacity: 1;
     z-index: 5;
   }
@@ -83,12 +89,12 @@ form {
 
 input {
   background-color: #ffffff;
-  border: none;
-  padding: 12px 15px;
-  margin: 8px 0;
-  width: 100%;
   border: 1px solid #dcdef5;
   border-radius: 5px;
+  padding: 8px 12px;
+  margin: 8px 0;
+  width: 100%;
+  height: 36px;
 }
 
 input.error {
@@ -100,14 +106,49 @@ input.error {
   font-size: 14px;
   margin-bottom: 8px;
 }
-.registration{
+
+.registration {
   background-color: #7078e6;
 }
-h1{
+
+h1 {
   color: #7078e6;
 }
-.alcim{
+
+.alcim {
   font-weight: bold;
 }
-</style>
 
+@media (max-width: 768px) {
+  .sign-up-container {
+    position: static;
+    width: 100%;
+    height: auto;
+    transform: none !important;
+    opacity: 1;
+    z-index: 2;
+    padding: 10px;
+  }
+
+  form {
+    padding: 25px;
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    min-height: auto;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(112, 120, 230, 0.1);
+  }
+
+  input {
+    max-width: 100%;
+  }
+
+  button {
+    width: 100%;
+    max-width: 200px;
+  }
+}
+</style>

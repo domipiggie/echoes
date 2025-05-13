@@ -5,20 +5,20 @@ class Database
     private $db_name = "echoes";
     private $username = "username";
     private $password = "password";
+    private $conn;
 
     public function getConnection()
     {
-        $conn = null;
         try {
-            $conn = new PDO(
+            $this->conn = new PDO(
                 "mysql:host=" . $this->host . ";dbname=" . $this->db_name,
                 $this->username,
-                $this->password
+                $this->password,
+                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
             );
-            $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
-            echo "Connection Error: " . $e->getMessage();
+            throw new ApiException('Connection failed: ' . $e->getMessage(), 500);
         }
-        return $conn;
+        return $this->conn;
     }
 }

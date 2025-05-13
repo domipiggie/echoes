@@ -1,0 +1,95 @@
+// Header stílusok
+.chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: #fff;
+  border-bottom: 1px solid rgba(112, 120, 230, 0.2);
+  height: 70px;
+  box-shadow: 0 2px 10px rgba(112, 120, 230, 0.1);
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+// User információ
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #484a6a;
+  transition: color .2s ease;
+  
+  &:hover {
+    color: #7078e6;
+  }
+}
+
+.user-status {
+  font-size: 12px;
+  color: #7078e6;
+}
+
+// Gombok
+.back-button, .more-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #7078e6;
+  padding: 4px;
+  transition: all .2s ease;
+}
+
+.back-button {
+  margin-right: 12px;
+  
+  &:hover {
+    transform: translateX(-2px);
+  }
+}
+
+.more-button {
+  transition: transform .3s ease;
+  padding: 6px;
+  border-radius: 50%;
+  
+  &:hover {
+    transform: rotate(90deg);
+    background-color: rgba(112, 120, 230, 0.1);
+  }
+}
+
+// Sötét mód
+.dark-mode {
+  .chat-header {
+    background-color: #2d2d3a;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .user-name {
+    color: #e0e0e0;
+    
+    &:hover {
+      color: #a0a0ff;
+    }
+  }
+  
+  .user-status {
+    color: #a0a0ff;
+  }
+  
+  .back-button, .more-button {
+    color: #a0a0ff;
+  }
+}

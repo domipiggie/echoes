@@ -2,27 +2,85 @@
 </script>
 
 <template>
-    <div class="overlay-container">
-      <div class="overlay">
-        <div class="overlay-panel overlay-left">
-          <h1> "A new era!"</h1>
-          <p>Ha még nem regisztráltál, itt megteheted!</p>
-          <button class="ghost" @click="$emit('deactivate-right-panel')">
-            Regisztráció
-          </button>
-        </div>
-        <div class="overlay-panel overlay-right">
-          <h1>"Welcome back, Frank"</h1>
-          <p>Van már fiókod? Itt bejelentkezhetsz!</p>
-          <button class="ghost" @click="$emit('activate-right-panel')">
-            Bejelentkezés
-          </button>
-        </div>
+  <div class="overlay-container">
+    <div class="overlay">
+      <div class="overlay-panel overlay-left">
+        <h1> "A new era!"</h1>
+        <p>Ha még nem regisztráltál, itt megteheted!</p>
+        <button class="ghost" @click="$emit('deactivate-right-panel')">
+          Regisztráció
+        </button>
+      </div>
+      <div class="overlay-panel overlay-right">
+        <h1>"Welcome back, Frank"</h1>
+        <p>Van már fiókod? Itt bejelentkezhetsz!</p>
+        <button class="ghost" @click="$emit('activate-right-panel')">
+          Bejelentkezés
+        </button>
       </div>
     </div>
+  </div>
 </template>
 
 <style scoped>
+@media (max-width: 768px) {
+  .overlay-container {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    left: auto !important;
+    top: auto !important;
+    overflow: visible !important;
+    z-index: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .overlay {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    left: 0 !important;
+    transform: none !important;
+    transition: none !important;
+    border-radius: 15px;
+    MAX-WIDTH: 400PX;
+    MARGIN-LEFT: AUTO;
+    MARGIN-RIGHT: AUTO;
+  }
+
+  .overlay-panel {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 30px 20px !important;
+    transform: none !important;
+    transition: none !important;
+    display: block !important;
+  }
+
+  .overlay-left {
+    display: none !important;
+  }
+
+  .overlay-right {
+    display: block !important;
+    right: auto !important;
+  }
+
+  .container.right-panel-active .overlay-right {
+    display: none !important;
+  }
+
+  .container.right-panel-active .overlay-left {
+    display: block !important;
+  }
+
+  .ghost {
+    margin: 15px 0 5px;
+    min-width: 120px;
+  }
+}
 .overlay-container {
   position: absolute;
   top: 0;
@@ -90,8 +148,3 @@
   transform: translateX(20%);
 }
 </style>
-
-
-
-
- 

@@ -1,80 +1,137 @@
 <?php
 class FriendshipStatus
 {
-    private $conn;
-    private $status_table = 'friendshipStatus';
-    public $statusID;
-    public $initiator;
-    public $status;
-
-    public function __construct($db)
-    {
-        $this->conn = $db;
-    }
+    private $status_table = 'friendshipstatus';
+    private $statusID;
+    private $initiator;
+    private $status;
 
     public function loadFromDB($statusID)
     {
-        $query = "SELECT * FROM " . $this->status_table ."
-                WHERE 
-                    statusID = :statusID";
-            
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':statusID', $statusID);
-        $stmt->execute();
-        if ($stmt->rowCount() > 0) {
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            $this->statusID = $row['statusID'];
-            $this->initiator = $row['initiator'];
-            $this->status = $row['status'];
-            return true;
+        try {
+            $sql = "SELECT * FROM " . $this->status_table . "
+                    WHERE 
+                        statusID = :statusID";
+
+            $args = [
+                [':statusID', $statusID]
+            ];
+
+            $result = DatabaseOperations::fetchFromDB($sql, $args);
+
+            if (count($result) > 0) {
+                $row = $result[0];
+                $this->statusID = $row['statusID'];
+                $this->initiator = $row['initiator'];
+                $this->status = $row['status'];
+                return true;
+            }
+            throw new ApiException('Loading friendship status yielded no result', 500);
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to load friendship status ' . $e->getMessage(), 500);
         }
-        return false;
     }
 
     public function createNewEntry($initiator)
     {
-        $this->initiator = $initiator;
-        $sql = "INSERT INTO " . $this->status_table . "
-                SET
-                    initiator = :initiator,
-                    status = 0;";
+        try {
+            $this->initiator = $initiator;
+            $sql = "INSERT INTO " . $this->status_table . "
+                    SET
+                        initiator = :initiator,
+                        status = 0;";
 
-        $stmt = $this->conn->prepare($sql);
+            $args = [
+                [':initiator', $this->initiator]
+            ];
 
-        $stmt->bindParam(':initiator', $this->initiator);
+            $result = DatabaseOperations::insertIntoDB($sql, $args);
 
-        $stmt->execute();
-
-        $this->statusID = $this->conn->lastInsertId();
-        $this->status = 0;
-    }
-
-    public function removeEntry()
-    {
-        $query = "DELETE FROM " . $this->status_table . "
-                WHERE
-                    statusID = :statusID";
-
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':statusID', $this->statusID);
-        $stmt->execute();
+            if ($result) {
+                $this->statusID = $result[1];
+                $this->status = 0;
+                return $this->statusID;
+            }
+            throw new ApiException('Creating new friendship status yielded no result', 500);
+        } catch (ApiException $e) {
+            throw $e;
+        } catch (Exception $e) {
+            throw new ApiException('Failed to create new friendship status ' . $e->getMessage(), 500);
+        }
     }
 
     public function updateStatus($status)
     {
-        $query = "UPDATE " . $this->status_table . "
-                SET
-                    status = :newStatus
-                WHERE
-                    statusID = :statusID";
-                
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(':newStatus', $status);
-        $stmt->bindParam(':statusID', $this->statusID);
-        $stmt->execute();
-        if ($stmt->rowCount() > 0){
-            return true;
+        try {
+            $sql = "UPDATE " . $this->status_table . "
+                    SET
+                        status = :newStatus
+                    WHERE
+                        statusID = :statusID";
+
+            $args = [
+                [':newStatus', $status],
+                [':statusID', $this->statusID]
+            ];
+
+            $result = DatabaseOperations::updateDB($sql, $args);
+
+            if ($result === true || (is_numeric($result) && $result > 0)) {
+                $this->status = $status;
+                return true;
+            }
+            throw new ApiException('Updating friendship status yielded no result', 500);
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to update friendship status ' . $e->getMessage(), 500);
         }
-        return false;
+    }
+
+    public function updateInitiator($newInitiator)
+    {
+        try {
+            $sql = "UPDATE " . $this->status_table . "
+                    SET
+                        initiator = :newInitiator
+                    WHERE
+                        statusID = :statusID";
+
+            $args = [
+                [':newInitiator', $newInitiator],
+                [':statusID', $this->statusID]
+            ];
+
+            $result = DatabaseOperations::updateDB($sql, $args);
+
+            if ($result === true || (is_numeric($result) && $result > 0)) {
+                $this->initiator = $newInitiator;
+                return true;
+            }
+            return false;
+            throw new ApiException('Updating friendship initiator yielded no result', 500);
+        } catch (ApiException $e) {
+            throw new ApiException($e->getMessage(), $e->getStatusCode());
+        } catch (Exception $e) {
+            throw new ApiException('Failed to update friendship initiator ' . $e->getMessage(), 500);
+        }
+    }
+    
+    //getters
+    public function getStatusID()
+    {
+        return $this->statusID;
+    }
+
+    public function getInitiator()
+    {
+        return $this->initiator;
+    }
+
+    public function getStatus()
+    {
+        return $this->status;
     }
 }

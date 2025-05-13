@@ -1,0 +1,468 @@
+// Globális sötét mód stílusok
+.dark-mode {
+  // Alap háttér és szöveg színek
+  background-color: #181825 !important;
+  color: #e0e0e0 !important;
+  
+  // Biztosítjuk, hogy az App gyökér elem és a body is sötét hátteret kapjon
+  #app, body {
+    background-color: #181825 !important;
+    color: #e0e0e0 !important;
+  }
+  
+  // Oldalsáv (SideBar) sötét mód
+  .sidebar {
+    background: linear-gradient(135deg, #2d2d3a, #252536) !important;
+    border-right: none !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
+    
+    .tab-navigation {
+      background: rgba(0, 0, 0, 0.2) !important;
+      border-bottom: none !important;
+    }
+    
+    .tab-button {
+      color: rgba(255, 255, 255, 0.6) !important;
+      
+      &.active {
+        color: #fff !important;
+      }
+      
+      &::before {
+        background: rgba(255, 255, 255, 0.05) !important;
+      }
+    }
+    
+    .sidebar-header {
+      background-color: #252536 !important;
+      border-bottom: none !important;
+    }
+    
+    .sidebar-item {
+      color: #e0e0e0 !important;
+      
+      &:hover {
+        background-color: #333345 !important;
+      }
+      
+      &.active {
+        background-color: #3a3a4f !important;
+      }
+    }
+    
+    .sidebar-footer {
+      background-color: #252536 !important;
+      border-top: none !important;
+    }
+    
+    .search-container {
+      background-color: transparent !important;
+      border: none !important;
+      
+      input {
+        color: #e0e0e0 !important;
+        background-color: transparent !important;
+        
+        &::placeholder {
+          color: #888 !important;
+        }
+      }
+    }
+  }
+  
+  // Profil panel sötét mód
+  .chat-profile, .chat-profile-sidebar, .profile-overlay, .profile-sidebar {
+    background-color: #1a1a2e !important;
+    border-left: none !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
+    color: #e0e0e0 !important;
+    
+    .profile-header {
+      background: linear-gradient(135deg, #2a2a3d, #1a1a2e) !important;
+      border-bottom: none !important;
+      color: #e0e0e0 !important;
+      
+      h2 {
+        color: #e0e0e0 !important;
+      }
+      
+      .last-seen {
+        color: rgba(224, 224, 224, 0.8) !important;
+      }
+    }
+    
+    .profile-section {
+      background-color: #1a1a2e !important;
+      border-bottom: none !important;
+      
+      h3 {
+        color: #e0e0e0 !important;
+      }
+    }
+    
+    .profile-button, .profile-option {
+      color: #e0e0e0 !important;
+      background-color: transparent !important;
+      
+      &:hover {
+        background-color: #333345 !important;
+      }
+      
+      .button-icon {
+        background: transparent !important;
+        color: #7078e6 !important;
+      }
+    }
+    
+    // Helyett specifikusabb szelektorokat használunk
+    .media-item, .media-placeholder, .video-preview {
+      background-color: #333345 !important;
+      border: none !important;
+    }
+    
+    .video-icon {
+      background: rgba(0, 0, 0, 0.5) !important;
+    }
+  }
+  
+  // Chat ablak sötét mód
+  .chat-window {
+    background-color: #1e1e2e !important;
+    border-radius: 8px !important;
+    border: none !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+    
+    .message-container {
+      background-color: transparent !important;
+    }
+    
+    .messages-container {
+      background-color: #1e1e2e !important;
+      color: #e0e0e0 !important;
+    }
+    
+    .input-area {
+      background-color: #1a1a2e !important;
+      border-top: 1px solid #2a2a3d !important;
+    }
+  }
+  
+  // Fejléc sötét mód
+  .chat-header {
+    background-color: #1a1a2e !important;
+    border-bottom: none !important;
+  }
+  
+  // Üzenet beviteli mező sötét mód
+  .message-input-container, .input-area {
+    background-color: #1a1a2e !important;
+    border-top: none !important;
+    
+    .message-input-wrapper, .modern-message-box {
+      background-color: #2a2a3d !important;
+    }
+  }
+  
+  // Modern üzenet beviteli mező
+  .modern-message-box {
+    background-color: #2a2a3d !important;
+    
+    input {
+      color: #e0e0e0 !important;
+      background-color: transparent !important;
+      
+      &::placeholder {
+        color: #888 !important;
+      }
+    }
+  }
+  
+  // Videó opciók menü
+  .video-options-menu {
+    background-color: #1a1a2e !important;
+    border: 1px solid #2a2a3d !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .video-option-item {
+    color: #e0e0e0 !important;
+    
+    &:hover {
+      background-color: #2a2a3d !important;
+    }
+  }
+  
+  // Beviteli mezők sötét mód
+  input, textarea, select {
+    background-color: #333345 !important;
+    color: #e0e0e0 !important;
+    border: none !important;
+    
+    &::placeholder {
+      color: #888 !important;
+    }
+    
+    &:focus {
+      outline: none !important;
+    }
+  }
+  
+  // Gombok sötét mód
+  button {
+    &.action-button {
+      background-color: #5a61d2 !important;
+      
+      &:hover {
+        background-color: #7078e6 !important;
+      }
+    }
+  }
+  
+  // Kártya elemek sötét mód
+  .card, .panel, .container, .profile-content, .profile-tab-content, .media-grid, .media-item {
+    background-color: #252536 !important;
+    border: 1px solid #333345 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  // Biztosítjuk, hogy a profil panel minden eleme sötét legyen
+  .profile-content, .profile-tab-content, .tab-content, .media-grid, .media-item, .media-preview {
+    background-color: #1a1a2e !important;
+    color: #e0e0e0 !important;
+  }
+  
+  // Biztosítjuk, hogy a profil panel minden belső eleme megfelelő színt kapjon
+  .profile-content, .profile-tab-content, .tab-content, .media-grid {
+    background-color: #1a1a2e !important;
+    color: #e0e0e0 !important;
+  }
+  
+  // Biztosítjuk, hogy a profil panel minden eleme sötét hátteret kapjon
+  .profile-content, .profile-section, .profile-tab-content, 
+  .media-grid, .media-preview, .profile-option, .profile-tabs, .tab-content {
+    background-color: #1a1a2e !important;
+  }
+  
+  // Appearance selector sötét mód
+  .appearance-section, .appearance-selector, .theme-selector {
+    background-color: #1a1a2e !important;
+    color: #e0e0e0 !important;
+    
+    h3, p, span {
+      color: #e0e0e0 !important;
+    }
+  }
+  
+  // Biztosítjuk, hogy a média elemek megfelelően jelenjenek meg
+  .media-item {
+    border: 1px solid #333345 !important;
+  }
+  
+  // Profil panel fül navigáció
+  .profile-tabs {
+    background-color: #1a1a2e !important;
+    border-bottom: 1px solid #2a2a3d !important;
+    
+    .profile-tab {
+      color: rgba(255, 255, 255, 0.6) !important;
+      
+      &.active {
+        color: #fff !important;
+        border-bottom-color: #5a61d2 !important;
+      }
+    }
+  }
+  
+  // Görgetősáv sötét mód
+  ::-webkit-scrollbar {
+    width: 8px !important;
+    height: 8px !important;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #1a1a2e !important;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #444456 !important;
+    border-radius: 4px !important;
+    
+    &:hover {
+      background: #5a61d2 !important;
+    }
+  }
+  
+  // Téma választó sötét mód
+  .theme-options, .theme-preview {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  .theme-button {
+    background-color: #333345 !important;
+    border: none !important;
+    
+    &.active {
+      background-color: #5a61d2 !important;
+    }
+  }
+  
+  // Auth konténerek sötét mód
+  .auth-container, .login-form, .register-form, .auth-form {
+    background-color: #1a1a2e !important;
+    color: #e0e0e0 !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
+    
+    h1, h2, h3, p, label {
+      color: #e0e0e0 !important;
+    }
+  }
+  
+  // Chat fejléc és üzenet beviteli mezők
+  .chat-header, .message-input-container, .message-input-wrapper {
+    background-color: #1a1a2e !important;
+    border-color: transparent !important;
+  }
+  
+  // Dialógusok és modális ablakok
+  .dialog, .modal, .new-chat-dialog, .message-options-dropdown, .edit-message-modal,
+  .popup, .popup-container, .popup-window, .popup-modal, .popup-dialog,
+  .settings-popup, .appearance-popup, .theme-popup, .new-conversation-popup,
+  .settings-modal, .settings-modal-overlay, .appearance-modal {
+    background-color: #1a1a2e !important;
+    color: #e0e0e0 !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+  }
+  
+  // Témaválasztó és gomb konténerek teljesen átlátszóak
+  .modal-actions, .theme-selector, .appearance-selector {
+    background-color: transparent !important;
+    color: #e0e0e0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  // Dialógusok és modális ablakok közös stílusok
+  .dialog, .modal, .popup, .popup-container, .popup-window, .popup-modal, .popup-dialog,
+  .settings-popup, .appearance-popup, .theme-popup, .new-conversation-popup,
+  .settings-modal, .settings-modal-overlay, .appearance-modal, .modal-actions, .theme-selector, .appearance-selector {
+    h1, h2, h3, h4, h5, h6 {
+      color: #e0e0e0 !important;
+    }
+    
+    input, textarea, select {
+      background-color: #2a2a3d !important;
+      color: #e0e0e0 !important;
+      border: none !important;
+      
+      &::placeholder {
+        color: #888 !important;
+      }
+    }
+    
+    button {
+      &.primary, &.action, &.submit {
+        background-color: #5a61d2 !important;
+        color: #fff !important;
+        
+        &:hover {
+          background-color: #7078e6 !important;
+        }
+      }
+      
+      &.secondary, &.cancel {
+        background-color: #888888 !important;
+        color: #ffffff !important;
+        border: none !important;
+        
+        &:hover {
+          background-color: #999999 !important;
+        }
+      }
+    }
+  }
+  
+  // Üzenet opciók és szerkesztés
+  .message-option {
+    color: #e0e0e0 !important;
+    
+    &:hover {
+      background-color: #2a2a3d !important;
+    }
+    
+    &.delete {
+      color: #ff6b6b !important;
+    }
+  }
+  
+  .edit-message-header, .edit-message-footer {
+    border-color: transparent !important;
+  }
+  
+  .edit-message-textarea {
+    background-color: #2a2a3d !important;
+    color: #e0e0e0 !important;
+    border-color: transparent !important;
+    
+    &:focus {
+      outline: none !important;
+    }
+  }
+  
+  // Discord hover actions
+  .discord-hover-actions {
+    background-color: rgba(26, 26, 46, 0.9) !important;
+  }
+  
+  // Reply box
+  .reply-box {
+    background-color: rgba(90, 97, 210, 0.2) !important;
+  }
+  
+  // Discord válasz doboz világosítása sötét módban
+  .discord-reply-indicator {
+    background-color: rgba(90, 97, 210, 0.3) !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+  }
+  
+  // Válasz szöveg színének beállítása sötét módban
+  .reply-content .reply-text {
+    color: #e0e0e0 !important;
+    opacity: 1 !important;
+  }
+  
+  // Üzenet lista és konténer
+  .message-list, .messages-container {
+    background-color: #1e1e2e !important;
+    padding: 10px !important;
+  }
+  
+  // Üzenetbuborékok sötét mód
+  .message-bubble {
+    background-color: #2a2a3d !important;
+    color: #e0e0e0 !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  .message-sent .message-bubble {
+    background-color: #5a61d2 !important;
+    color: #fff !important;
+  }
+  
+  .message-received .message-bubble {
+    background-color: #2a2a3d !important;
+    color: #e0e0e0 !important;
+  }
+  
+  // Háttér elemek sötét mód
+  .chat-application {
+    background-color: #181825 !important;
+  }
+}
+.input-icon, .search-icon, .question-icon {
+  background-color: transparent !important;
+  color: #7078e6 !important;
+}

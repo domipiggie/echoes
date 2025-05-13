@@ -30,3 +30,6 @@ vue/*.ntvs*
 vue/*.njsproj
 vue/*.sln
 vue/*.sw?
+
+php/logs
+php/uploads
