@@ -193,20 +193,26 @@ class Message
                 throw new ApiException("Message not found or you don't have permission to delete it", 403);
             }
 
-            $sql = "DELETE FROM " . $this->table_name . " 
-                    WHERE messageID = :messageId AND userID = :userId";
+            $db = (new Database())->getConnection();
+            $db->beginTransaction();
 
-            $args = [
-                [':messageId', $messageId],
-                [':userId', $userId]
-            ];
+            $sql = "UPDATE " . $this->table_name . " SET replyTo = NULL WHERE replyTo = :messageId";
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':messageId', $messageId);
+            $stmt->execute();
 
-            $result = DatabaseOperations::updateDB($sql, $args);
+            $sql = "DELETE FROM " . $this->table_name . " WHERE messageID = :messageId AND userID = :userId";
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':messageId', $messageId);
+            $stmt->bindParam(':userId', $userId);
+            $result = $stmt->execute();
 
-            if ($result) {
+            if ($stmt->rowCount() > 0) {
+                $db->commit();
                 return true;
             }
 
+            $db->rollBack();
             throw new ApiException("Failed to delete message", 500);
         } catch (ApiException $e) {
             throw new ApiException($e->getMessage(), $e->getStatusCode());
