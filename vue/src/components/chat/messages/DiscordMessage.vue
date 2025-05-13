@@ -200,15 +200,15 @@ const emit = defineEmits([
 
 .discord-hover-actions {
   position: absolute;
-  right: -40px;
+  right: 0px;
   top: 50%;
   transform: translateY(-50%);
   background: rgba(0, 0, 0, 0.8);
   border-radius: 8px;
-  padding: 8px;
+  padding: 0px 8px;
   z-index: 100;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   
   .hover-action-btn {
     display: block;
