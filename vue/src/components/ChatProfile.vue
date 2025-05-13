@@ -78,7 +78,7 @@ const leaveGroup = () => {
   alertStore.addAlert(new Alert(
     'Megerősítés',
     'Biztosan el szeretnéd hagyni ezt a csoportot?',
-    'confitm',
+    'confirm',
     () => leaveGroupCallback()
   ))
 }
@@ -95,7 +95,7 @@ const deleteGroup = () => {
   alertStore.addAlert(new Alert(
     'Megerősítés',
     'Biztosan törölni szeretnéd ezt a csoportot? Ez a művelet nem visszavonható.',
-    'confitm',
+    'confirm',
     () => deleteGroupCallback()
   ))
 }
@@ -113,7 +113,7 @@ const deleteFriend = () => {
   alertStore.addAlert(new Alert(
     'Megerősítés',
     'Biztosan törölni szeretnéd ezt a barátot?',
-    'confitm',
+    'confirm',
     () => deleteFriendCallback()
   ))
 }
@@ -157,7 +157,6 @@ const profilePicture = computed(() => {
           <span v-else class="avatar-circle">{{ messageStore.getCurrentChannelName.charAt(0).toUpperCase() }}</span>
         </div>
         <h2>{{ messageStore.getCurrentChannelName }}</h2>
-        <div class="last-seen">Elérhető volt: {{ }}soha</div>
       </div>
 
       <div class="profile-section" v-if="channelStore.getGroupChannelById(messageStore.getCurrentChannelId)">

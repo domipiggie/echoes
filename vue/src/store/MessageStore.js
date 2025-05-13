@@ -171,16 +171,15 @@ export const useMessageStore = defineStore('message', () => {
     if (messageIndex !== -1) {
       const updatedMessage = messages.value[messageIndex];
 
-      const messageData = {
-        messageID: updatedMessage.getMessageID(),
-        channelID: updatedMessage.getChannelID(),
-        content: newContent,
-        type: updatedMessage.getType(),
-        sent_at: updatedMessage.getSentAt(),
-        user: updatedMessage.getUser()
-      };
-
-      const newMessage = mapToMessageInstance(messageData);
+      const newMessage = new Message(
+        updatedMessage.getMessageID(),
+        updatedMessage.getChannelID(),
+        newContent,
+        updatedMessage.getType(),
+        updatedMessage.getSentAt(),
+        updatedMessage.getUser(),
+        updatedMessage.getReplyTo()
+      );
       messages.value.splice(messageIndex, 1, newMessage);
       return newMessage;
     }

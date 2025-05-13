@@ -1,16 +1,10 @@
 <?php
 class FriendshipStatus
 {
-    private $dbConn;
     private $status_table = 'friendshipStatus';
     private $statusID;
     private $initiator;
     private $status;
-
-    public function __construct($dbConn)
-    {
-        $this->dbConn = $dbConn;
-    }
 
     public function loadFromDB($statusID)
     {
@@ -23,7 +17,7 @@ class FriendshipStatus
                 [':statusID', $statusID]
             ];
 
-            $result = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
+            $result = DatabaseOperations::fetchFromDB($sql, $args);
 
             if (count($result) > 0) {
                 $row = $result[0];
@@ -53,7 +47,7 @@ class FriendshipStatus
                 [':initiator', $this->initiator]
             ];
 
-            $result = DatabaseOperations::insertIntoDB($this->dbConn, $sql, $args);
+            $result = DatabaseOperations::insertIntoDB($sql, $args);
 
             if ($result) {
                 $this->statusID = $result[1];
@@ -82,7 +76,7 @@ class FriendshipStatus
                 [':statusID', $this->statusID]
             ];
 
-            $result = DatabaseOperations::updateDB($this->dbConn, $sql, $args);
+            $result = DatabaseOperations::updateDB($sql, $args);
 
             if ($result === true || (is_numeric($result) && $result > 0)) {
                 $this->status = $status;
@@ -110,7 +104,7 @@ class FriendshipStatus
                 [':statusID', $this->statusID]
             ];
 
-            $result = DatabaseOperations::updateDB($this->dbConn, $sql, $args);
+            $result = DatabaseOperations::updateDB($sql, $args);
 
             if ($result === true || (is_numeric($result) && $result > 0)) {
                 $this->initiator = $newInitiator;

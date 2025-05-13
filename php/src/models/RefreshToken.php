@@ -1,13 +1,7 @@
 <?php
 class RefreshToken
 {
-    private $dbConn;
     private $table_name = "refresh_token";
-
-    public function __construct($dbConn)
-    {
-        $this->dbConn = $dbConn;
-    }
 
     public function create($userID)
     {
@@ -26,7 +20,7 @@ class RefreshToken
                 [':expires_at', $expires_at]
             ];
 
-            $results = DatabaseOperations::insertIntoDB($this->dbConn, $query, $args);
+            $results = DatabaseOperations::insertIntoDB($query, $args);
 
             if (count($results) > 0 && $results[0] > 0) {
                 return [
@@ -55,7 +49,7 @@ class RefreshToken
                 [':token', $token]
             ];
 
-            $results = DatabaseOperations::fetchFromDB($this->dbConn, $query, $args);
+            $results = DatabaseOperations::fetchFromDB($query, $args);
 
             if (count($results) > 0) {
                 $row = $results[0];
@@ -91,7 +85,7 @@ class RefreshToken
                 [':token', $token]
             ];
 
-            $results = DatabaseOperations::updateDB($this->dbConn, $query, $args);
+            $results = DatabaseOperations::updateDB($query, $args);
 
             return $results === true || (is_numeric($results) && $results > 0);
         } catch (Exception $e) {

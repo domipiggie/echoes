@@ -41,7 +41,6 @@ const submitMessage = () => {
     
     if (props.replyingTo) {
       messageToSend.replyTo = props.replyingTo.id;
-      
     }
     
     emit('send-message', messageToSend);

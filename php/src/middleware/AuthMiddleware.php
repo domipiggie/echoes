@@ -2,10 +2,10 @@
 
 class AuthMiddleware
 {
-    public static function login($db, $data)
+    public static function login($data)
     {
-        $user = new User($db);
-        $refreshToken = new RefreshToken($db);
+        $user = new User();
+        $refreshToken = new RefreshToken();
 
         try {
             if (
@@ -34,9 +34,9 @@ class AuthMiddleware
         }
     }
 
-    public static function register($db, $data)
+    public static function register($data)
     {
-        $user = new User($db);
+        $user = new User();
 
         try {
             if ($user->emailExists($data['email'])) {
@@ -57,10 +57,10 @@ class AuthMiddleware
         }
     }
 
-    public static function refresh($db, $refreshTokenString)
+    public static function refresh($refreshTokenString)
     {
-        $user = new User($db);
-        $refreshTokenObj = new RefreshToken($db);
+        $user = new User();
+        $refreshTokenObj = new RefreshToken();
 
         try {
             $userID = $refreshTokenObj->validate($refreshTokenString);
@@ -89,9 +89,9 @@ class AuthMiddleware
         }
     }
 
-    public static function logout($db, $refreshToken)
+    public static function logout($refreshToken)
     {
-        $refreshTokenObj = new RefreshToken($db);
+        $refreshTokenObj = new RefreshToken();
 
         try {
             $refreshTokenObj->revoke($refreshToken);

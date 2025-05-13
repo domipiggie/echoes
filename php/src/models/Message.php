@@ -1,13 +1,7 @@
 <?php
 class Message
 {
-    private $dbConn;
     private $table_name = "message";
-
-    public function __construct($dbConn)
-    {
-        $this->dbConn = $dbConn;
-    }
 
     public function createMessage($channelID, $userID, $content, $type = 'text', $replyTo = null)
     {
@@ -24,7 +18,7 @@ class Message
                 [':replyTo', $replyTo]
             ];
 
-            $result = DatabaseOperations::insertIntoDB($this->dbConn, $sql, $args);
+            $result = DatabaseOperations::insertIntoDB($sql, $args);
 
             if ($result) {
                 $messageID = $result[1];
@@ -59,7 +53,7 @@ class Message
                 [':channelID', $channelID]
             ];
 
-            $directUsers = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
+            $directUsers = DatabaseOperations::fetchFromDB($sql, $args);
             $directUserIds = array_column($directUsers, 'userID');
 
             $sql = "SELECT f.user1ID, f.user2ID FROM channel_list cl
@@ -70,7 +64,7 @@ class Message
                 [':channelID', $channelID]
             ];
 
-            $friendshipResults = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
+            $friendshipResults = DatabaseOperations::fetchFromDB($sql, $args);
 
             $friendshipUsers = [];
             foreach ($friendshipResults as $row) {
@@ -99,7 +93,7 @@ class Message
                 [':channelID', $channelID]
             ];
 
-            $result = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
+            $result = DatabaseOperations::fetchFromDB($sql, $args);
 
             if (count($result) > 0) {
                 return true;
@@ -112,7 +106,7 @@ class Message
                 [':channelID', $channelID]
             ];
 
-            $result = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
+            $result = DatabaseOperations::fetchFromDB($sql, $args);
 
             if (count($result) === 0) {
                 return false;
@@ -135,7 +129,7 @@ class Message
                 [':userID', $userID]
             ];
 
-            $result = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
+            $result = DatabaseOperations::fetchFromDB($sql, $args);
 
             return count($result) > 0;
         } catch (ApiException $e) {
@@ -156,7 +150,7 @@ class Message
                 [':userId', $userId]
             ];
 
-            $result = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
+            $result = DatabaseOperations::fetchFromDB($sql, $args);
 
             return count($result) > 0;
         } catch (ApiException $e) {
@@ -182,7 +176,7 @@ class Message
                 [':channelID', $channelID]
             ];
 
-            $results = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
+            $results = DatabaseOperations::fetchFromDB($sql, $args);
 
             return $results;
         } catch (ApiException $e) {
@@ -207,7 +201,7 @@ class Message
                 [':userId', $userId]
             ];
 
-            $result = DatabaseOperations::updateDB($this->dbConn, $sql, $args);
+            $result = DatabaseOperations::updateDB($sql, $args);
 
             if ($result) {
                 return true;
@@ -229,7 +223,7 @@ class Message
             }
 
             $sql = "UPDATE " . $this->table_name . " 
-                    SET content = :content, edited_at = NOW()
+                    SET content = :content
                     WHERE messageID = :messageId AND userID = :userId";
 
             $args = [
@@ -238,7 +232,7 @@ class Message
                 [':userId', $userId]
             ];
 
-            $result = DatabaseOperations::updateDB($this->dbConn, $sql, $args);
+            $result = DatabaseOperations::updateDB($sql, $args);
 
             return $result > 0;
 
@@ -260,7 +254,7 @@ class Message
                 [':messageId', $messageId]
             ];
 
-            $result = DatabaseOperations::fetchFromDB($this->dbConn, $sql, $args);
+            $result = DatabaseOperations::fetchFromDB($sql, $args);
 
             if (count($result) > 0) {
                 return $result[0]['channelID'];

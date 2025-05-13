@@ -11,7 +11,6 @@ class MessageHandler
 {
     protected $clients;
     protected $logger;
-    protected $dbConn;
     protected $friendshipHandler;
     protected $chatMessageHandler;
     protected $groupHandler;
@@ -21,12 +20,9 @@ class MessageHandler
         $this->clients = $clients;
         $this->logger = $logger;
 
-        $database = new \Database();
-        $this->dbConn = $database->getConnection();
-
-        $this->friendshipHandler = new FriendshipHandler($clients, $logger, $this->dbConn);
-        $this->chatMessageHandler = new ChatMessageHandler($clients, $logger, $this->dbConn);
-        $this->groupHandler = new GroupHandler($this->dbConn, $logger, $this->clients);
+        $this->friendshipHandler = new FriendshipHandler($clients, $logger);
+        $this->chatMessageHandler = new ChatMessageHandler($clients, $logger);
+        $this->groupHandler = new GroupHandler($logger, $this->clients);
     }
 
     public function handleMessage(ConnectionInterface $from, $data)

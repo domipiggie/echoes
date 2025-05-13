@@ -6,9 +6,11 @@
   import ChatProfile from './ChatProfile.vue';
   import { userdataStore } from '../store/UserdataStore';
   import { useMessageStore } from '../store/MessageStore';
+  import { useWebSocketStore } from '../store/WebSocketStore';
   
   const userStore = userdataStore();
   const messageStore = useMessageStore();
+  const webSocketStore = useWebSocketStore();
   
   const emit = defineEmits(['send-message', 'go-back', 'update-message', 'send-file', 'delete-message']);
   
@@ -35,7 +37,8 @@
   
   const startEditing = (message) => {
     console.log('Szerkesztés indítása:', message);
-    if (message.getUser().getUserID() === userStore.getUserID() && !message.isRevoked) {
+    if (message.getUser().getUserID() == userStore.getUserID()) {
+      console.log('Szerkesztés engedélyezve');
       editingMessage.value = {
         id: message.getMessageID(),
         text: message.getContent()
@@ -52,17 +55,17 @@
   };
   
   const saveEdit = (newText) => {
-    if (editingMessage.value && newText.trim()) {
-      const messageIndex = messageStore.getMessages.findIndex(msg => msg.getMessageID() === editingMessage.value.id);
-      if (messageIndex !== -1) {
-        const updatedMessage = messageStore.getMessages[messageIndex];
-        updatedMessage.setContent(newText);
-        
-        emit('update-message', updatedMessage);
-        console.log('Üzenet szerkesztve:', updatedMessage);
+    try {
+      if (webSocketStore.isConnected) {
+        webSocketStore.send({
+          type: 'chatmessage_edit',
+          messageId: editingMessage.value.id,
+          content: newText
+        });
       }
-      
       cancelEditing();
+    } catch (error) {
+      console.error('Hiba történt a szerkesztés mentése közben:', error);
     }
   };
   

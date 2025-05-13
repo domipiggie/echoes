@@ -6,7 +6,7 @@ class FileMiddleware
     private static $GROUP_PROFILE_DIR = '/../../uploads/groupProfiles/';
     private static $PROFILE_PIC_MAX_SIZE = 5 * 1024 * 1024; // 5MB
     
-    public static function uploadFile($userID, $file, $dbConn)
+    public static function uploadFile($userID, $file)
     {
         try {
             if (!isset($file) || $file['error'] !== UPLOAD_ERR_OK) {
@@ -20,7 +20,7 @@ class FileMiddleware
             }
 
             $maxTotalStorage = 1000 * 1024 * 1024; // 1000MB in bytes
-            $fileModel = new File($dbConn);
+            $fileModel = new File();
             $currentTotalSize = $fileModel->getTotalUserFileSize($userID);
             
             if (($currentTotalSize + $file['size']) > $maxTotalStorage) {
@@ -63,10 +63,10 @@ class FileMiddleware
         }
     }
 
-    public static function getUserFiles($userID, $dbConn)
+    public static function getUserFiles($userID)
     {
         try {
-            $fileModel = new File($dbConn);
+            $fileModel = new File();
             return $fileModel->getUserFiles($userID);
         } catch (ApiException $e) {
             throw new ApiException($e->getMessage(), $e->getStatusCode());
@@ -75,10 +75,10 @@ class FileMiddleware
         }
     }
 
-    public static function getFileByUniqueName($uniqueName, $dbConn)
+    public static function getFileByUniqueName($uniqueName)
     {
         try {
-            $fileModel = new File($dbConn);
+            $fileModel = new File();
             $fileInfo = $fileModel->getFileByUniqueName($uniqueName);
             
             $filePath = __DIR__ . '/../../uploads/' . $fileInfo['unique_name'];
@@ -100,10 +100,10 @@ class FileMiddleware
         }
     }
 
-    public static function deleteFile($fileID, $userID, $dbConn)
+    public static function deleteFile($fileID, $userID)
     {
         try {
-            $fileModel = new File($dbConn);
+            $fileModel = new File();
             
             $fileInfo = $fileModel->getFileById($fileID);
             
@@ -148,10 +148,10 @@ class FileMiddleware
         }
     }
 
-    public static function getTotalUserFileSize($userID, $dbConn)
+    public static function getTotalUserFileSize($userID)
     {
         try {
-            $fileModel = new File($dbConn);
+            $fileModel = new File();
             $totalSize = $fileModel->getTotalUserFileSize($userID);
             
             $units = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -175,7 +175,7 @@ class FileMiddleware
         }
     }
     
-    public static function uploadUserProfilePicture($userID, $file, $dbConn)
+    public static function uploadUserProfilePicture($userID, $file)
     {
         try {
             if (!isset($file) || $file['error'] !== UPLOAD_ERR_OK) {
@@ -215,7 +215,7 @@ class FileMiddleware
             }
             
             $timestamp = time();
-            $user = new User($dbConn);
+            $user = new User();
             $user->loadFromID($userID);
             $user->setProfilePicture('/pfp/user/' . $userID . '?v=' . $timestamp);
             
@@ -257,10 +257,10 @@ class FileMiddleware
         }
     }
     
-    public static function uploadGroupProfilePicture($channelID, $userID, $file, $dbConn)
+    public static function uploadGroupProfilePicture($channelID, $userID, $file)
     {
         try {
-            $groupModel = new Group($dbConn);
+            $groupModel = new Group();
             $groupID = $groupModel->getGroupIdFromChannel($channelID);
             $isOwner = $groupModel->isGroupOwner($userID, $groupID);
             
@@ -305,7 +305,7 @@ class FileMiddleware
             }
             
             $timestamp = time();
-            $groupModel->setProfilePicture('/pfp/group/' . $groupID . '?v=' . $timestamp, $groupID, $dbConn);
+            $groupModel->setProfilePicture('/pfp/group/' . $groupID . '?v=' . $timestamp, $groupID);
             
             return [
                 'success' => true,

@@ -43,6 +43,10 @@ const startReply = (message) => {
     emit('start-reply', message);
 };
 
+const startEditing = (message) => {
+    emit('start-editing', message);
+};
+
 const handleScroll = async () => {
   if (!messagesContainer.value || isLoadingMore.value) return;
   
@@ -114,8 +118,8 @@ onUnmounted(() => {
         @toggle-fullscreen="toggleFullscreen"
         @toggle-mute="toggleMute"
         @start-reply="startReply(message)"
-        @start-editing="emit('start-editing', $event)"
-        @delete-message="emit('delete-message', $event)"
+        @start-editing="startEditing(message)"
+        @delete-message="startEditing(message)"
       />
     </template>
     

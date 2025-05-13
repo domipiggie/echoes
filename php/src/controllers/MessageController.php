@@ -1,13 +1,6 @@
 <?php
 class MessageController
 {
-    private $dbConn;
-
-    public function __construct($dbConn)
-    {
-        $this->dbConn = $dbConn;
-    }
-
     public function handleGetChannelMessages($channelId)
     {
         try {
@@ -24,7 +17,7 @@ class MessageController
                 $limit = 100;
             }
 
-            $response = MessageMiddleware::getChannelMessages($channelId, $user->id, $this->dbConn, $offset, $limit);
+            $response = MessageMiddleware::getChannelMessages($channelId, $user->id, $offset, $limit);
 
             ResponseHandler::success($response);
         } catch (ApiException $e) {
