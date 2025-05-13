@@ -100,13 +100,13 @@ const emit = defineEmits([
                   preload="metadata"
                 ></video>
                 <div class="video-options">
-                  <button @click.stop="$emit('toggle-video-options', message.getMessageID())" class="video-options-button">
+                  <span @click.stop="$emit('toggle-video-options', message.getMessageID())" class="video-options-button">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <circle cx="12" cy="12" r="1"></circle>
                       <circle cx="12" cy="5" r="1"></circle>
                       <circle cx="12" cy="19" r="1"></circle>
                     </svg>
-                  </button>
+                  </span>
                   <div v-if="showVideoOptions[message.getMessageID()]" class="video-options-menu">
                     <div class="video-option-item" @click.stop="$emit('toggle-fullscreen', $event.target.closest('.video-container').querySelector('video'))">
                       Teljes képernyő
@@ -200,15 +200,15 @@ const emit = defineEmits([
 
 .discord-hover-actions {
   position: absolute;
-  right: -40px;
+  right: 0px;
   top: 50%;
   transform: translateY(-50%);
   background: rgba(0, 0, 0, 0.8);
   border-radius: 8px;
-  padding: 8px;
+  padding: 0px 8px;
   z-index: 100;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   
   .hover-action-btn {
     display: block;

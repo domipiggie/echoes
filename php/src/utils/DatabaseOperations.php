@@ -1,3 +1,4 @@
+
 <?php
 
 class DatabaseOperations
@@ -15,6 +16,22 @@ class DatabaseOperations
         return $newArgs;
     }
 
+    private static function desanitize($data)
+    {
+        if (is_array($data)) {
+            foreach ($data as $key => $value) {
+                if (is_array($value)) {
+                    $data[$key] = self::desanitize($value);
+                } else if (is_string($value)) {
+                    $data[$key] = htmlspecialchars_decode($value, ENT_QUOTES);
+                }
+            }
+        } else if (is_string($data)) {
+            $data = htmlspecialchars_decode($data, ENT_QUOTES);
+        }
+        return $data;
+    }
+
     private static function executeQuery($sql, $args = [], $fetchMode = null)
     {
         $database = new Database();
@@ -30,6 +47,7 @@ class DatabaseOperations
         $returnValue = null;
         if ($fetchMode === 'fetch') {
             $returnValue = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $returnValue = self::desanitize($returnValue);
         } else if ($fetchMode === 'insert') {
             $rowCount = $stmt->rowCount();
             $lastId = $conn->lastInsertId();
@@ -57,5 +75,10 @@ class DatabaseOperations
     public static function updateDB($sql, $args = [])
     {
         return self::executeQuery($sql, $args, 'update');
+    }
+    
+    public static function desanitizeData($data)
+    {
+        return self::desanitize($data);
     }
 }

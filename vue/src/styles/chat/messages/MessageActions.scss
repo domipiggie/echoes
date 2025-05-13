@@ -2,6 +2,7 @@
 .message-hover-actions {
   position: absolute;
   display: flex;
+  flex-direction: column;
   gap: 4px;
   opacity: 0;
   transition: opacity 0.2s ease;

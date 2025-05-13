@@ -61,6 +61,6 @@ export default class FriendshipChannel {
     }
 
     getLastMessageFormat() {
-        return this.getLastMessageUsername() + ": " + this.getLastMessage();
+        return this.getLastMessageUsername() == undefined ? undefined : this.getLastMessageUsername() + ": " + this.getLastMessage();
     }
 }

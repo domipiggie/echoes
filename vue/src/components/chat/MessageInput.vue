@@ -229,15 +229,4 @@ const handleImageUpload = (event) => {
   flex-direction: column;
 }
 
-.reply-to {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 2px;
-}
-
-.reply-text {
-  font-size: 14px;
-  color: #ffffff; /* Fehér szín a válasz szövegének */
-  word-break: break-word;
-}
 </style>

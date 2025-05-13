@@ -37,9 +37,12 @@ class ProfilePictureController
 
             $fileInfo = FileMiddleware::getUserProfilePicture($userID);
             
+            while (ob_get_level()) ob_end_clean();
+            
             header('Content-Type: ' . $fileInfo['fileType']);
             header('Content-Disposition: inline; filename="' . $fileInfo['fileName'] . '"');
             header('Content-Length: ' . $fileInfo['fileSize']);
+            header('Cache-Control: no-cache, must-revalidate');
             
             readfile($fileInfo['filePath']);
             exit;
@@ -90,10 +93,13 @@ class ProfilePictureController
 
             $fileInfo = FileMiddleware::getGroupProfilePicture($groupID);
             
+            while (ob_get_level()) ob_end_clean();
+            
             header('Content-Type: ' . $fileInfo['fileType']);
             header('Content-Disposition: inline; filename="' . $fileInfo['fileName'] . '"');
             header('Content-Length: ' . $fileInfo['fileSize']);
-            
+            header('Cache-Control: no-cache, must-revalidate');
+
             readfile($fileInfo['filePath']);
             exit;
         } catch (ApiException $e) {

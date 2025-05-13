@@ -10,7 +10,7 @@ class Userinfo
                         ELSE f.user1ID
                     END as friendID, fs.initiator as initiator, u.username, u.displayName, u.profilePicture
                     FROM friendship f
-                    INNER JOIN friendshipStatus fs
+                    INNER JOIN friendshipstatus fs
                         ON f.statusID = fs.statusID
                     INNER JOIN user u
                         ON (
@@ -49,7 +49,7 @@ class Userinfo
                     ON
                         cl.`friendshipID` = f.`friendshipID`
                     INNER JOIN
-                        `friendshipStatus` fs
+                        `friendshipstatus` fs
                     ON
                         f.`statusID` = fs.`statusID`
                     INNER JOIN

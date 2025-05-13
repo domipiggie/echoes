@@ -227,7 +227,9 @@ class Group
     public function deleteGroup($groupId, $channelId)
     {
         try {
-            $sql = "DELETE FROM message WHERE channelID = :channelID";
+            $sql = "SET FOREIGN_KEY_CHECKS = 0;
+                    DELETE FROM message WHERE channelID = :channelID;
+                    SET FOREIGN_KEY_CHECKS = 1;";
             $args = [
                 [':channelID', $channelId]
             ];
@@ -250,6 +252,7 @@ class Group
                 [':groupID', $groupId]
             ];
             \DatabaseOperations::updateDB($sql, $args);
+            
             return true;
         } catch (\Exception $e) {
             throw new \WebSocketException(
