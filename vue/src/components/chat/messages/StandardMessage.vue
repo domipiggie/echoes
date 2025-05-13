@@ -121,7 +121,7 @@ const closeImageModal = () => {
         </div>
         
         <!-- Text messages -->
-        <span v-else-if="message.getType() !== 'audio' && message.getType() !== 'file'" 
+        <span v-else-if="message.getType() == 'text'" 
               :class="{ 'revoked-message': message.isRevoked }">
             {{ message.getContent() }}
         </span>
