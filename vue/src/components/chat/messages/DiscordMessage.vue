@@ -170,4 +170,115 @@ const emit = defineEmits([
 @import '../../../styles/chat/themes/DiscordTheme.scss';
 @import '../../../styles/chat/Avatar.scss';
 
+// GIF konténer stílusok
+.gif-container {
+  background-color: rgba(138, 43, 226, 0.1); // Halvány lila háttér
+  border-radius: 8px;
+  padding: 8px;
+  margin: 4px 0;
+  
+  .message-gif {
+    max-width: 200px; // Kisebb méret
+    max-height: 200px;
+    border-radius: 4px;
+  }
+}
+
+.message-image {
+  max-width: 300px;
+  max-height: 300px;
+  border-radius: 4px;
+}
+
+// Discord küldő neve stílus
+.sender-name {
+  margin-left: 72px; // Igazítás az avatar helyéhez
+  margin-bottom: 0;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.discord-hover-actions {
+  position: absolute;
+  right: 0px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 8px;
+  padding: 0px 8px;
+  z-index: 100;
+  display: flex;
+  flex-direction: row;
+  
+  .hover-action-btn {
+    display: block;
+    margin: 4px 0;
+    padding: 8px;
+    width: 32px;
+    height: 32px;
+    transition: background-color 0.2s ease;
+    border-radius: 4px;
+    text-align: center;
+    
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+}
+
+// Saját üzenetek szövegének világosítása
+.message-sent {
+  .message-bubble {
+    color: #ffffff; // Fehér szöveg a saját üzenetekhez
+    font-weight: 500; // Kicsit vastagabb betűtípus a jobb olvashatóságért
+  }
+  
+  // Válasz szöveg világosítása
+  .reply-content {
+    .reply-text {
+      color: #333333; // Sötétebb szín a válasz szövegének a világosabb háttéren
+      opacity: 1;
+    }
+  }
+  
+  // Visszavont üzenetek szövegének világosítása
+  .revoked-message {
+    color: rgba(255, 255, 255, 0.7); // Halványabb fehér a visszavont üzenetekhez
+    text-decoration: line-through;
+  }
+}
+
+// Válasz doboz háttérszínének világosítása
+.discord-reply-indicator {
+  background-color: #e0e5ff; // Világos kékes háttér
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+
+// Válasz szöveg világosítása általánosan
+.reply-content {
+  .reply-text {
+    color: #333333; // Sötétebb szín a válasz szövegének a világosabb háttéren
+    opacity: 1;
+  }
+
+  .reply-gif-container {
+    background-color: rgba(138, 43, 226, 0.1); // Halvány lila háttér
+    border-radius: 6px;
+    padding: 6px;
+    margin: 2px 0;
+    
+    .reply-gif {
+      max-width: 150px; // Még kisebb méret a válaszokban
+      max-height: 150px;
+      border-radius: 3px;
+    }
+  }
+}
 </style>

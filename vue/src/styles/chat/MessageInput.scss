@@ -1,6 +1,6 @@
 // Beviteli terület
 .input-area {
-  padding: 12px 8px;
+  padding: 12px 8px;  // Csökkentett padding
   background-color: #fff;
   border-top: 1px solid rgba(112, 120, 230, 0.1);
   position: relative;
@@ -11,26 +11,25 @@
   left: 0;
 }
 
-// Modern üzenet beviteli mező
 .modern-message-box {
   display: flex;
   align-items: center;
   background-color: #f5f5f5;
   border-radius: 24px;
   padding: 6px 8px;
-  width: 100%;
-  margin: 0;
+  width: 100%;  // Módosítva a teljes szélességre
+  margin: 0;    // Margó eltávolítva
   box-sizing: border-box;
   
   input {
     flex: 1;
     border: none;
     outline: none;
-    padding: 6px 8px;
+    padding: 6px 8px;  // Növelt padding
     font-size: 14px;
     color: #2d3748;
     background: transparent;
-    min-height: 24px;
+    min-height: 24px;  // Minimális magasság hozzáadva
     
     &::placeholder {
       color: #a0aec0;
@@ -38,24 +37,22 @@
   }
 }
 
-// Akció gombok konténerek
 .left-actions {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-right: 8px;
-  margin-left: 4px;
+  margin-right: 8px;  // Csökkentett margó
+  margin-left: 4px;   // Csökkentett margó
 }
 
 .message-actions {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-left: 8px;
-  margin-right: 4px;
+  margin-left: 8px;    // Csökkentett margó
+  margin-right: 4px;   // Csökkentett margó
 }
 
-// Gomb stílusok
 .action-button {
   width: 28px;
   height: 28px;
@@ -83,9 +80,32 @@
   }
 }
 
-// Másodlagos gombok (átlátszó hátterű)
-.attachment-button,
-.gif-button,
+.attachment-button, .gif-button {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #7078e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s ease;
+  padding: 0;
+  
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  &:hover {
+    color: #5a61d2;
+    transform: translateY(-1px);
+  }
+}
+
 .send-button {
   width: 28px;
   height: 28px;
@@ -112,9 +132,8 @@
   }
 }
 
-// Válasz és szerkesztés dobozok
-.reply-box,
-.edit-box {
+// Válasz doboz
+.reply-box, .edit-box {
   background-color: #f0f2ff;
   border-radius: 12px;
   padding: 10px 16px;
@@ -123,23 +142,20 @@
   align-items: center;
 }
 
-.reply-box-content,
-.edit-box-content {
+.reply-box-content, .edit-box-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
 }
 
-.reply-info,
-.edit-info {
+.reply-info, .edit-info {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.reply-to,
-.edit-label {
+.reply-to, .edit-label {
   font-size: 12px;
   color: #7078e6;
   font-weight: 500;
@@ -154,8 +170,7 @@
   text-overflow: ellipsis;
 }
 
-.cancel-reply-btn,
-.cancel-edit-btn {
+.cancel-reply-btn, .cancel-edit-btn {
   background: none;
   border: none;
   cursor: pointer;
@@ -192,9 +207,7 @@
     }
   }
   
-  .attachment-button,
-  .gif-button,
-  .send-button {
+  .attachment-button, .gif-button, .send-button {
     color: #a0a0ff;
     
     &:hover {
@@ -202,27 +215,15 @@
     }
   }
   
-  .reply-box,
-  .edit-box {
+  .reply-box, .edit-box {
     background-color: #3d3d4a;
   }
   
-  .reply-to,
-  .edit-label {
+  .reply-to, .edit-label {
     color: #a0a0ff;
   }
   
   .reply-text {
     color: #e0e0e0;
-  }
-  
-  .cancel-edit-btn,
-  .cancel-reply-btn {
-    color: rgba(255, 255, 255, 0.7);
-    
-    &:hover {
-      color: #ffffff;
-      background-color: rgba(255, 255, 255, 0.1);
-    }
   }
 }
